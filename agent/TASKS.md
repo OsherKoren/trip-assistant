@@ -64,26 +64,28 @@ Load trip data files from the `data/` directory.
 
 ---
 
-## Phase 3: Classifier Node
+## Phase 3: Classifier Node ✅
 
 Classify user questions by topic using LLM with structured output.
 
-- [ ] Create `src/nodes/` directory
-- [ ] Create `src/nodes/classifier.py`
-  - [ ] Define TopicClassification Pydantic model
+- [x] Create `src/nodes/` directory
+- [x] Create `src/nodes/classifier.py`
+  - [x] Define TopicClassification Pydantic model
     - `category: TopicCategory`
     - `confidence: float` (0.0 - 1.0)
-  - [ ] Implement `classify_question(state: TripAssistantState) -> dict`
-    - [ ] Use LLM with structured output to classify question
-    - [ ] Set category and confidence in returned state
-    - [ ] Set current_context to relevant document content
-- [ ] Create `tests/nodes/test_classifier.py`
-  - [ ] Test classifies flight questions correctly
-  - [ ] Test classifies car rental questions correctly
-  - [ ] Test returns confidence score
-  - [ ] Test sets current_context from documents
-- [ ] Run `pytest tests/nodes/test_classifier.py -v` (must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
+  - [x] Implement `classify_question(state: TripAssistantState) -> dict`
+    - [x] Use GPT-4o-mini with structured output to classify question
+    - [x] Set category and confidence in returned state
+    - [x] Set current_context to relevant document content
+- [x] Create `tests/nodes/test_classifier.py`
+  - [x] Test classifies all 6 category types correctly (parametrized)
+  - [x] Test returns confidence score
+  - [x] Test sets current_context from documents
+  - [x] Test general category handling
+- [x] Add pytest-mock to dev dependencies
+- [x] Create conftest.py with reusable mock_classifier_llm fixture
+- [x] Run `pytest tests/nodes/test_classifier.py -v` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
 
 **Topic Mapping**:
 | Category | Document | Example Questions |

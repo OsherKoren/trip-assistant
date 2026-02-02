@@ -1,0 +1,80 @@
+"""Classifier node for topic-based question routing."""
+
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+
+from src.state import TopicCategory, TripAssistantState
+
+# Document key mapping for categories
+CATEGORY_TO_DOCUMENT_KEY: dict[TopicCategory, str] = {
+    "flight": "flight",
+    "car_rental": "car_rental",
+    "routes": "routes_to_aosta",
+    "aosta": "aosta_valley",
+    "chamonix": "chamonix",
+    "annecy_geneva": "annecy_geneva",
+    "general": "",  # General uses all documents or none
+}
+
+
+class TopicClassification(BaseModel):
+    """Structured output model for question classification."""
+
+    category: TopicCategory = Field(
+        description="The topic category of the question",
+    )
+    confidence: float = Field(
+        description="Confidence score between 0.0 and 1.0",
+        ge=0.0,
+        le=1.0,
+    )
+
+
+def classify_question(state: TripAssistantState) -> dict:
+    """Classify question and set category + current_context.
+
+    Uses GPT-4o-mini with structured output to classify the question
+    into one of the predefined topic categories.
+
+    Args:
+        state: Current agent state with question and documents
+
+    Returns:
+        Updated state dict with category, confidence, and current_context set
+    """
+    question = state["question"]
+    documents = state["documents"]
+
+    # Initialize LLM with structured output
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    structured_llm = llm.with_structured_output(TopicClassification)
+
+    # Classification prompt
+    prompt = f"""Classify the following question about a family trip to the French/Italian Alps.
+
+Available categories:
+- flight: Questions about flight details (times, airline, etc.)
+- car_rental: Questions about car rental pickup, location, details
+- routes: Questions about driving routes to destinations
+- aosta: Questions about Aosta Valley itinerary (July 8-11)
+- chamonix: Questions about Chamonix itinerary (July 12-16)
+- annecy_geneva: Questions about Annecy/Geneva itinerary (July 16-20)
+- general: Unclear questions or general trip questions
+
+Question: {question}
+
+Classify this question and provide a confidence score (0.0-1.0)."""
+
+    # Get classification from LLM
+    classification: TopicClassification = structured_llm.invoke(prompt)
+
+    # Get the relevant document content based on category
+    doc_key = CATEGORY_TO_DOCUMENT_KEY[classification.category]
+    current_context = documents.get(doc_key, "") if doc_key else ""
+
+    # Return updated state
+    return {
+        "category": classification.category,
+        "confidence": classification.confidence,
+        "current_context": current_context,
+    }
