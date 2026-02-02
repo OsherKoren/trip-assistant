@@ -1,0 +1,35 @@
+# Pre-commit config for Python microservices (agent, api)
+# Does NOT run on frontend or infra folders
+
+repos:
+  # Ruff - Fast linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.1
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(agent|api)/.*\.py$
+      - id: ruff-format
+        files: ^(agent|api)/.*\.py$
+
+  # MyPy - Static type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        files: ^(agent|api)/.*\.py$
+        additional_dependencies:
+          - pydantic>=2.0
+          - langgraph>=1.0
+          - langchain-core
+        args: [--ignore-missing-imports]
+
+  # Pytest - Run tests for agent service
+  - repo: local
+    hooks:
+      - id: pytest-agent
+        name: pytest (agent)
+        entry: bash -c 'cd agent && uv run pytest tests/ -v --tb=short'
+        language: system
+        files: ^agent/.*\.py$
+        pass_filenames: false

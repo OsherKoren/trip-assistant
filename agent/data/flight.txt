@@ -1,0 +1,8 @@
+Flight Information
+
+Date: July 7, 2026
+Flight: El Al LY345
+Route: Tel Aviv -> Geneva International Airport
+
+Departure: 06:10
+Arrival: 09:40
