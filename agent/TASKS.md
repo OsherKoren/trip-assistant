@@ -36,21 +36,23 @@ Define the agent's state structure using TypedDict.
 
 ---
 
-## Phase 2: Document Loader
+## Phase 2: Document Loader ✅
 
 Load trip data files from the `data/` directory.
 
-- [ ] Create `src/documents.py`
-  - [ ] Implement `load_documents(data_dir: Path | None = None) -> dict[str, str]`
-  - [ ] Load all 6 .txt files from data directory
-  - [ ] Return dict mapping filename (without .txt) to content
+- [x] Create `src/documents.py`
+  - [x] Implement `load_documents(data_dir: Path | None = None) -> dict[str, str]`
+  - [x] Load all 6 .txt files from data directory
+  - [x] Return dict mapping filename (without .txt) to content
     - Example: `{"flight": "...", "car_rental": "...", ...}`
-- [ ] Create `tests/test_documents.py`
-  - [ ] Test loads all 6 txt files
-  - [ ] Test returns dict with correct keys
-  - [ ] Test handles missing directory gracefully
-- [ ] Run `pytest tests/test_documents.py -v` (must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
+- [x] Create `tests/test_documents.py`
+  - [x] Test loads all 6 txt files
+  - [x] Test returns dict with correct keys (parametrized)
+  - [x] Test handles missing directory gracefully
+  - [x] Test custom data directory
+  - [x] Test empty directory
+- [x] Run `pytest tests/test_documents.py -v` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
 
 **Data Files**:
 - `flight.txt` - El Al LY345, times
