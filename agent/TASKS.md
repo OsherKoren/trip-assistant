@@ -165,10 +165,87 @@ START → classifier → router → [flight|car_rental|routes|aosta|chamonix|ann
 
 ---
 
-## Completion Criteria ✅
+## Phase 6: Integration Tests
 
-- [x] All phases completed (5/5)
-- [x] All tests passing (50/50 tests in 2.58s)
+Add real API integration tests with OpenAI GPT-4o-mini.
+
+- [ ] Create `.env.example` template file
+  - [ ] Document OPENAI_API_KEY requirement
+  - [ ] Add to version control (safe template)
+- [ ] Ensure `.env` is in `.gitignore` (already done)
+- [ ] Create `tests/integration/` directory
+- [ ] Create `tests/integration/__init__.py`
+- [ ] Create `tests/integration/conftest.py`
+  - [ ] Add pytest fixture to skip if OPENAI_API_KEY not set
+  - [ ] Add fixture to load real documents
+- [ ] Create `tests/integration/test_classifier_integration.py`
+  - [ ] Test real classifier with actual OpenAI API
+  - [ ] Test multiple question types (flight, car_rental, routes)
+  - [ ] Verify confidence scores are reasonable
+  - [ ] Mark with `@pytest.mark.integration`
+- [ ] Create `tests/integration/test_graph_integration.py`
+  - [ ] Test end-to-end graph with real API
+  - [ ] Test complete flow: question → classification → specialist → answer
+  - [ ] Verify answer quality and sources
+  - [ ] Test multiple categories
+  - [ ] Mark with `@pytest.mark.integration`
+- [ ] Update `pyproject.toml`
+  - [ ] Add pytest markers: `integration` and `unit`
+  - [ ] Document marker usage in configuration
+- [ ] Update `CLAUDE.md`
+  - [ ] Add section on running integration tests
+  - [ ] Document .env setup instructions
+  - [ ] Add cost warnings (~$0.01-0.10 per run)
+- [ ] Run `pytest tests/integration/ -v` (with real API key)
+- [ ] Run `pytest tests/ -v -m integration` (verify marker works)
+- [ ] Run `pytest tests/ -v -m "not integration"` (unit tests only)
+- [ ] Verify API costs are minimal
+
+**Test Organization**:
+```
+tests/
+├── unit/                          # Fast, mocked tests (49 tests)
+│   ├── test_state.py
+│   ├── test_documents.py
+│   └── nodes/
+│       ├── test_classifier.py     # Mocked LLM
+│       └── test_specialists.py    # Mocked LLM
+├── integration/                   # Real API tests (new)
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_classifier_integration.py
+│   └── test_graph_integration.py
+└── test_graph.py                  # Integration test (mocked)
+```
+
+**Pytest Markers**:
+- `@pytest.mark.unit` - Fast, mocked tests (default)
+- `@pytest.mark.integration` - Real API tests (requires OPENAI_API_KEY)
+
+**Running Tests**:
+```bash
+# All tests (unit + integration)
+pytest tests/ -v
+
+# Unit tests only (fast, no API key needed)
+pytest tests/ -v -m "not integration"
+
+# Integration tests only (requires API key)
+pytest tests/ -v -m integration
+
+# Specific integration test
+pytest tests/integration/test_graph_integration.py -v
+```
+
+---
+
+## Completion Criteria
+
+- [x] Phase 1-5 completed (Core agent functionality)
+- [ ] Phase 6 completed (Integration tests)
+- [x] All unit tests passing (49 tests, mocked)
+- [ ] All integration tests passing (real API)
 - [x] All quality checks passing (ruff, mypy, pytest)
 - [x] Graph can be imported and invoked successfully
-- [x] Ready for API integration
+- [ ] Agent tested end-to-end with real OpenAI API
+- [ ] Ready for CI/CD pipeline setup
