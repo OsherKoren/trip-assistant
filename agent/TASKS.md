@@ -12,13 +12,13 @@ Building a LangGraph 1.x agent with topic classification and specialist routing 
 
 ---
 
-## Phase 1: State Schema
+## Phase 1: State Schema ✅
 
 Define the agent's state structure using TypedDict.
 
-- [ ] Create `src/state.py` with TripAssistantState TypedDict
-  - [ ] Define TopicCategory Literal type with all 7 categories
-  - [ ] Define TripAssistantState with all required fields:
+- [x] Create `src/state.py` with TripAssistantState TypedDict
+  - [x] Define TopicCategory Literal type with all 7 categories
+  - [x] Define TripAssistantState with all required fields:
     - `question: str`
     - `category: TopicCategory`
     - `confidence: float`
@@ -26,11 +26,11 @@ Define the agent's state structure using TypedDict.
     - `current_context: str`
     - `answer: str`
     - `source: str | None`
-- [ ] Create `tests/test_state.py`
-  - [ ] Test TripAssistantState can be instantiated
-  - [ ] Test TopicCategory only accepts valid values
-- [ ] Run `pytest tests/test_state.py -v` (must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
+- [x] Create `tests/test_state.py`
+  - [x] Test TripAssistantState can be instantiated
+  - [x] Test TopicCategory only accepts valid values (parametrized)
+- [x] Run `pytest tests/test_state.py -v` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
 
 **Topic Categories**: flight | car_rental | routes | aosta | chamonix | annecy_geneva | general
 
