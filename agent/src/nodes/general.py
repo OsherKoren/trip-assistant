@@ -3,10 +3,10 @@
 from langchain_openai import ChatOpenAI
 
 from src.prompts import GENERAL_PROMPT_TEMPLATE
-from src.state import TripAssistantState
+from src.schemas import SpecialistOutput, TripAssistantState
 
 
-def handle_general(state: TripAssistantState) -> dict:
+def handle_general(state: TripAssistantState) -> SpecialistOutput:
     """Answer general questions or ask for clarification.
 
     For general questions, uses all available documents or asks for clarification
@@ -35,6 +35,7 @@ def handle_general(state: TripAssistantState) -> dict:
 
     # Generate answer
     response = llm.invoke(prompt)
+    assert isinstance(response.content, str), "Expected string response from LLM"
     answer = response.content
 
     return {

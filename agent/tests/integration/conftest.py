@@ -32,7 +32,7 @@ def real_documents():
 @pytest.fixture
 def integration_state(real_documents):
     """Create initial state for integration tests with real documents."""
-    from src.state import TripAssistantState
+    from src.schemas import TripAssistantState
 
     state: TripAssistantState = {
         "question": "",

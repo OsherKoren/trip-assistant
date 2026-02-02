@@ -1,6 +1,7 @@
 """LangGraph state graph for Trip Assistant agent."""
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from src.nodes.annecy_geneva import handle_annecy_geneva
 from src.nodes.aosta import handle_aosta
@@ -10,7 +11,7 @@ from src.nodes.classifier import classify_question
 from src.nodes.flight import handle_flight
 from src.nodes.general import handle_general
 from src.nodes.routes import handle_routes
-from src.state import TripAssistantState
+from src.schemas import TripAssistantState
 
 
 def route_by_category(state: TripAssistantState) -> str:
@@ -25,7 +26,7 @@ def route_by_category(state: TripAssistantState) -> str:
     return state["category"]
 
 
-def create_graph():
+def create_graph() -> CompiledStateGraph:
     """Create and compile the Trip Assistant graph.
 
     Graph flow:

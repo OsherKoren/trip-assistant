@@ -14,6 +14,13 @@ TopicCategory = Literal[
 ]
 
 
+class SpecialistOutput(TypedDict):
+    """Return type for specialist nodes."""
+
+    answer: str
+    source: str | None
+
+
 class TripAssistantState(TypedDict):
     """State for the Trip Assistant LangGraph agent.
 
