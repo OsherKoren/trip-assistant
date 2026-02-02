@@ -100,51 +100,33 @@ Classify user questions by topic using LLM with structured output.
 
 ---
 
-## Phase 4: Specialist Nodes
+## Phase 4: Specialist Nodes ✅
 
 Create specialist nodes that answer questions using document context.
 
-- [ ] Create specialist node files in `src/nodes/`:
-  - [ ] `flight.py` - Implement `handle_flight(state: TripAssistantState) -> dict`
-  - [ ] `car_rental.py` - Implement `handle_car_rental(state: TripAssistantState) -> dict`
-  - [ ] `routes.py` - Implement `handle_routes(state: TripAssistantState) -> dict`
-  - [ ] `aosta.py` - Implement `handle_aosta(state: TripAssistantState) -> dict`
-  - [ ] `chamonix.py` - Implement `handle_chamonix(state: TripAssistantState) -> dict`
-  - [ ] `annecy_geneva.py` - Implement `handle_annecy_geneva(state: TripAssistantState) -> dict`
-  - [ ] `general.py` - Implement `handle_general(state: TripAssistantState) -> dict`
+- [x] Create specialist node files in `src/nodes/`:
+  - [x] `flight.py` - Implement `handle_flight(state: TripAssistantState) -> dict`
+  - [x] `car_rental.py` - Implement `handle_car_rental(state: TripAssistantState) -> dict`
+  - [x] `routes.py` - Implement `handle_routes(state: TripAssistantState) -> dict`
+  - [x] `aosta.py` - Implement `handle_aosta(state: TripAssistantState) -> dict`
+  - [x] `chamonix.py` - Implement `handle_chamonix(state: TripAssistantState) -> dict`
+  - [x] `annecy_geneva.py` - Implement `handle_annecy_geneva(state: TripAssistantState) -> dict`
+  - [x] `general.py` - Implement `handle_general(state: TripAssistantState) -> dict`
     - Uses all documents as context OR asks for clarification
 
-**Common Pattern for Each Specialist**:
-```python
-def handle_<topic>(state: TripAssistantState) -> dict:
-    """Answer question using current_context.
+- [x] Create `test_specialists.py` with parametrized tests for all specialists
+  - [x] Test generates answer from context (6 specialists parametrized)
+  - [x] Test returns correct source (7 specialists parametrized)
+  - [x] Test handles empty context gracefully
+  - [x] Test general specialist uses all documents
 
-    Returns:
-        {"answer": str, "source": "<topic>.txt"}
-    """
-    context = state["current_context"]
-    question = state["question"]
+**Test Coverage**:
+- All specialists tested with GPT-4o-mini mocked responses
+- Parametrized tests for common patterns
+- Special test for general node using all documents
 
-    # Use LLM to generate answer from context
-    # Return answer and source
-```
-
-- [ ] Create test files in `tests/nodes/`:
-  - [ ] `test_flight.py`
-  - [ ] `test_car_rental.py`
-  - [ ] `test_routes.py`
-  - [ ] `test_aosta.py`
-  - [ ] `test_chamonix.py`
-  - [ ] `test_annecy_geneva.py`
-  - [ ] `test_general.py`
-
-**Test Coverage for Each Specialist**:
-- Test generates answer from context
-- Test returns correct source
-- Test handles missing context gracefully
-
-- [ ] Run `pytest tests/nodes/ -v` (all must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
+- [x] Run `pytest tests/nodes/ -v` (all must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
 
 ---
 

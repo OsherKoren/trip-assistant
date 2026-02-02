@@ -53,3 +53,36 @@ def mock_classifier_llm(mocker):
         return mock
 
     return _mock
+
+
+@pytest.fixture
+def mock_specialist_llm(mocker):
+    """Reusable LLM mock for specialist node tests.
+
+    Returns a function that accepts an answer string,
+    and mocks the ChatOpenAI LLM to return that answer.
+
+    Usage:
+        mock_specialist_llm("Your flight departs at 10:00 AM")
+        result = handle_flight(state)
+    """
+
+    def _mock(answer: str):
+        mock = mocker.patch("src.nodes.flight.ChatOpenAI")
+        mock.return_value.invoke.return_value.content = answer
+
+        # Also patch for other specialist modules
+        for module in [
+            "car_rental",
+            "routes",
+            "aosta",
+            "chamonix",
+            "annecy_geneva",
+            "general",
+        ]:
+            module_mock = mocker.patch(f"src.nodes.{module}.ChatOpenAI")
+            module_mock.return_value.invoke.return_value.content = answer
+
+        return mock
+
+    return _mock
