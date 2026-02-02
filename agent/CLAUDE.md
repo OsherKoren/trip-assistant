@@ -19,9 +19,23 @@ agent/
 ## Setup
 
 - **Python**: 3.11+
-- **Environment**: Requires `OPENAI_API_KEY` environment variable
+- **Environment**: Requires `OPENAI_API_KEY` environment variable for integration tests
 - **Install**: `pip install -e .` from the agent directory
 - **Dependencies**: langgraph >= 1.0, langchain-openai, pydantic
+
+## Environment Setup
+
+1. **Copy `.env.example` to `.env`**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Add your OpenAI API key** to `.env`:
+   ```bash
+   OPENAI_API_KEY=sk-proj-your-actual-key-here
+   ```
+
+3. **Never commit `.env`** (already in .gitignore)
 
 ## Development Workflow (MUST FOLLOW)
 
@@ -38,11 +52,49 @@ agent/
 
 ## Commands
 
+### Testing
+
 ```bash
-pytest tests/ -v              # Run tests
-pre-commit run --all-files    # Quality checks
-mypy src/                     # Type check
+# Run all unit tests (fast, mocked, no API key needed)
+pytest tests/ -v -m "not integration"
+
+# Run integration tests (real API, requires OPENAI_API_KEY)
+pytest tests/integration/ -v
+
+# Run ALL tests (unit + integration)
+pytest tests/ -v
+
+# Run specific integration test
+pytest tests/integration/test_graph_integration.py -v
+
+# List available test markers
+pytest --markers
 ```
+
+### Quality Checks
+
+```bash
+pre-commit run --all-files    # Linting, formatting, type checking
+mypy src/                     # Type check only
+ruff check src/               # Lint only
+```
+
+## Integration Tests
+
+Integration tests make **real API calls** to OpenAI and incur small costs (~$0.01-0.10 per run).
+
+**Setup:**
+1. Set `OPENAI_API_KEY` in `.env` file
+2. Tests are automatically skipped if the key is not set
+
+**Cost Management:**
+- Unit tests are **free** (mocked LLM responses)
+- Integration tests cost ~$0.01-0.10 per full run
+- Run integration tests only when needed (before commits, CI/CD)
+
+**Test Organization:**
+- `tests/` - Unit tests (mocked, fast, free)
+- `tests/integration/` - Integration tests (real API, slower, costs money)
 
 ## Common Pitfalls
 
