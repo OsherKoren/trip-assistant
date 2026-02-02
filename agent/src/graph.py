@@ -1,5 +1,7 @@
 """LangGraph state graph for Trip Assistant agent."""
 
+from typing import cast
+
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -26,7 +28,9 @@ def route_by_category(state: TripAssistantState) -> str:
     return state["category"]
 
 
-def create_graph() -> CompiledStateGraph:
+def create_graph() -> CompiledStateGraph[
+    TripAssistantState, None, TripAssistantState, TripAssistantState
+]:
     """Create and compile the Trip Assistant graph.
 
     Graph flow:
@@ -68,7 +72,10 @@ def create_graph() -> CompiledStateGraph:
     ]:
         workflow.add_edge(node_name, END)
 
-    return workflow.compile()
+    return cast(
+        CompiledStateGraph[TripAssistantState, None, TripAssistantState, TripAssistantState],
+        workflow.compile(),
+    )
 
 
 # Export compiled graph instance
