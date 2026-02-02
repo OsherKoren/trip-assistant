@@ -2,6 +2,7 @@
 
 from langchain_openai import ChatOpenAI
 
+from src.prompts import GENERAL_PROMPT_TEMPLATE
 from src.state import TripAssistantState
 
 
@@ -26,15 +27,11 @@ def handle_general(state: TripAssistantState) -> dict:
     # Initialize LLM
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-    # Create prompt with all documents
-    prompt = f"""Answer the following question about a family trip to the French/Italian Alps.
-
-Available information:
-{all_context}
-
-Question: {question}
-
-Provide a helpful answer based on the available information. If the question is unclear or you need more details, ask for clarification."""
+    # Create prompt from template
+    prompt = GENERAL_PROMPT_TEMPLATE.format(
+        context=all_context,
+        question=question,
+    )
 
     # Generate answer
     response = llm.invoke(prompt)

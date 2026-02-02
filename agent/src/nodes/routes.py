@@ -2,6 +2,7 @@
 
 from langchain_openai import ChatOpenAI
 
+from src.prompts import SPECIALIST_PROMPT_TEMPLATE, TOPICS
 from src.state import TripAssistantState
 
 
@@ -20,15 +21,12 @@ def handle_routes(state: TripAssistantState) -> dict:
     # Initialize LLM
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-    # Create prompt with context
-    prompt = f"""Answer the following question about driving routes using only the provided context.
-
-Context:
-{context}
-
-Question: {question}
-
-Provide a clear, concise answer based on the context. If the context doesn't contain the information, say so."""
+    # Create prompt from template
+    prompt = SPECIALIST_PROMPT_TEMPLATE.format(
+        topic=TOPICS["routes"],
+        context=context,
+        question=question,
+    )
 
     # Generate answer
     response = llm.invoke(prompt)
