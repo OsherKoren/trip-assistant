@@ -9,7 +9,7 @@ from src.nodes.chamonix import handle_chamonix
 from src.nodes.flight import handle_flight
 from src.nodes.general import handle_general
 from src.nodes.routes import handle_routes
-from src.state import TripAssistantState
+from src.schemas import TripAssistantState
 
 
 @pytest.mark.parametrize(

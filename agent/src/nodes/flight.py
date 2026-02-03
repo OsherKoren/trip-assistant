@@ -3,10 +3,10 @@
 from langchain_openai import ChatOpenAI
 
 from src.prompts import SPECIALIST_PROMPT_TEMPLATE, TOPICS
-from src.state import TripAssistantState
+from src.schemas import SpecialistOutput, TripAssistantState
 
 
-def handle_flight(state: TripAssistantState) -> dict:
+def handle_flight(state: TripAssistantState) -> SpecialistOutput:
     """Answer flight-related questions using current_context.
 
     Args:
@@ -30,6 +30,7 @@ def handle_flight(state: TripAssistantState) -> dict:
 
     # Generate answer
     response = llm.invoke(prompt)
+    assert isinstance(response.content, str), "Expected string response from LLM"
     answer = response.content
 
     return {

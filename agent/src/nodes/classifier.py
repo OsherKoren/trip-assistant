@@ -1,9 +1,15 @@
 """Classifier node for topic-based question routing."""
 
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field
+from typing import cast
 
-from src.state import TopicCategory, TripAssistantState
+from langchain_openai import ChatOpenAI
+
+from src.schemas import (
+    ClassifierOutput,
+    TopicCategory,
+    TopicClassification,
+    TripAssistantState,
+)
 
 # Document key mapping for categories
 CATEGORY_TO_DOCUMENT_KEY: dict[TopicCategory, str] = {
@@ -17,20 +23,7 @@ CATEGORY_TO_DOCUMENT_KEY: dict[TopicCategory, str] = {
 }
 
 
-class TopicClassification(BaseModel):
-    """Structured output model for question classification."""
-
-    category: TopicCategory = Field(
-        description="The topic category of the question",
-    )
-    confidence: float = Field(
-        description="Confidence score between 0.0 and 1.0",
-        ge=0.0,
-        le=1.0,
-    )
-
-
-def classify_question(state: TripAssistantState) -> dict:
+def classify_question(state: TripAssistantState) -> ClassifierOutput:
     """Classify question and set category + current_context.
 
     Uses GPT-4o-mini with structured output to classify the question
@@ -66,7 +59,7 @@ Question: {question}
 Classify this question and provide a confidence score (0.0-1.0)."""
 
     # Get classification from LLM
-    classification: TopicClassification = structured_llm.invoke(prompt)
+    classification = cast(TopicClassification, structured_llm.invoke(prompt))
 
     # Get the relevant document content based on category
     doc_key = CATEGORY_TO_DOCUMENT_KEY[classification.category]

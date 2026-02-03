@@ -3,7 +3,7 @@
 import pytest
 
 from src.nodes.classifier import TopicClassification
-from src.state import TopicCategory, TripAssistantState
+from src.schemas import TopicCategory, TripAssistantState
 
 
 @pytest.fixture

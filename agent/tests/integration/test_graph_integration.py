@@ -3,7 +3,7 @@
 import pytest
 
 from src.graph import graph
-from src.state import TripAssistantState
+from src.schemas import TripAssistantState
 
 
 @pytest.mark.integration

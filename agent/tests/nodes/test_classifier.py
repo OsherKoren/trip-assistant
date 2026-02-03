@@ -3,7 +3,7 @@
 import pytest
 
 from src.nodes.classifier import classify_question
-from src.state import TripAssistantState
+from src.schemas import TripAssistantState
 
 
 @pytest.mark.parametrize(
