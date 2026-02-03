@@ -163,6 +163,7 @@ jobs:
           context: ./agent
           file: ./agent/Dockerfile
           push: false
+          load: true
           tags: trip-assistant-agent:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
