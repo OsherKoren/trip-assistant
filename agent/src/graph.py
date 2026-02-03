@@ -78,5 +78,4 @@ def create_graph() -> CompiledStateGraph[
     )
 
 
-# Export compiled graph instance
 graph = create_graph()

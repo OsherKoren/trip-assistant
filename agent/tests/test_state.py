@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.state import TopicCategory, TripAssistantState
+from src.schemas import TopicCategory, TripAssistantState
 
 
 def test_trip_assistant_state_instantiation():
