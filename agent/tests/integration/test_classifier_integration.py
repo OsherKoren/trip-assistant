@@ -26,12 +26,12 @@ from src.schemas import TripAssistantState
             id="routes_question",
         ),
         pytest.param(
-            "What are we doing on July 9th?",
+            "What are we doing in Aosta Valley on July 9th?",
             "aosta",
             id="aosta_question",
         ),
         pytest.param(
-            "Tell me about the Lac Blanc hike",
+            "Tell me about hiking in Chamonix",
             "chamonix",
             id="chamonix_question",
         ),
