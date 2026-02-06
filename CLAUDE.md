@@ -36,6 +36,13 @@ pre-commit run --all-files
 - **Don't create files unnecessarily** - Prefer editing existing files
 - **Don't mutate state** - LangGraph nodes should return new state dicts
 
+## Git Workflow
+
+- **NEVER commit directly to main** - Always work on feature branches (e.g., `feature/agent`)
+- **NEVER checkout or switch to main** - Stay on feature branches for all development work
+- **Pull requests only** - All changes to main must go through PR review and CI/CD
+- **Branch naming** - Use descriptive names like `feature/agent`, `fix/integration-tests`
+
 ## Working on a Service
 
 Each service has its own `CLAUDE.md` with detailed specs. Navigate to the service directory for focused context.
