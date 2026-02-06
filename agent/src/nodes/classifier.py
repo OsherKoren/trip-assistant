@@ -4,6 +4,7 @@ from typing import cast
 
 from langchain_openai import ChatOpenAI
 
+from src.logger import logger
 from src.schemas import (
     ClassifierOutput,
     TopicCategory,
@@ -58,8 +59,13 @@ Question: {question}
 
 Classify this question and provide a confidence score (0.0-1.0)."""
 
-    # Get classification from LLM
-    classification = cast(TopicClassification, structured_llm.invoke(prompt))
+    # Get classification from LLM with error handling
+    try:
+        classification = cast(TopicClassification, structured_llm.invoke(prompt))
+    except Exception as e:
+        logger.error(f"Classifier failed: {e}")
+        # Fallback to general category with zero confidence
+        classification = TopicClassification(category="general", confidence=0.0)
 
     # Get the relevant document content based on category
     doc_key = CATEGORY_TO_DOCUMENT_KEY[classification.category]

@@ -2,6 +2,7 @@
 
 from langchain_openai import ChatOpenAI
 
+from src.logger import logger
 from src.prompts import GENERAL_PROMPT_TEMPLATE
 from src.schemas import SpecialistOutput, TripAssistantState
 
@@ -33,10 +34,17 @@ def handle_general(state: TripAssistantState) -> SpecialistOutput:
         question=question,
     )
 
-    # Generate answer
-    response = llm.invoke(prompt)
-    assert isinstance(response.content, str), "Expected string response from LLM"
-    answer = response.content
+    # Generate answer with error handling
+    try:
+        response = llm.invoke(prompt)
+        assert isinstance(response.content, str), "Expected string response from LLM"
+        answer = response.content
+    except Exception as e:
+        logger.error(f"General specialist failed: {e}")
+        answer = (
+            "Sorry, I couldn't process your question right now. "
+            "Please try rephrasing or asking something more specific."
+        )
 
     return {
         "answer": answer,

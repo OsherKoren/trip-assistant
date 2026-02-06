@@ -72,17 +72,13 @@ def test_graph_routes_to_correct_specialist(
     ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
 
     # Mock specialist LLM responses
-    for module in [
-        "flight",
-        "car_rental",
-        "routes",
-        "aosta",
-        "chamonix",
-        "annecy_geneva",
-        "general",
-    ]:
-        mock_llm = mocker.patch(f"src.nodes.{module}.ChatOpenAI")
-        mock_llm.return_value.invoke.return_value.content = expected_answer
+    # Factory-generated specialists use specialist_factory.ChatOpenAI
+    mock_llm = mocker.patch("src.nodes.specialist_factory.ChatOpenAI")
+    mock_llm.return_value.invoke.return_value.content = expected_answer
+
+    # General specialist uses its own module
+    mock_general = mocker.patch("src.nodes.general.ChatOpenAI")
+    mock_general.return_value.invoke.return_value.content = expected_answer
 
     result = graph.invoke(initial_state)
 
@@ -99,10 +95,10 @@ def test_graph_end_to_end_with_answer(mocker, initial_state):
         "src.nodes.classifier.ChatOpenAI"
     ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
 
-    # Mock specialist
+    # Mock specialist (factory-generated)
     expected_answer = "Your flight departs at 10:00 AM on July 7, 2026"
     mocker.patch(
-        "src.nodes.flight.ChatOpenAI"
+        "src.nodes.specialist_factory.ChatOpenAI"
     ).return_value.invoke.return_value.content = expected_answer
 
     result = graph.invoke(initial_state)
@@ -144,9 +140,9 @@ def test_graph_preserves_documents_through_flow(mocker, initial_state):
         "src.nodes.classifier.ChatOpenAI"
     ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
 
-    # Mock specialist
+    # Mock specialist (factory-generated)
     mocker.patch(
-        "src.nodes.flight.ChatOpenAI"
+        "src.nodes.specialist_factory.ChatOpenAI"
     ).return_value.invoke.return_value.content = "Test answer"
 
     result = graph.invoke(initial_state)

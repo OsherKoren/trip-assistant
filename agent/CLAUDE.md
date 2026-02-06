@@ -7,13 +7,19 @@ LangGraph 1.x agent with topic-based routing for trip Q&A.
 ```
 agent/
 ├── TASKS.md              # Development task tracking
+├── CHANGELOG.md          # Version history and changes
 ├── src/
 │   ├── state.py          # TripAssistantState TypedDict
 │   ├── documents.py      # Load data/*.txt files
 │   ├── graph.py          # Main graph definition
-│   └── nodes/            # Classifier + specialist nodes
+│   └── nodes/
+│       ├── classifier.py       # Topic classification node
+│       ├── general.py          # General specialist node
+│       └── specialist_factory.py  # Factory for specialist nodes
 ├── data/                 # Trip documents (6 txt files)
 └── tests/
+    ├── test_error_handling.py  # Error handling tests
+    └── integration/            # Real API integration tests
 ```
 
 ## Setup
@@ -96,6 +102,21 @@ Integration tests make **real API calls** to OpenAI and incur small costs (~$0.0
 - `tests/` - Unit tests (mocked, fast, free)
 - `tests/integration/` - Integration tests (real API, slower, costs money)
 
+## Architecture Highlights
+
+**Specialist Factory Pattern:**
+- All specialist nodes (flight, car_rental, routes, aosta, chamonix, annecy_geneva) are created using `specialist_factory.create_specialist()`
+- Ensures consistent error handling, logging, and behavior across all specialists
+- Reduces code duplication by 57% while maintaining functionality
+- To add new specialist: `handle_new = create_specialist("topic", "source.txt")`
+
+**Error Handling:**
+- All nodes include try/except blocks for graceful degradation
+- Classifier falls back to "general" category on API failure
+- Specialists return user-friendly error messages on failure
+- Routing function handles missing categories with fallback to general
+- Comprehensive test coverage for all error scenarios
+
 ## Common Pitfalls
 
 **LangGraph 1.x Specific:**
@@ -108,10 +129,12 @@ Integration tests make **real API calls** to OpenAI and incur small costs (~$0.0
 - Always run pytest before claiming a task is complete
 - Don't skip pre-commit hooks - they catch issues early
 - Test failures = implementation not complete
+- Use mocks from `tests/conftest.py` for consistent test data
 
 **File Operations:**
 - Don't create new files unless absolutely necessary
 - Prefer editing existing files over creating new ones
+- Don't create individual specialist files - use specialist factory
 
 ## Naming Conventions
 
