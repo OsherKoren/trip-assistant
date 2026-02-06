@@ -199,10 +199,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Extract version from pyproject.toml
         id: get-version
         run: |
-          VERSION=$(python -c "import tomli; print(tomli.load(open('agent/pyproject.toml', 'rb'))['project']['version'])")
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('agent/pyproject.toml', 'rb'))['project']['version'])")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Detected version: $VERSION"
 
@@ -241,13 +246,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install tomli
-        run: pip install tomli
-
       - name: Extract version from pyproject.toml
         id: get-version
         run: |
-          VERSION=$(python -c "import tomli; print(tomli.load(open('agent/pyproject.toml', 'rb'))['project']['version'])")
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('agent/pyproject.toml', 'rb'))['project']['version'])")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
