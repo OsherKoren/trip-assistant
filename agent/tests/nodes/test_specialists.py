@@ -2,13 +2,15 @@
 
 import pytest
 
-from src.nodes.annecy_geneva import handle_annecy_geneva
-from src.nodes.aosta import handle_aosta
-from src.nodes.car_rental import handle_car_rental
-from src.nodes.chamonix import handle_chamonix
-from src.nodes.flight import handle_flight
-from src.nodes.general import handle_general
-from src.nodes.routes import handle_routes
+from src.nodes import (
+    handle_annecy_geneva,
+    handle_aosta,
+    handle_car_rental,
+    handle_chamonix,
+    handle_flight,
+    handle_general,
+    handle_routes,
+)
 from src.schemas import TripAssistantState
 
 

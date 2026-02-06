@@ -5,14 +5,17 @@ from typing import cast
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from src.nodes.annecy_geneva import handle_annecy_geneva
-from src.nodes.aosta import handle_aosta
-from src.nodes.car_rental import handle_car_rental
-from src.nodes.chamonix import handle_chamonix
-from src.nodes.classifier import classify_question
-from src.nodes.flight import handle_flight
-from src.nodes.general import handle_general
-from src.nodes.routes import handle_routes
+from src.logger import logger
+from src.nodes import (
+    classify_question,
+    handle_annecy_geneva,
+    handle_aosta,
+    handle_car_rental,
+    handle_chamonix,
+    handle_flight,
+    handle_general,
+    handle_routes,
+)
 from src.schemas import TripAssistantState
 
 
@@ -23,9 +26,15 @@ def route_by_category(state: TripAssistantState) -> str:
         state: Current agent state with category set by classifier
 
     Returns:
-        Node name to route to (matches category)
+        Node name to route to (matches category, defaults to "general")
     """
-    return state["category"]
+    category = state.get("category")
+
+    if category is None:
+        logger.warning("No category set by classifier, routing to general")
+        return "general"
+
+    return category
 
 
 def create_graph() -> CompiledStateGraph[
@@ -46,12 +55,13 @@ def create_graph() -> CompiledStateGraph[
     workflow.add_node("classifier", classify_question)
 
     # Add all specialist nodes
-    workflow.add_node("flight", handle_flight)
-    workflow.add_node("car_rental", handle_car_rental)
-    workflow.add_node("routes", handle_routes)
-    workflow.add_node("aosta", handle_aosta)
-    workflow.add_node("chamonix", handle_chamonix)
-    workflow.add_node("annecy_geneva", handle_annecy_geneva)
+    # Factory-generated specialists have dynamic types, so we need type: ignore
+    workflow.add_node("flight", handle_flight)  # type: ignore[arg-type]
+    workflow.add_node("car_rental", handle_car_rental)  # type: ignore[arg-type]
+    workflow.add_node("routes", handle_routes)  # type: ignore[arg-type]
+    workflow.add_node("aosta", handle_aosta)  # type: ignore[arg-type]
+    workflow.add_node("chamonix", handle_chamonix)  # type: ignore[arg-type]
+    workflow.add_node("annecy_geneva", handle_annecy_geneva)  # type: ignore[arg-type]
     workflow.add_node("general", handle_general)
 
     # Add edges
