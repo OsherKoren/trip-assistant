@@ -21,16 +21,26 @@ A LangGraph-powered Q&A assistant for family travel. Monorepo with 4 services.
 
 ```bash
 # Run all service tests
-pytest agent/tests/ api/tests/ -v
+uv run pytest agent/tests/ api/tests/ -v
 
 # Quality checks across all services
-pre-commit run --all-files
+uv run pre-commit run --all-files
 
 # Service-specific commands: see ./[service]/CLAUDE.md
 ```
 
+## Package Management
+
+**ALWAYS use `uv` for package management - NEVER use `pip` directly**
+
+- Install packages: `uv pip install <package>`
+- Install editable: `uv pip install -e .`
+- Run commands: `uv run <command>` (uses project environment automatically)
+- Sync dependencies: `uv sync` (creates/updates uv.lock)
+
 ## Common Pitfalls
 
+- **Don't use pip directly** - Always use `uv pip` or `uv run` commands
 - **Don't use legacy LangGraph patterns** - Use StateGraph (not MessageGraph)
 - **Don't skip tests** - TDD is mandatory; tests must pass before task completion
 - **Don't create files unnecessarily** - Prefer editing existing files
