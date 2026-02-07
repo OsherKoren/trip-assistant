@@ -173,9 +173,135 @@ curl -X POST http://localhost:8000/api/messages \
   -d '{"question": "What car did we rent?"}'
 ```
 
+## SAM Local Testing
+
+AWS SAM provides production-identical local Lambda testing. Use this for testing the Lambda handler before deployment.
+
+### Installation
+
+**macOS/Linux:**
+```bash
+brew install aws-sam-cli
+```
+
+**Windows:**
+```bash
+# Using pip
+pip install aws-sam-cli
+
+# Or download installer from AWS
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
+```
+
+**Verify installation:**
+```bash
+sam --version
+```
+
+### Prerequisites
+
+1. **Docker Desktop** - Must be running (SAM uses Docker to simulate Lambda)
+2. **Environment file** - Create `.env` from `.env.example`:
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your OPENAI_API_KEY
+   ```
+
+### Local Commands
+
+```bash
+cd api
+
+# Validate SAM template
+sam validate
+
+# Invoke function with test event (single invocation)
+sam local invoke -e tests/events/health-get.json
+sam local invoke -e tests/events/messages-post.json
+
+# Start local API server (persistent, auto-reload)
+sam local start-api
+
+# Test health endpoint
+curl http://localhost:3001/api/health
+
+# Test messages endpoint
+curl -X POST http://localhost:3001/api/messages \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What car did we rent?"}'
+```
+
+### SAM Configuration
+
+**`samconfig.toml`** configures SAM behavior:
+- Port: 3001 (avoids conflict with frontend on 3000)
+- Environment: Loads from `.env` file
+- Docker network: `host` for accessing agent Lambda
+- Warm containers: `EAGER` for faster testing
+
+**`template.yaml`** defines Lambda function and API Gateway:
+- Runtime: Python 3.11
+- Handler: `app.handler.handler`
+- Memory: 512MB, Timeout: 30s
+- Events: HTTP API routes for `/api/health` and `/api/messages`
+
+### Troubleshooting
+
+**"Docker daemon not running"**
+```bash
+# Ensure Docker Desktop is running
+docker ps
+```
+
+**"Module not found" or import errors**
+```bash
+# Rebuild SAM dependencies
+sam build
+
+# Force clean build
+sam build --use-container
+```
+
+**"Permission denied" on .env file**
+```bash
+# Check file permissions
+chmod 644 .env
+```
+
+**Agent Lambda not accessible**
+```bash
+# Verify ENVIRONMENT variable in .env
+# For local testing: ENVIRONMENT=dev (imports local agent)
+# For production testing: ENVIRONMENT=prod (calls agent Lambda)
+```
+
+**Port 3001 already in use**
+```bash
+# Kill process using port 3001
+lsof -ti:3001 | xargs kill -9  # macOS/Linux
+netstat -ano | findstr :3001   # Windows (find PID, then taskkill)
+```
+
+### Production vs. Local Mode
+
+The API supports two modes via the `ENVIRONMENT` variable:
+
+- **`ENVIRONMENT=dev`** (local): Imports agent graph directly from `../agent/src/graph.py`
+  - Use for: Local development, SAM local testing, CI/CD unit tests
+  - Requires: Agent package installed via `uv pip install -e ../agent`
+
+- **`ENVIRONMENT=prod`** (production): Calls agent via Lambda proxy
+  - Use for: Production deployment, integration testing with deployed agent
+  - Requires: `AGENT_LAMBDA_FUNCTION_NAME` and AWS credentials
+
+**Local testing always uses `ENVIRONMENT=dev`** - set this in your `.env` file.
+
 ## Environment Variables
 
-- `OPENAI_API_KEY` - From Parameter Store in Lambda
+- `OPENAI_API_KEY` - From Parameter Store in Lambda (or `.env` for local)
+- `ENVIRONMENT` - `dev` (local agent) or `prod` (Lambda proxy)
+- `AGENT_LAMBDA_FUNCTION_NAME` - Agent Lambda function name (production only)
+- `AWS_REGION` - AWS region (production only)
 
 ## Python Coding Standards
 

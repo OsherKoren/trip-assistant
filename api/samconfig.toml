@@ -1,0 +1,21 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "trip-assistant-api"
+
+[default.local_invoke.parameters]
+env_vars = ".env"
+docker_network = "host"
+
+[default.local_start_api.parameters]
+env_vars = ".env"
+port = 3001
+warm_containers = "EAGER"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate.parameters]
+lint = true

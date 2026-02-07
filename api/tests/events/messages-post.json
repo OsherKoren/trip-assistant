@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /api/messages",
+  "rawPath": "/api/messages",
+  "rawQueryString": "",
+  "headers": {
+    "accept": "application/json",
+    "content-type": "application/json",
+    "host": "localhost:3001",
+    "user-agent": "curl/7.88.1",
+    "x-forwarded-port": "3001",
+    "x-forwarded-proto": "http"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "local",
+    "domainName": "localhost:3001",
+    "domainPrefix": "local",
+    "http": {
+      "method": "POST",
+      "path": "/api/messages",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "127.0.0.1",
+      "userAgent": "curl/7.88.1"
+    },
+    "requestId": "local-request-id-001",
+    "routeKey": "POST /api/messages",
+    "stage": "prod",
+    "time": "07/Feb/2026:00:00:00 +0000",
+    "timeEpoch": 1769990400000
+  },
+  "body": "{\"question\": \"What car did we rent for the trip?\"}",
+  "isBase64Encoded": false
+}
