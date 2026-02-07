@@ -5,6 +5,7 @@ from typing import cast
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.documents import load_documents
 from src.logger import logger
 from src.nodes import (
     classify_question,
@@ -17,6 +18,25 @@ from src.nodes import (
     handle_routes,
 )
 from src.schemas import TripAssistantState
+
+# Load documents once at module level (cached for process lifetime)
+_documents = load_documents()
+
+
+def inject_documents(_state: TripAssistantState) -> dict[str, dict[str, str]]:
+    """Inject cached documents into state.
+
+    Documents are loaded once at module import and reused for every request.
+    This decouples callers from document loading — they only need to pass
+    {"question": "..."} to invoke the graph.
+
+    Args:
+        _state: Current agent state (unused, documents come from cache)
+
+    Returns:
+        Partial state update with cached documents
+    """
+    return {"documents": _documents}
 
 
 def route_by_category(state: TripAssistantState) -> str:
@@ -43,13 +63,16 @@ def create_graph() -> CompiledStateGraph[
     """Create and compile the Trip Assistant graph.
 
     Graph flow:
-        START → classifier → router → [specialist] → END
+        START → inject_documents → classifier → router → [specialist] → END
 
     Returns:
         Compiled StateGraph ready for execution
     """
     # Create graph with state schema
     workflow = StateGraph(TripAssistantState)
+
+    # Add entry node to inject cached documents
+    workflow.add_node("inject_documents", inject_documents)  # type: ignore[call-overload]
 
     # Add classifier node
     workflow.add_node("classifier", classify_question)
@@ -65,7 +88,8 @@ def create_graph() -> CompiledStateGraph[
     workflow.add_node("general", handle_general)
 
     # Add edges
-    workflow.add_edge(START, "classifier")
+    workflow.add_edge(START, "inject_documents")
+    workflow.add_edge("inject_documents", "classifier")
 
     # Conditional routing based on category
     workflow.add_conditional_edges("classifier", route_by_category)

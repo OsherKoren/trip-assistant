@@ -117,6 +117,17 @@ Integration tests make **real API calls** to OpenAI and incur small costs (~$0.0
 - Routing function handles missing categories with fallback to general
 - Comprehensive test coverage for all error scenarios
 
+## Python Coding Standards
+
+### Type Hints
+
+- **Always type function signatures** - Include parameter types and return types
+- **Avoid `Any` types** - Use specific types or unions instead
+  - Good: `str | None`, `dict[str, str]`, `Callable[[Request], Awaitable[Response]]`
+  - Bad: `Any`
+  - Exception: Only use `Any` when truly necessary and add `# type: ignore` comment with explanation
+- **Use union types** - Python 3.10+ syntax: `str | None` instead of `Optional[str]`
+
 ## Common Pitfalls
 
 **LangGraph 1.x Specific:**
