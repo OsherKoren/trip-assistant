@@ -40,21 +40,9 @@ A LangGraph-powered conversational agent for answering questions about a family 
 
 ```python
 from src.graph import graph
-from src.documents import load_documents
 
-# Initialize state with question and documents
-state = {
-    "question": "What time is our flight?",
-    "category": "general",
-    "confidence": 0.0,
-    "documents": load_documents(),
-    "current_context": "",
-    "answer": "",
-    "source": None,
-}
-
-# Run the agent
-result = graph.invoke(state)
+# Just pass a question — the graph loads documents internally
+result = graph.invoke({"question": "What time is our flight?"})
 
 print(f"Category: {result['category']}")
 print(f"Answer: {result['answer']}")
@@ -66,12 +54,13 @@ print(f"Source: {result['source']}")
 ### Graph Flow
 
 ```
-START → Classifier → Router → [Specialist] → END
+START → Inject Documents → Classifier → Router → [Specialist] → END
 ```
 
-1. **Classifier** - Uses GPT-4o-mini to classify the question into a topic category
-2. **Router** - Routes to the appropriate specialist based on category
-3. **Specialist** - Generates answer using relevant document context
+1. **Inject Documents** - Loads cached trip documents into state (once per process)
+2. **Classifier** - Uses GPT-4o-mini to classify the question into a topic category
+3. **Router** - Routes to the appropriate specialist based on category
+4. **Specialist** - Generates answer using relevant document context
 
 ### Specialist Topics
 
