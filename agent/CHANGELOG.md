@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-07
+
+### Added
+- `inject_documents` entry node for caller decoupling — graph now loads documents internally
+- Module-level document caching (loaded once per process/Lambda cold start)
+- Python coding standards section in CLAUDE.md (avoid `Any` types, prefer union types)
+
+### Changed
+- Graph flow: `START → inject_documents → classifier → router → [specialist] → END`
+- Callers only need to pass `{"question": "..."}` to invoke the graph (no documents required)
+
+## [0.2.0] - 2026-02-07
+
 ### Added
 - Specialist factory pattern for creating specialist nodes with consistent behavior
 - Comprehensive error handling tests covering all node failure scenarios (12 tests)
@@ -80,5 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Answer generation: ~2-4 seconds (gpt-4o-mini)
 - Cost per query: ~$0.001-0.003 using gpt-4o-mini
 
-[unreleased]: https://github.com/yourusername/trip-assistant/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourusername/trip-assistant/releases/tag/v0.1.0
+[unreleased]: https://github.com/yourusername/trip-assistant/compare/agent-v0.3.0...HEAD
+[0.3.0]: https://github.com/yourusername/trip-assistant/compare/agent-v0.2.0...agent-v0.3.0
+[0.2.0]: https://github.com/yourusername/trip-assistant/compare/agent-v0.1.0...agent-v0.2.0
+[0.1.0]: https://github.com/yourusername/trip-assistant/releases/tag/agent-v0.1.0
