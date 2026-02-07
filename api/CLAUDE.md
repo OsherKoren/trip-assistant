@@ -14,7 +14,12 @@ API Gateway → Lambda → FastAPI (Mangum) → Agent
 api/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py           # FastAPI app + routes
+│   ├── main.py           # FastAPI app config, CORS, include routers & middleware
+│   ├── middleware.py     # HTTP middleware (request ID tracing)
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── messages.py   # POST /messages endpoint
+│   │   └── health.py     # GET /health endpoint
 │   ├── handler.py        # Lambda handler (Mangum)
 │   ├── schemas.py        # Pydantic request/response models
 │   ├── dependencies.py   # Agent initialization
@@ -30,19 +35,48 @@ api/
 Send a message to the trip assistant.
 
 ```python
-@app.post("/api/messages", response_model=MessageResponse)
-async def create_message(request: MessageRequest):
-    result = agent.invoke({"question": request.question})
+# routers/messages.py
+from fastapi import APIRouter, Depends
+
+router = APIRouter(tags=["messages"])
+
+@router.post("/messages", response_model=MessageResponse)
+async def create_message(
+    request_body: MessageRequest,
+    graph = Depends(get_graph)
+):
+    result = graph.invoke({"question": request_body.question})
     return MessageResponse(
         answer=result["answer"],
         category=result["category"],
         confidence=result["confidence"],
         source=result.get("source")
     )
+
+# main.py
+app.include_router(messages.router, prefix="/api")
 ```
 
 ### GET /api/health
 Health check for Lambda warm-up.
+
+```python
+# routers/health.py
+from fastapi import APIRouter
+
+router = APIRouter(tags=["health"])
+
+@router.get("/health", response_model=HealthResponse)
+async def health_check():
+    return HealthResponse(
+        status="healthy",
+        service="trip-assistant-api",
+        version="0.1.0"
+    )
+
+# main.py
+app.include_router(health.router, prefix="/api")
+```
 
 ## Schemas (Pydantic)
 
@@ -222,10 +256,11 @@ async def create_message(
 - **Use Starlette Response** - Import from `starlette.responses`
 
 ```python
+# middleware.py
 from collections.abc import Awaitable, Callable
+from fastapi import Request
 from starlette.responses import Response
 
-@app.middleware("http")
 async def add_request_id_header(
     request: Request,
     call_next: Callable[[Request], Awaitable[Response]]
@@ -238,6 +273,11 @@ async def add_request_id_header(
 
     response.headers["X-Request-ID"] = request_id
     return response
+
+# main.py
+from app.middleware import add_request_id_header
+
+app.middleware("http")(add_request_id_header)
 ```
 
 ### Error Handling

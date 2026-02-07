@@ -89,45 +89,72 @@ Create dependency injection layer for the agent graph.
 
 ---
 
-## Phase 3: FastAPI App & Routes
+## Phase 3: API Routes ✅
 
-Build the FastAPI application with CORS support and endpoints.
+Build FastAPI routers for messages and health endpoints.
 
-- [ ] Create `app/main.py`
-  - [ ] Import logger from `app.logger`
-  - [ ] Initialize FastAPI app with title, version, description
-  - [ ] Add CORS middleware
-    - [ ] Configure origins for frontend (localhost:3000, deployed URLs)
-    - [ ] Allow credentials, all methods, all headers
-  - [ ] Implement `POST /api/messages`
-    - [ ] Accept `MessageRequest`
-    - [ ] Use `Depends(get_graph)` to get agent
-    - [ ] Log incoming request (question preview)
-    - [ ] Invoke agent with `{"question": request.question}`
-    - [ ] Return `MessageResponse` with answer, category, confidence, source
-    - [ ] Handle errors → 500 with `ErrorResponse` and log errors
-  - [ ] Implement `GET /api/health`
-    - [ ] Return `HealthResponse` with status="healthy", service="trip-assistant-api", version from package
-    - [ ] Lightweight check (no agent dependency)
-- [ ] Create `tests/conftest.py`
-  - [ ] `mock_graph` fixture - returns MagicMock with invoke method
-  - [ ] `mock_graph_result` fixture - sample agent state dict
-  - [ ] `client` fixture - TestClient with overridden get_graph dependency
-- [ ] Create `tests/test_main.py`
-  - [ ] Test POST /api/messages success returns MessageResponse
-  - [ ] Test POST /api/messages validation rejects empty question
-  - [ ] Test POST /api/messages handles agent errors → 500
-  - [ ] Test POST /api/messages processes all 7 categories (parametrized)
-  - [ ] Test GET /api/health returns healthy status
-  - [ ] Test GET /api/health includes version
-  - [ ] Test CORS headers present in responses
-  - [ ] Test CORS preflight OPTIONS request
-- [ ] Run `pytest tests/test_main.py -v` (must pass)
-- [ ] Run `pytest tests/ -v` (all ~15 tests must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add app/main.py tests/conftest.py tests/test_main.py && git commit`
+- [x] Create `app/routers/` directory
+- [x] Create `app/routers/__init__.py` (empty)
+- [x] Create `app/routers/messages.py`
+  - [x] Define `router = APIRouter(tags=["messages"])`
+  - [x] Implement `POST /messages` endpoint
+    - [x] Accept `MessageRequest`
+    - [x] Use `Depends(get_graph)` to get agent
+    - [x] Log incoming request (question preview)
+    - [x] Invoke agent with `{"question": request.question}`
+    - [x] Return `MessageResponse` with answer, category, confidence, source
+    - [x] Handle errors → 500 with `ErrorResponse` and log errors
+- [x] Create `app/routers/health.py`
+  - [x] Define `router = APIRouter(tags=["health"])`
+  - [x] Implement `GET /health` endpoint
+    - [x] Return `HealthResponse` with status="healthy", service, version
+    - [x] Lightweight check (no agent dependency)
+- [x] Tests remain unchanged (routes tested via app.include_router)
+- [x] Run `pytest tests/ -v` (all tests must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [x] Commit changes: `git add app/routers/ && git commit`
 
-**Expected**: ~15 tests passing
+**Actual**: All tests passing (31 tests)
+
+**Design Note**: Router prefix `/api` is set in main.py via `app.include_router(messages.router, prefix="/api")` (DRY - defined once).
+
+---
+
+## Phase 4: FastAPI App & Middleware ✅
+
+Wire up the FastAPI application with CORS, middleware, and routers.
+
+- [x] Create `app/middleware.py`
+  - [x] Move request ID tracing middleware from main.py
+  - [x] Export `add_request_id_header()` as standalone function
+- [x] Simplify `app/main.py`
+  - [x] Import logger from `app.logger`
+  - [x] Initialize FastAPI app with title, version, description
+  - [x] Add CORS middleware
+    - [x] Configure origins for frontend (localhost:3000, deployed URLs)
+    - [x] Allow credentials, all methods, all headers
+  - [x] Register middleware: `app.middleware("http")(add_request_id_header)`
+  - [x] Include routers with `/api` prefix
+- [x] Create `tests/conftest.py`
+  - [x] `mock_graph` fixture - returns MagicMock with invoke method
+  - [x] `mock_graph_result` fixture - sample agent state dict
+  - [x] `client` fixture - TestClient with overridden get_graph dependency
+- [x] Create `tests/test_main.py`
+  - [x] Test POST /api/messages success returns MessageResponse
+  - [x] Test POST /api/messages validation rejects empty question
+  - [x] Test POST /api/messages handles agent errors → 500
+  - [x] Test POST /api/messages processes all 7 categories (parametrized)
+  - [x] Test GET /api/health returns healthy status
+  - [x] Test GET /api/health includes version
+  - [x] Test CORS headers present in responses
+  - [x] Test CORS preflight OPTIONS request
+  - [x] Test request ID header present in responses
+- [x] Run `pytest tests/test_main.py -v` (must pass)
+- [x] Run `pytest tests/ -v` (all tests must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [x] Commit changes: `git add app/main.py app/middleware.py tests/conftest.py tests/test_main.py && git commit`
+
+**Actual**: All tests passing (31 tests)
 
 **CORS Note**: Configured early to avoid debugging CORS issues during frontend integration.
 
@@ -135,7 +162,7 @@ Build the FastAPI application with CORS support and endpoints.
 
 ---
 
-## Phase 4: Lambda Handler
+## Phase 5: Lambda Handler
 
 Create AWS Lambda handler using Mangum adapter.
 
@@ -160,7 +187,7 @@ Create AWS Lambda handler using Mangum adapter.
 
 ---
 
-## Phase 5: Dockerfile
+## Phase 6: Dockerfile
 
 Create containerized deployment configuration.
 
@@ -185,7 +212,7 @@ Create containerized deployment configuration.
 
 ---
 
-## Phase 6: Integration Tests
+## Phase 7: Integration Tests
 
 Add end-to-end tests with real agent (requires OPENAI_API_KEY).
 
@@ -250,8 +277,9 @@ pytest tests/ -v
 
 ## Completion Criteria
 
-- [ ] Phase 1-5 completed (Core API functionality)
-- [ ] Phase 6 completed (Integration tests)
+- [x] Phase 1-4 completed (Core API functionality)
+- [ ] Phase 5-6 completed (Lambda handler & Dockerfile)
+- [ ] Phase 7 completed (Integration tests)
 - [ ] All unit tests passing (~20 tests, mocked agent)
 - [ ] Integration test framework ready (~8 tests, skip without API key)
 - [ ] All quality checks passing (ruff, mypy, pytest)
