@@ -334,46 +334,47 @@ Configure local development workflow and AWS SAM for optional Lambda testing.
 
 ---
 
-## Phase 8: Integration Tests
+## Phase 8: Integration Tests ✅
 
 Add end-to-end tests with real OpenAI API.
 
 ### Integration Test Framework
 
-- [ ] Create `tests/integration/` directory
-- [ ] Create `tests/integration/__init__.py`
-- [ ] Create `tests/integration/conftest.py`
-  - [ ] Add `pytest_configure` hook to skip if `OPENAI_API_KEY` not set
-  - [ ] Add `integration_client` fixture (TestClient with real agent, no mocks)
-  - [ ] Override `get_graph` dependency to use real agent (force `ENVIRONMENT=dev`)
-  - [ ] Add docstring explaining integration test setup
+- [x] Create `tests/integration/` directory
+- [x] Create `tests/integration/__init__.py`
+- [x] Create `tests/integration/conftest.py`
+  - [x] Add `pytest_configure` hook to register integration marker
+  - [x] Add `pytest_collection_modifyitems` to skip if `OPENAI_API_KEY` not set
+  - [x] Add `integration_client` fixture (TestClient with real agent, no mocks)
+  - [x] Force `ENVIRONMENT=dev` for local agent import
+  - [x] Add docstring explaining integration test setup
 
 ### Integration Tests
 
-- [ ] Create `tests/integration/test_api_integration.py`
-  - [ ] Test POST /api/messages with real flight question
-    - [ ] Verify answer not empty
-    - [ ] Verify category is "flights"
-    - [ ] Verify confidence > 0.5
-  - [ ] Test POST /api/messages for all 7 categories (parametrized)
-    - [ ] Questions: flights, lodging, transportation, activities, food, general, budget
-    - [ ] Verify category matches expected
-    - [ ] Verify answer relevance
-  - [ ] Test GET /api/health returns healthy
-  - [ ] Test general question handling (confidence check)
-  - [ ] Test request ID header present
-  - [ ] Mark all tests with `@pytest.mark.integration`
+- [x] Create `tests/integration/test_api_integration.py`
+  - [x] Test POST /api/messages with real flight question
+    - [x] Verify answer not empty
+    - [x] Verify category is "flight"
+    - [x] Verify confidence > 0.5
+  - [x] Test POST /api/messages for all 7 categories (parametrized)
+    - [x] Categories: flight, car_rental, routes, aosta, chamonix, annecy_geneva, general
+    - [x] Verify category matches expected
+    - [x] Verify answer relevance
+  - [x] Test GET /api/health returns healthy
+  - [x] Test general question handling (confidence check)
+  - [x] Test request ID header present
+  - [x] Mark all tests with `@pytest.mark.integration`
 
 ### Validation
 
-- [ ] Update `pyproject.toml` (verify pytest markers configured)
-- [ ] Run `pytest tests/ -v -m "not integration"` (unit tests pass, ~45 tests)
-- [ ] Run `pytest tests/ -v -m integration` (skip without API key, ~11 skipped)
-- [ ] Set `OPENAI_API_KEY` and run integration tests (~11 passed)
-- [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add tests/integration/ && git commit`
+- [x] Verify pytest markers configured in `pyproject.toml`
+- [x] Run `pytest tests/ -v -m "not integration"` (44 unit tests pass)
+- [x] Run `pytest tests/ -v -m integration` (skip without API key, 11 skipped)
+- [x] Set `OPENAI_API_KEY` and run integration tests (11 passed)
+- [x] Run `pre-commit run --all-files` (API checks pass)
+- [x] Commit changes: `git add tests/integration/ && git commit`
 
-**Expected**: ~11 integration tests (~56 total tests)
+**Actual**: 11 integration tests (55 total: 44 unit + 11 integration)
 
 **Test Organization**:
 ```
@@ -498,16 +499,16 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 - [x] Phase 5 completed (Lambda handler)
 - [x] Phase 6 completed (Docker & deployment configuration)
 - [x] Phase 7 completed (Local development & SAM configuration)
-- [ ] Phase 8 completed (Integration tests)
+- [x] Phase 8 completed (Integration tests)
 - [ ] Phase 9 completed (CI/CD pipeline)
 - [x] All unit tests passing (44 tests, mocked agent)
-- [ ] Integration tests ready (~11 tests, skip without API key)
+- [x] Integration tests ready (11 tests, skip without API key)
 - [x] All quality checks passing (ruff, mypy, pre-commit)
 - [x] Dual-mode dependencies work (dev imports local, prod calls Lambda)
 - [x] Production Dockerfile builds successfully
 - [x] Direct FastAPI development works (`fastapi dev app/main.py`)
 - [x] SAM template valid for deployment (Docker optional for local testing)
-- [ ] Integration tests validated with real OpenAI API
+- [x] Integration tests validated with real OpenAI API
 - [ ] CI/CD pipeline runs all jobs successfully
 - [ ] Version tagging works (api-v prefix, 3-tag strategy)
 - [x] Ready for frontend integration (via direct FastAPI or SAM)
