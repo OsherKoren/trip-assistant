@@ -251,7 +251,7 @@ Configure dual-mode dependencies and Docker containers for local/production envi
 
 - [x] Run `pytest tests/ -v` (all tests must pass, ~45 total)
 - [x] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add app/dependencies.py Dockerfile .env.example .dockerignore tests/test_dependencies_lambda.py pyproject.toml && git commit`
+- [x] Commit changes: `git add app/dependencies.py Dockerfile .env.example .dockerignore tests/test_dependencies_lambda.py pyproject.toml && git commit`
 
 **Note**: Docker image build is validated in GitHub CI, not locally.
 
@@ -481,7 +481,7 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 - [x] Phase 3 completed (API routes)
 - [x] Phase 4 completed (FastAPI app & middleware)
 - [x] Phase 5 completed (Lambda handler)
-- [ ] Phase 6 completed (Docker & deployment configuration)
+- [x] Phase 6 completed (Docker & deployment configuration)
 - [ ] Phase 7 completed (SAM configuration & local Lambda testing)
 - [ ] Phase 8 completed (Integration tests)
 - [ ] Phase 9 completed (CI/CD pipeline)
