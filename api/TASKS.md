@@ -81,6 +81,7 @@ Create dependency injection layer for the agent graph.
   - [ ] Test graph can be invoked with sample state
 - [ ] Run `pytest tests/test_dependencies.py -v` (must pass)
 - [ ] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes: `git add app/dependencies.py tests/test_dependencies.py && git commit`
 
 **Expected**: ~4 tests passing
 
@@ -124,6 +125,7 @@ Build the FastAPI application with CORS support and endpoints.
 - [ ] Run `pytest tests/test_main.py -v` (must pass)
 - [ ] Run `pytest tests/ -v` (all ~15 tests must pass)
 - [ ] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes: `git add app/main.py tests/conftest.py tests/test_main.py && git commit`
 
 **Expected**: ~15 tests passing
 
@@ -150,6 +152,7 @@ Create AWS Lambda handler using Mangum adapter.
 - [ ] Run `pytest tests/test_handler.py -v` (must pass)
 - [ ] Run `pytest tests/ -v` (all ~20 tests must pass)
 - [ ] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes: `git add app/handler.py tests/test_handler.py && git commit`
 
 **Expected**: ~5 tests passing (~20 unit total)
 
@@ -174,6 +177,7 @@ Create containerized deployment configuration.
   - [ ] Exclude `tests/`, `.env`, `.git`
   - [ ] Exclude `.pytest_cache`, `.ruff_cache`, `.mypy_cache`
 - [ ] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes: `git add Dockerfile .dockerignore && git commit`
 
 **Expected**: No new tests (infrastructure files)
 
@@ -208,6 +212,7 @@ Add end-to-end tests with real agent (requires OPENAI_API_KEY).
 - [ ] Verify tests skip gracefully without API key (~8 skipped)
 - [ ] Verify unit tests still pass with marker (~20 passed)
 - [ ] All quality checks passing
+- [ ] Commit changes: `git add .env.example tests/integration/ && git commit`
 
 **Expected**: ~8 integration tests (skip without API key), ~28 total tests
 
