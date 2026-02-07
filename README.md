@@ -1,0 +1,121 @@
+# Trip Assistant
+
+A LangGraph-powered Q&A assistant for family travel planning. Built as a monorepo with 4 services for flexible deployment.
+
+## Overview
+
+Trip Assistant helps families plan trips by answering questions about flights, accommodations, routes, and destinations. The agent uses topic-based routing to specialized nodes for accurate, context-aware responses.
+
+**Trip Context:** France/Italy Alps, July 7-20, 2026, 5 family members
+
+## Architecture
+
+```
+┌─────────────┐
+│   Frontend  │  React chat interface
+└──────┬──────┘
+       │
+       v
+┌─────────────┐
+│     API     │  FastAPI backend
+└──────┬──────┘
+       │
+       v
+┌─────────────┐
+│    Agent    │  LangGraph state machine
+└──────┬──────┘
+       │
+       v
+  Classifier → Router → Specialists
+  (flights, hotels, routes, destinations)
+```
+
+## Services
+
+| Service | Path | Description | Status |
+|---------|------|-------------|--------|
+| **Agent** | [`./agent/`](./agent/README.md) | LangGraph agent with topic routing | ✅ Complete |
+| **API** | [`./api/`](./api/) | FastAPI backend serving the agent | 🚧 Planned |
+| **Frontend** | [`./frontend/`](./frontend/) | React chat interface | 🚧 Planned |
+| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform) | 🚧 Planned |
+
+## Quick Start
+
+### Agent Service (Core)
+
+```bash
+# Install dependencies
+cd agent
+pip install -e .
+
+# Set up environment
+cp .env.example .env
+# Add your OPENAI_API_KEY to .env
+
+# Run tests
+pytest tests/ -v
+
+# Use the agent (Python)
+from src.graph import app
+result = app.invoke({"messages": [("user", "What flights should we take?")]})
+```
+
+### Run All Tests
+
+```bash
+# From repository root
+pytest agent/tests/ -v
+```
+
+### Quality Checks
+
+```bash
+# Run pre-commit hooks across all services
+pre-commit run --all-files
+```
+
+## Documentation
+
+- [`docs/architecture.md`](./docs/architecture.md) - System design and data flow
+- [`docs/data-model.md`](./docs/data-model.md) - State schema and document structure
+- [`CLAUDE.md`](./CLAUDE.md) - Development guide and conventions
+
+## Tech Stack
+
+- **Agent**: LangGraph 1.x, LangChain, OpenAI GPT-4
+- **API**: FastAPI, Python 3.11+
+- **Frontend**: React, TypeScript
+- **Infra**: AWS Lambda, Terraform, Docker
+
+## Development
+
+This is a monorepo. Each service has its own:
+- `README.md` - Service-specific documentation
+- `pyproject.toml` or `package.json` - Dependencies
+- `tests/` - Service-specific tests
+
+**Git Workflow:**
+- Work on feature branches (e.g., `feature/agent`)
+- Never commit directly to `main`
+- All changes to `main` via pull requests
+- CI/CD runs tests and deploys automatically
+
+## Project Status
+
+**Current Phase:** Agent service complete with comprehensive testing and CI/CD
+
+**Next Steps:**
+1. API service implementation
+2. Frontend development
+3. Infrastructure setup and deployment
+
+## Contributing
+
+1. Check service-specific `CLAUDE.md` files for development guidelines
+2. Follow TDD: write tests before implementation
+3. Run `pre-commit run --all-files` before committing
+4. Keep changes focused and atomic
+
+## License
+
+Private project for family use.
