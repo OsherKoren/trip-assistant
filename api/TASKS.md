@@ -62,28 +62,28 @@ Define project structure, dependencies, and Pydantic schemas.
 
 ---
 
-## Phase 2: Dependencies & Agent Initialization
+## Phase 2: Dependencies & Agent Initialization ✅
 
 Create dependency injection layer for the agent graph.
 
-- [ ] Create `app/dependencies.py`
-  - [ ] Import logger from `app.logger`
-  - [ ] Implement `get_graph()` function
-    - [ ] Import and return compiled agent graph
-    - [ ] Handle import errors gracefully (raise HTTPException 500)
-    - [ ] Log errors and successful initialization
-    - [ ] Add type hints for return type
-  - [ ] Add docstrings explaining dependency injection pattern
-- [ ] Create `tests/test_dependencies.py`
-  - [ ] Test `get_graph()` returns callable with invoke method
-  - [ ] Test dependency override mechanism works (for testing)
-  - [ ] Test handles agent import error gracefully
-  - [ ] Test graph can be invoked with sample state
-- [ ] Run `pytest tests/test_dependencies.py -v` (must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add app/dependencies.py tests/test_dependencies.py && git commit`
+- [x] Create `app/dependencies.py`
+  - [x] Import logger from `app.logger`
+  - [x] Implement `get_graph()` function
+    - [x] Import and return compiled agent graph
+    - [x] Handle import errors gracefully (raise HTTPException 500)
+    - [x] Log errors and successful initialization
+    - [x] Add type hints for return type
+  - [x] Add docstrings explaining dependency injection pattern
+- [x] Create `tests/test_dependencies.py`
+  - [x] Test `get_graph()` returns callable with invoke method
+  - [x] Test dependency override mechanism works (for testing)
+  - [x] Test handles agent import error gracefully
+  - [x] Test graph can be invoked with sample state
+- [x] Run `pytest tests/test_dependencies.py -v` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [x] Commit changes: `git add app/dependencies.py tests/test_dependencies.py && git commit`
 
-**Expected**: ~4 tests passing
+**Actual**: 4 tests passing
 
 **Design Note**: Using dependency injection (`Depends(get_graph)`) allows easy mocking in tests via `app.dependency_overrides`.
 

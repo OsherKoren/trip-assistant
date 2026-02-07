@@ -31,7 +31,7 @@ uv run pre-commit run --all-files
 
 ## Package Management
 
-**ALWAYS use `uv` for package management - NEVER use `pip` directly**
+**Python services (agent, api) use `uv` - NEVER use `pip` directly**
 
 - Install packages: `uv pip install <package>`
 - Install editable: `uv pip install -e .`
