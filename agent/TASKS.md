@@ -8,7 +8,7 @@
 
 Building a LangGraph 1.x agent with topic classification and specialist routing for trip Q&A.
 
-**Graph Flow**: `START → classifier → router → [specialist] → END`
+**Graph Flow**: `START → inject_documents → classifier → router → [specialist] → END`
 
 ---
 
@@ -150,7 +150,7 @@ Wire all nodes together using LangGraph StateGraph.
 
 **Graph Structure**:
 ```
-START → classifier → router → [flight|car_rental|routes|aosta|chamonix|annecy_geneva|general] → END
+START → inject_documents → classifier → router → [flight|car_rental|routes|aosta|chamonix|annecy_geneva|general] → END
 ```
 
 - [x] Create `tests/test_graph.py`
@@ -162,6 +162,19 @@ START → classifier → router → [flight|car_rental|routes|aosta|chamonix|ann
 - [x] Run `pytest tests/test_graph.py -v` (must pass)
 - [x] Run `pytest tests/ -v` (all 50 tests must pass)
 - [x] Run `pre-commit run --all-files` (must pass)
+
+### Post-Phase 5 Enhancement: Document Injection Entry Node
+
+- [x] Add `inject_documents` entry node to graph
+  - [x] Load documents once at module level (cached for process lifetime)
+  - [x] Graph flow: `START → inject_documents → classifier → ...`
+  - [x] Callers only need to pass `{"question": "..."}` to invoke
+  - [x] Decouples API service from agent's document loading internals
+- [x] Add `# type: ignore[call-overload]` for LangGraph type compatibility
+- [x] All 61 unit tests passing
+- [x] Pre-commit checks passing (ruff, mypy, pytest)
+
+**Rationale**: API service should be decoupled from agent internals. Previously callers had to load and pass documents in the initial state. Now the graph handles document loading internally with module-level caching (loaded once per process/Lambda cold start).
 
 ---
 
