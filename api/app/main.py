@@ -1,18 +1,37 @@
 """FastAPI application.
 
-This module initializes the FastAPI app with middleware for request tracing.
-Full route implementation will be added in Phase 3.
+This module initializes the FastAPI app with CORS support, request tracing,
+and routes for the trip assistant agent.
 """
 
 from collections.abc import Awaitable, Callable
+from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
+
+from app.dependencies import get_graph
+from app.logger import logger
+from app.schemas import ErrorResponse, HealthResponse, MessageRequest, MessageResponse
 
 app = FastAPI(
     title="Trip Assistant API",
     version="0.1.0",
     description="FastAPI backend for LangGraph travel assistant",
+)
+
+# Configure CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "http://localhost:5173",  # Vite default port
+        # Production URLs will be added during deployment
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -46,3 +65,69 @@ async def add_request_id_header(
     response.headers["X-Request-ID"] = request_id
 
     return response
+
+
+@app.post(
+    "/api/messages", response_model=MessageResponse, responses={500: {"model": ErrorResponse}}
+)
+async def create_message(
+    request_body: MessageRequest, graph: Any = Depends(get_graph)
+) -> MessageResponse:
+    """Send a message to the trip assistant agent.
+
+    Accepts a user question, invokes the LangGraph agent, and returns the
+    agent's response with category classification and confidence score.
+
+    Args:
+        request_body: Message request containing user question.
+        graph: Agent graph instance (injected dependency).
+
+    Returns:
+        MessageResponse with answer, category, confidence, and optional source.
+
+    Raises:
+        HTTPException: 500 error if agent invocation fails.
+    """
+    # Log incoming request (preview only, for privacy)
+    logger.info(
+        "Processing message request",
+        question_preview=request_body.question[:50],
+    )
+
+    try:
+        # Invoke agent with user question
+        result = graph.invoke({"question": request_body.question})
+
+        # Return structured response
+        return MessageResponse(
+            answer=result["answer"],
+            category=result["category"],
+            confidence=result["confidence"],
+            source=result.get("source"),
+        )
+    except Exception as e:
+        # Log error with full context for debugging
+        logger.error(
+            "Agent invocation failed",
+            error=str(e),
+            question_preview=request_body.question[:50],
+        )
+        # Return generic error to client (don't expose internals)
+        raise HTTPException(status_code=500, detail="Processing failed") from e
+
+
+@app.get("/api/health", response_model=HealthResponse)
+async def health_check() -> HealthResponse:
+    """Health check endpoint for Lambda warm-up and monitoring.
+
+    Lightweight check that doesn't require agent initialization. Used by
+    API Gateway health checks and monitoring systems.
+
+    Returns:
+        HealthResponse with service status and version.
+    """
+    return HealthResponse(
+        status="healthy",
+        service="trip-assistant-api",
+        version="0.1.0",
+    )
