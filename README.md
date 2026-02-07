@@ -1,6 +1,6 @@
 # Trip Assistant
 
-A LangGraph-powered Q&A assistant for family travel planning. Built as a monorepo with 4 services for flexible deployment.
+A LangGraph-powered Q&A assistant for family travel planning. Built as a monorepo with 3 application services and cloud infrastructure for flexible deployment.
 
 ## Overview
 
@@ -30,14 +30,19 @@ Trip Assistant helps families plan trips by answering questions about flights, a
   (flights, hotels, routes, destinations)
 ```
 
-## Services
+## Application Services
 
 | Service | Path | Description | Status |
 |---------|------|-------------|--------|
 | **Agent** | [`./agent/`](./agent/README.md) | LangGraph agent with topic routing | ✅ Complete |
 | **API** | [`./api/`](./api/) | FastAPI backend serving the agent | 🚧 Planned |
 | **Frontend** | [`./frontend/`](./frontend/) | React chat interface | 🚧 Planned |
-| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform) | 🚧 Planned |
+
+## Infrastructure
+
+| Component | Path | Description | Status |
+|-----------|------|-------------|--------|
+| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform, Docker) | 🚧 Planned |
 
 ## Quick Start
 
@@ -89,10 +94,17 @@ pre-commit run --all-files
 
 ## Development
 
-This is a monorepo. Each service has its own:
+This is a monorepo with separate application services and infrastructure:
+
+**Application Services** (agent, api, frontend):
 - `README.md` - Service-specific documentation
 - `pyproject.toml` or `package.json` - Dependencies
 - `tests/` - Service-specific tests
+
+**Infrastructure** (infra):
+- Terraform configuration for AWS resources
+- Dockerfiles and deployment scripts
+- No independent tests (validated via service deployments)
 
 **Git Workflow:**
 - Work on feature branches (e.g., `feature/agent`)
