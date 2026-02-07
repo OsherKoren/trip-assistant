@@ -186,6 +186,20 @@ Create AWS Lambda handler using Mangum adapter.
 
 **Lambda Event Format**: API Gateway HTTP API (v2.0) event structure.
 
+### Post-Phase 5 Enhancement: Async Agent Invocation
+
+- [x] Switch from `graph.invoke()` to `await graph.ainvoke()` in routes
+  - [x] Update `app/routers/messages.py` to use async invocation
+  - [x] Update `MockGraph` in `tests/conftest.py` to support `ainvoke()`
+  - [x] Update error mocks in `tests/test_main.py` and `tests/test_handler.py`
+  - [x] Update `tests/test_dependencies.py` to verify `ainvoke()` method
+  - [x] Update docstrings in `app/dependencies.py`
+- [x] Run `pytest tests/ -v` (all 37 tests must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [x] Commit changes: `git add app/ tests/ && git commit`
+
+**Rationale**: Using async `ainvoke()` provides non-blocking I/O for OpenAI API calls, following FastAPI best practices. Prepares for Phase 6 async boto3 Lambda proxy.
+
 ---
 
 ## Phase 6: Docker & Deployment Configuration
@@ -196,19 +210,19 @@ Configure dual-mode dependencies and Docker containers for local/production envi
 
 - [ ] Update `app/dependencies.py`
   - [ ] Add `AgentLambdaProxy` class
-    - [ ] Wrap boto3 Lambda client
-    - [ ] Implement `.invoke(state)` method matching agent graph interface
+    - [ ] Wrap aioboto3 Lambda client (async)
+    - [ ] Implement `async def ainvoke(state)` method matching agent graph interface
     - [ ] Parse Lambda JSON response to state dict
     - [ ] Add type hints and error handling
   - [ ] Update `get_graph()` function
     - [ ] Check `os.getenv("ENVIRONMENT") == "dev"`
     - [ ] Dev mode: Import `from src.graph import graph` (local agent)
-    - [ ] Production mode: Return `AgentLambdaProxy(lambda_client, function_name)`
+    - [ ] Production mode: Return `AgentLambdaProxy(function_name)`
     - [ ] Log which mode is active
   - [ ] Add docstring explaining dual-mode pattern
-- [ ] Add `boto3 >= 1.35` to `pyproject.toml` dependencies
+- [ ] Add `aioboto3 >= 13.0` to `pyproject.toml` dependencies (async boto3)
 - [ ] Create `tests/test_dependencies_lambda.py`
-  - [ ] Test `AgentLambdaProxy.invoke()` with mocked boto3 client
+  - [ ] Test `AgentLambdaProxy.ainvoke()` with mocked aioboto3 client
   - [ ] Test `get_graph()` returns local agent when `ENVIRONMENT=dev`
   - [ ] Test `get_graph()` returns proxy when `ENVIRONMENT=prod`
   - [ ] Test Lambda invocation error handling (timeout, payload errors)
@@ -242,7 +256,7 @@ Configure dual-mode dependencies and Docker containers for local/production envi
 
 **Expected**: ~8 new tests (~45 total)
 
-**Design Note**: Route handlers remain unchanged - they call `graph.invoke()` whether it's the local agent or Lambda proxy.
+**Design Note**: Route handlers remain unchanged - they call `await graph.ainvoke()` whether it's the local agent or Lambda proxy.
 
 ---
 
