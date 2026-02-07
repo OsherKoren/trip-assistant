@@ -43,6 +43,19 @@ pre-commit run --all-files
 - **Pull requests only** - All changes to main must go through PR review and CI/CD
 - **Branch naming** - Use descriptive names like `feature/agent`, `fix/integration-tests`
 
+### Commit Messages
+
+- **Keep it short** - 1-2 sentence summary (under 72 chars for title)
+- **Be specific** - "Add schemas for API requests" not "Update files"
+- **Focus on what, not how** - The diff shows how, commit explains what/why
+- **Always include co-author** - End with `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`
+
+### Pull Request Descriptions
+
+- **Title: Short and specific** - Under 60 chars, imperative mood
+- **Body: Brief summary** - 2-3 bullet points max, focus on user impact
+- **No verbose details** - Code changes are visible in the diff
+
 ## Working on a Service
 
 Each service has its own `CLAUDE.md` with detailed specs. Navigate to the service directory for focused context.
