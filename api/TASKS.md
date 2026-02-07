@@ -162,108 +162,211 @@ Wire up the FastAPI application with CORS, middleware, and routers.
 
 ---
 
-## Phase 5: Lambda Handler
+## Phase 5: Lambda Handler ✅
 
 Create AWS Lambda handler using Mangum adapter.
 
-- [ ] Create `app/handler.py`
-  - [ ] Import app from `app.main`
-  - [ ] Create handler: `handler = Mangum(app)`
-  - [ ] Add docstring explaining Lambda invocation
-- [ ] Create `tests/test_handler.py`
-  - [ ] Test handler is Mangum instance
-  - [ ] Test handler callable with mock API Gateway V2 event
-  - [ ] Test health endpoint via Lambda event
-  - [ ] Test messages endpoint via Lambda event
-  - [ ] Test invalid request handling via Lambda event
-- [ ] Run `pytest tests/test_handler.py -v` (must pass)
-- [ ] Run `pytest tests/ -v` (all ~20 tests must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add app/handler.py tests/test_handler.py && git commit`
+- [x] Create `app/handler.py`
+  - [x] Import app from `app.main`
+  - [x] Create handler: `handler = Mangum(app)`
+  - [x] Add docstring explaining Lambda invocation
+- [x] Create `tests/test_handler.py`
+  - [x] Test handler is Mangum instance
+  - [x] Test handler callable with mock API Gateway V2 event
+  - [x] Test health endpoint via Lambda event
+  - [x] Test messages endpoint via Lambda event
+  - [x] Test invalid request handling via Lambda event
+  - [x] Test agent error handling via Lambda event (added)
+- [x] Run `pytest tests/test_handler.py -v` (must pass)
+- [x] Run `pytest tests/ -v` (all tests must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [x] Commit changes: `git add app/handler.py tests/test_handler.py && git commit`
 
-**Expected**: ~5 tests passing (~20 unit total)
+**Actual**: 6 tests passing (37 unit tests total)
 
 **Lambda Event Format**: API Gateway HTTP API (v2.0) event structure.
 
 ---
 
-## Phase 6: Dockerfile
+## Phase 6: Docker & Deployment Configuration
 
-Create containerized deployment configuration.
+Configure dual-mode dependencies and Docker containers for local/production environments.
 
-- [ ] Create `Dockerfile`
+### Dual-Mode Dependencies
+
+- [ ] Update `app/dependencies.py`
+  - [ ] Add `AgentLambdaProxy` class
+    - [ ] Wrap boto3 Lambda client
+    - [ ] Implement `.invoke(state)` method matching agent graph interface
+    - [ ] Parse Lambda JSON response to state dict
+    - [ ] Add type hints and error handling
+  - [ ] Update `get_graph()` function
+    - [ ] Check `os.getenv("ENVIRONMENT") == "dev"`
+    - [ ] Dev mode: Import `from src.graph import graph` (local agent)
+    - [ ] Production mode: Return `AgentLambdaProxy(lambda_client, function_name)`
+    - [ ] Log which mode is active
+  - [ ] Add docstring explaining dual-mode pattern
+- [ ] Add `boto3 >= 1.35` to `pyproject.toml` dependencies
+- [ ] Create `tests/test_dependencies_lambda.py`
+  - [ ] Test `AgentLambdaProxy.invoke()` with mocked boto3 client
+  - [ ] Test `get_graph()` returns local agent when `ENVIRONMENT=dev`
+  - [ ] Test `get_graph()` returns proxy when `ENVIRONMENT=prod`
+  - [ ] Test Lambda invocation error handling (timeout, payload errors)
+  - [ ] Test JSON serialization/deserialization of state
+
+### Docker Configuration
+
+- [ ] Create `Dockerfile` (production Lambda)
+  - [ ] Multi-stage build: builder + runtime (match agent pattern)
   - [ ] Base image: `python:3.11-slim`
-  - [ ] Set working directory: `/app`
-  - [ ] Copy all files
-  - [ ] Install api package: `pip install --no-cache-dir -e .`
-  - [ ] Install agent package: `pip install --no-cache-dir -e ../agent`
-  - [ ] CMD: `["fastapi", "run", "app/main.py", "--port", "8000"]`
-  - [ ] Add comments for Lambda vs container deployment
+  - [ ] Builder: Install uv, copy only API code, no agent
+  - [ ] Runtime: Copy built artifacts, set CMD for Lambda
+  - [ ] Add labels: version from pyproject.toml, service name
 - [ ] Create `.dockerignore`
   - [ ] Exclude `.venv`, `__pycache__`, `*.pyc`
   - [ ] Exclude `tests/`, `.env`, `.git`
   - [ ] Exclude `.pytest_cache`, `.ruff_cache`, `.mypy_cache`
+- [ ] Create `.env.example`
+  - [ ] Document `ENVIRONMENT=dev` for local (SAM CLI)
+  - [ ] Document `OPENAI_API_KEY` requirement
+  - [ ] Document `AWS_REGION`, `AGENT_LAMBDA_FUNCTION_NAME` for production
+  - [ ] Add to version control (safe template)
+- [ ] Ensure `.env` is in `.gitignore`
+
+### Validation
+
+- [ ] Run `pytest tests/ -v` (all tests must pass, ~45 total)
 - [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes: `git add Dockerfile .dockerignore && git commit`
+- [ ] Build production image: `docker build -t trip-api:test .`
+- [ ] Commit changes: `git add app/dependencies.py Dockerfile .env.example .dockerignore tests/test_dependencies_lambda.py && git commit`
 
-**Expected**: No new tests (infrastructure files)
+**Expected**: ~8 new tests (~45 total)
 
-**Note**: Dockerfile supports both local development and container deployment (ECS). Lambda uses handler directly.
+**Design Note**: Route handlers remain unchanged - they call `graph.invoke()` whether it's the local agent or Lambda proxy.
 
 ---
 
-## Phase 7: Integration Tests
+## Phase 7: SAM Configuration & Local Lambda Testing
 
-Add end-to-end tests with real agent (requires OPENAI_API_KEY).
+Configure AWS SAM for production-identical local Lambda testing.
 
-- [ ] Create `.env.example` template file
-  - [ ] Document OPENAI_API_KEY requirement
-  - [ ] Add to version control (safe template)
-- [ ] Ensure `.env` is in `.gitignore`
+### SAM Template
+
+- [ ] Create `template.yaml`
+  - [ ] `AWS::Serverless::Function` resource
+    - [ ] Runtime: python3.11
+    - [ ] Handler: app.handler.handler
+    - [ ] Memory: 512MB, Timeout: 30s
+    - [ ] Environment variables: `ENVIRONMENT`, `AGENT_LAMBDA_FUNCTION_NAME`, `AWS_REGION`
+    - [ ] Events: `HttpApi` with API Gateway v2 routes
+      - [ ] `POST /api/messages`
+      - [ ] `GET /api/health`
+  - [ ] `AWS::Serverless::HttpApi` resource (API Gateway v2)
+  - [ ] Outputs: API endpoint URL, Lambda function ARN
+- [ ] Create `samconfig.toml`
+  - [ ] `[default.local_invoke.parameters]`
+    - [ ] `env_vars`: Path to `.env` file
+    - [ ] `docker_network`: Host network for agent Lambda access
+  - [ ] `[default.local_start_api.parameters]`
+    - [ ] `env_vars`: Path to `.env` file
+    - [ ] `port`: 3001 (avoid conflict with frontend 3000)
+
+### SAM Test Events
+
+- [ ] Create `tests/events/` directory
+- [ ] Create `tests/events/messages-post.json`
+  - [ ] API Gateway v2 event for POST /api/messages
+  - [ ] Sample question in body
+- [ ] Create `tests/events/health-get.json`
+  - [ ] API Gateway v2 event for GET /api/health
+
+### Documentation
+
+- [ ] Update `CLAUDE.md` with SAM section
+  - [ ] Installation: `brew install aws-sam-cli` (Mac) or pip
+  - [ ] Local invoke: `sam local invoke -e tests/events/messages-post.json`
+  - [ ] Local API: `sam local start-api --warm-containers EAGER`
+  - [ ] Testing: `curl http://localhost:3001/api/health`
+  - [ ] Troubleshooting: Docker daemon, .env file, network issues
+
+### Validation
+
+- [ ] Run `sam validate` (template must be valid)
+- [ ] Run `sam local invoke -e tests/events/health-get.json` (succeeds)
+- [ ] Run `sam local start-api` (starts on port 3001)
+- [ ] Test health endpoint: `curl http://localhost:3001/api/health`
+- [ ] Test messages endpoint: `curl -X POST http://localhost:3001/api/messages -d '{"question":"test"}'`
+- [ ] Commit changes: `git add template.yaml samconfig.toml tests/events/ && git commit`
+
+**Expected**: No new tests (infrastructure config)
+
+**Design Note**: SAM provides production-identical Lambda environment locally, replacing need for staging environment.
+
+---
+
+## Phase 8: Integration Tests
+
+Add end-to-end tests with real OpenAI API.
+
+### Integration Test Framework
+
 - [ ] Create `tests/integration/` directory
 - [ ] Create `tests/integration/__init__.py`
 - [ ] Create `tests/integration/conftest.py`
-  - [ ] Add pytest hook to skip if OPENAI_API_KEY not set
+  - [ ] Add `pytest_configure` hook to skip if `OPENAI_API_KEY` not set
   - [ ] Add `integration_client` fixture (TestClient with real agent, no mocks)
-- [ ] Create `tests/integration/test_api_integration.py`
-  - [ ] Test POST /api/messages with flight question (real end-to-end)
-  - [ ] Test POST /api/messages for 6 categories (parametrized)
-    - [ ] Verify answer not empty
-    - [ ] Verify category matches expected
-    - [ ] Verify confidence > 0.5
-  - [ ] Test GET /api/health returns healthy
-  - [ ] Test general question handling
-  - [ ] Mark all tests with `@pytest.mark.integration`
-- [ ] Update `pyproject.toml`
-  - [ ] Verify pytest markers configured
-- [ ] Verify tests skip gracefully without API key (~8 skipped)
-- [ ] Verify unit tests still pass with marker (~20 passed)
-- [ ] All quality checks passing
-- [ ] Commit changes: `git add .env.example tests/integration/ && git commit`
+  - [ ] Override `get_graph` dependency to use real agent (force `ENVIRONMENT=dev`)
+  - [ ] Add docstring explaining integration test setup
 
-**Expected**: ~8 integration tests (skip without API key), ~28 total tests
+### Integration Tests
+
+- [ ] Create `tests/integration/test_api_integration.py`
+  - [ ] Test POST /api/messages with real flight question
+    - [ ] Verify answer not empty
+    - [ ] Verify category is "flights"
+    - [ ] Verify confidence > 0.5
+  - [ ] Test POST /api/messages for all 7 categories (parametrized)
+    - [ ] Questions: flights, lodging, transportation, activities, food, general, budget
+    - [ ] Verify category matches expected
+    - [ ] Verify answer relevance
+  - [ ] Test GET /api/health returns healthy
+  - [ ] Test general question handling (confidence check)
+  - [ ] Test request ID header present
+  - [ ] Mark all tests with `@pytest.mark.integration`
+
+### Validation
+
+- [ ] Update `pyproject.toml` (verify pytest markers configured)
+- [ ] Run `pytest tests/ -v -m "not integration"` (unit tests pass, ~45 tests)
+- [ ] Run `pytest tests/ -v -m integration` (skip without API key, ~11 skipped)
+- [ ] Set `OPENAI_API_KEY` and run integration tests (~11 passed)
+- [ ] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes: `git add tests/integration/ && git commit`
+
+**Expected**: ~11 integration tests (~56 total tests)
 
 **Test Organization**:
 ```
 tests/
-├── test_schemas.py           # Unit tests (~7 tests)
-├── test_dependencies.py      # Unit tests (~4 tests)
-├── test_main.py              # Unit tests (~15 tests, mocked agent)
-├── test_handler.py           # Unit tests (~5 tests)
-├── conftest.py               # Shared fixtures for unit tests
-└── integration/              # Real API tests (new)
+├── test_schemas.py                # Unit (~11 tests)
+├── test_dependencies.py           # Unit (~4 tests)
+├── test_dependencies_lambda.py    # Unit (~8 tests, Phase 6)
+├── test_main.py                   # Unit (~15 tests, mocked agent)
+├── test_handler.py                # Unit (~6 tests)
+├── conftest.py                    # Shared unit test fixtures
+└── integration/                   # Real API tests
     ├── __init__.py
-    ├── conftest.py           # Integration fixtures
-    └── test_api_integration.py  # End-to-end tests (~8 tests)
+    ├── conftest.py                # Integration fixtures
+    └── test_api_integration.py    # End-to-end (~11 tests)
 ```
 
 **Pytest Markers**:
-- `@pytest.mark.unit` - Fast, mocked tests (default)
-- `@pytest.mark.integration` - Real API tests (requires OPENAI_API_KEY)
+- Unit tests (default): Fast, mocked agent, no API key needed
+- `@pytest.mark.integration`: Real OpenAI API, requires `OPENAI_API_KEY`
 
 **Running Tests**:
 ```bash
-# All unit tests (fast, no API key needed)
+# Unit tests only (fast, no API key)
 pytest tests/ -v -m "not integration"
 
 # Integration tests only (requires API key)
@@ -275,17 +378,107 @@ pytest tests/ -v
 
 ---
 
+## Phase 9: CI/CD Pipeline
+
+Add GitHub Actions workflow for automated testing, building, and deployment.
+
+### CI/CD Configuration
+
+- [ ] Create `.github/workflows/api-ci.yml`
+  - [ ] **Job 1: unit-tests**
+    - [ ] Matrix: Python 3.11, 3.12, 3.13
+    - [ ] Checkout code
+    - [ ] Install uv
+    - [ ] Install API dependencies: `cd api && uv sync`
+    - [ ] Install agent for imports: `uv pip install --system -e "../agent"`
+    - [ ] Set `ENVIRONMENT=dev` (force local agent import)
+    - [ ] Run: `uv run pytest tests/ -v -m "not integration"`
+  - [ ] **Job 2: integration-tests**
+    - [ ] Condition: Only on push to main (save OpenAI API costs)
+    - [ ] Python 3.11 only
+    - [ ] Install dependencies (same as unit-tests)
+    - [ ] Set `ENVIRONMENT=dev` and `OPENAI_API_KEY` from secrets
+    - [ ] Run: `uv run pytest tests/ -v -m integration`
+    - [ ] Note: Uses TestClient (NOT SAM CLI or Lambda invoke)
+  - [ ] **Job 3: quality-checks**
+    - [ ] Python 3.11
+    - [ ] Install uv and pre-commit
+    - [ ] Run: `pre-commit run --all-files`
+  - [ ] **Job 4: build-docker**
+    - [ ] Depends on: unit-tests, quality-checks
+    - [ ] Set up Docker Buildx
+    - [ ] Build production `Dockerfile` (API code only, no agent)
+    - [ ] Tag with commit SHA for verification
+    - [ ] No push (push happens in next job)
+  - [ ] **Job 5: push-to-ecr**
+    - [ ] Condition: Only on push to main
+    - [ ] Depends on: build-docker
+    - [ ] Configure AWS credentials (OIDC or access keys)
+    - [ ] Login to ECR
+    - [ ] Extract version: `python -c "import tomllib; print(tomllib.load(open('api/pyproject.toml', 'rb'))['project']['version'])"`
+    - [ ] Build and tag with 3 tags:
+      - [ ] `<ecr-repo>:<git-sha-short>`
+      - [ ] `<ecr-repo>:v<version>`
+      - [ ] `<ecr-repo>:latest`
+    - [ ] Push all tags to ECR
+  - [ ] **Job 6: create-release**
+    - [ ] Condition: Only on push to main
+    - [ ] Depends on: push-to-ecr, integration-tests
+    - [ ] Extract version from `pyproject.toml`
+    - [ ] Create git tag: `api-v<version>` (prefixed to avoid agent collision)
+    - [ ] Create GitHub release with CHANGELOG excerpt
+    - [ ] Attach release notes from `CHANGELOG.md`
+
+### Release Documentation
+
+- [ ] Create `CHANGELOG.md`
+  - [ ] Format: Keep a Changelog (https://keepachangelog.com)
+  - [ ] Sections: Added, Changed, Fixed, Removed
+  - [ ] Version v0.1.0: Document Phases 1-5 (FastAPI routes, Lambda handler, 37 unit tests)
+  - [ ] Unreleased section: Phases 6-9 (dual-mode deps, SAM config, integration tests, CI/CD)
+
+### Validation
+
+- [ ] Push to feature branch and verify workflow runs
+- [ ] Verify unit tests pass on Python 3.11, 3.12, 3.13
+- [ ] Verify quality checks pass (ruff, mypy, pre-commit)
+- [ ] Verify Docker build succeeds
+- [ ] Verify integration tests are skipped on feature branch (only run on main)
+- [ ] Verify ECR push and release jobs are skipped on feature branch
+- [ ] Commit changes: `git add .github/workflows/api-ci.yml CHANGELOG.md && git commit`
+
+**Expected**: No new tests (CI/CD infrastructure)
+
+**Design Notes**:
+- Matches `agent-ci.yml` pattern for consistency
+- Integration tests use TestClient (direct FastAPI testing), NOT Lambda invoke
+- SAM CLI is for local development only, not CI/CD
+- `ENVIRONMENT=dev` forces local agent import in CI (simpler than boto3 mocking)
+- Integration tests only on main to control OpenAI API costs
+- 3-tag strategy enables version rollback and latest tracking
+
+---
+
 ## Completion Criteria
 
-- [x] Phase 1-4 completed (Core API functionality)
-- [ ] Phase 5-6 completed (Lambda handler & Dockerfile)
-- [ ] Phase 7 completed (Integration tests)
-- [ ] All unit tests passing (~20 tests, mocked agent)
-- [ ] Integration test framework ready (~8 tests, skip without API key)
-- [ ] All quality checks passing (ruff, mypy, pytest)
-- [ ] API can be started with `fastapi dev app/main.py`
-- [ ] Lambda handler can process API Gateway events
-- [ ] Dockerfile builds successfully
-- [ ] Integration tests validated with real API (requires OPENAI_API_KEY)
+- [x] Phase 1 completed (Project setup & schemas)
+- [x] Phase 2 completed (Dependencies & agent initialization)
+- [x] Phase 3 completed (API routes)
+- [x] Phase 4 completed (FastAPI app & middleware)
+- [x] Phase 5 completed (Lambda handler)
+- [ ] Phase 6 completed (Docker & deployment configuration)
+- [ ] Phase 7 completed (SAM configuration & local Lambda testing)
+- [ ] Phase 8 completed (Integration tests)
+- [ ] Phase 9 completed (CI/CD pipeline)
+- [ ] All unit tests passing (~45 tests, mocked agent)
+- [ ] Integration tests ready (~11 tests, skip without API key)
+- [ ] All quality checks passing (ruff, mypy, pre-commit)
+- [ ] Dual-mode dependencies work (dev imports local, prod calls Lambda)
+- [ ] Production Dockerfile builds successfully
+- [ ] SAM local invoke works with test events
+- [ ] SAM local start-api serves endpoints on port 3001
+- [ ] Integration tests validated with real OpenAI API
+- [ ] CI/CD pipeline runs all jobs successfully
+- [ ] Version tagging works (api-v prefix, 3-tag strategy)
 - [ ] Ready for frontend integration
-- [ ] Ready for AWS deployment (via infra/)
+- [ ] Ready for AWS Lambda deployment (via infra/)
