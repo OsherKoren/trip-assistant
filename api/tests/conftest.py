@@ -39,6 +39,18 @@ class MockGraph:
         self.invoke_calls.append(state)
         return self.return_value
 
+    async def ainvoke(self, state: dict[str, Any]) -> dict[str, Any]:
+        """Mock async invoke method that records calls and returns preset value.
+
+        Args:
+            state: Input state (typically contains "question" key).
+
+        Returns:
+            The preset return_value.
+        """
+        self.invoke_calls.append(state)
+        return self.return_value
+
 
 @pytest.fixture
 def mock_graph_result() -> dict[str, Any]:

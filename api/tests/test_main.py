@@ -46,6 +46,9 @@ def test_post_messages_agent_error(client: TestClient) -> None:
         def invoke(self, _state: dict[str, Any]) -> dict[str, Any]:
             raise Exception("Agent error")
 
+        async def ainvoke(self, _state: dict[str, Any]) -> dict[str, Any]:
+            raise Exception("Agent error")
+
     # Override dependency with error-raising mock
     def mock_error_graph() -> ErrorGraph:
         return ErrorGraph()

@@ -210,6 +210,9 @@ def test_agent_error_handling_via_lambda_event() -> None:
         def invoke(self, _state: dict[str, Any]) -> dict[str, Any]:
             raise RuntimeError("Agent processing failed")
 
+        async def ainvoke(self, _state: dict[str, Any]) -> dict[str, Any]:
+            raise RuntimeError("Agent processing failed")
+
     error_graph = ErrorMockGraph()
 
     # Override dependency for testing

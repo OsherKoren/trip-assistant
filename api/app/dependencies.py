@@ -23,7 +23,7 @@ def get_graph(request: Request) -> Any:
         request: FastAPI request object (provides Lambda context in production).
 
     Returns:
-        The compiled agent graph with an invoke() method.
+        The compiled agent graph with invoke() and ainvoke() methods.
 
     Raises:
         HTTPException: 500 error if agent cannot be imported.
@@ -35,7 +35,7 @@ def get_graph(request: Request) -> Any:
             message: MessageRequest,
             graph = Depends(get_graph)
         ):
-            result = graph.invoke({"question": message.question})
+            result = await graph.ainvoke({"question": message.question})
             return MessageResponse(**result)
         ```
     """

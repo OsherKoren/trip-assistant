@@ -37,8 +37,8 @@ async def create_message(
     )
 
     try:
-        # Invoke agent with user question
-        result = graph.invoke({"question": request_body.question})
+        # Invoke agent with user question (async for better I/O performance)
+        result = await graph.ainvoke({"question": request_body.question})
 
         # Return structured response
         return MessageResponse(
