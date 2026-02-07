@@ -25,8 +25,9 @@ agent/
 ## Setup
 
 - **Python**: 3.11+
+- **Package Manager**: [uv](https://github.com/astral-sh/uv) (fast Python package manager)
 - **Environment**: Requires `OPENAI_API_KEY` environment variable for integration tests
-- **Install**: `pip install -e .` from the agent directory
+- **Install**: `uv pip install -e .` from the agent directory
 - **Dependencies**: langgraph >= 1.0, langchain-openai, pydantic
 
 ## Environment Setup
