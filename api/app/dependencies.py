@@ -133,7 +133,7 @@ def get_graph(request: Request) -> AgentGraphProtocol:
     """
     # Extract request ID for tracing (Lambda context available in production)
     lambda_context = request.scope.get("aws.context")
-    request_id = lambda_context.request_id if lambda_context else "local"
+    request_id = lambda_context.aws_request_id if lambda_context else "local"
 
     # Check environment mode
     environment = os.getenv("ENVIRONMENT", "dev")

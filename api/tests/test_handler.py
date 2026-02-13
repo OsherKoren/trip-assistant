@@ -8,7 +8,6 @@ from mangum import Mangum
 
 from app.handler import handler
 from app.main import app
-from tests.conftest import MockGraph
 
 
 def _mock_lambda_context() -> MagicMock:
@@ -40,7 +39,7 @@ def test_handler_is_callable() -> None:
     assert callable(handler)
 
 
-def test_health_endpoint_via_lambda_event(mock_graph: MockGraph) -> None:
+def test_health_endpoint_via_lambda_event(mock_graph: Any) -> None:
     """Test GET /api/health returns healthy status via Lambda event."""
     # Override dependency for testing
     from app.dependencies import get_graph
@@ -94,7 +93,7 @@ def test_health_endpoint_via_lambda_event(mock_graph: MockGraph) -> None:
     app.dependency_overrides.clear()
 
 
-def test_messages_endpoint_via_lambda_event(mock_graph: MockGraph) -> None:
+def test_messages_endpoint_via_lambda_event(mock_graph: Any) -> None:
     """Test POST /api/messages processes message via Lambda event."""
     # Override dependency for testing
     from app.dependencies import get_graph
@@ -154,7 +153,7 @@ def test_messages_endpoint_via_lambda_event(mock_graph: MockGraph) -> None:
     app.dependency_overrides.clear()
 
 
-def test_invalid_request_handling_via_lambda_event(mock_graph: MockGraph) -> None:
+def test_invalid_request_handling_via_lambda_event(mock_graph: Any) -> None:
     """Test Lambda event with invalid request body returns 422."""
     # Override dependency for testing
     from app.dependencies import get_graph

@@ -19,9 +19,9 @@ api/
 │   ├── routers/
 │   │   ├── __init__.py
 │   │   ├── messages.py   # POST /messages endpoint
-│   │   └── health.py     # GET /health endpoint
+│   │   ├── health.py     # GET /health endpoint
+│   │   └── schemas.py    # Pydantic request/response models
 │   ├── handler.py        # Lambda handler (Mangum)
-│   ├── schemas.py        # Pydantic request/response models
 │   ├── dependencies.py   # Agent initialization
 │   └── logger.py         # Logging configuration (loguru)
 ├── tests/

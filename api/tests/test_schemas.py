@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import ErrorResponse, HealthResponse, MessageRequest, MessageResponse
+from app.routers.schemas import ErrorResponse, HealthResponse, MessageRequest, MessageResponse
 
 
 class TestMessageRequest:

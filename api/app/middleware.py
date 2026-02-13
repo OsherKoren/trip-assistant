@@ -29,7 +29,7 @@ async def add_request_id_header(
 
     # Extract Lambda request ID (available in production via Mangum)
     lambda_context = request.scope.get("aws.context")
-    request_id = lambda_context.request_id if lambda_context else "local"
+    request_id = lambda_context.aws_request_id if lambda_context else "local"
 
     # Add to response headers for client-side tracing
     response.headers["X-Request-ID"] = request_id

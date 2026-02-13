@@ -20,7 +20,6 @@ Resources:
         Variables:
           ENVIRONMENT: prod
           AGENT_LAMBDA_FUNCTION_NAME: trip-assistant-agent
-          AWS_REGION: us-east-1
       Events:
         HealthCheck:
           Type: HttpApi

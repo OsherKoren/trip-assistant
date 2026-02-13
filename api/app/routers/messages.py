@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies import get_graph
 from app.logger import logger
-from app.schemas import ErrorResponse, MessageRequest, MessageResponse
+
+from .schemas import ErrorResponse, MessageRequest, MessageResponse
 
 router = APIRouter(tags=["messages"])
 

@@ -1,11 +1,10 @@
 """Tests for FastAPI routes and middleware."""
 
 from typing import Any
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
-
-from tests.conftest import MockGraph
 
 
 def test_post_messages_success(client: TestClient, mock_graph_result: dict[str, Any]) -> None:
@@ -90,10 +89,12 @@ def test_post_messages_all_categories(client: TestClient, category: str) -> None
         "confidence": 0.85,
         "source": f"{category}.txt",
     }
-    category_graph = MockGraph(return_value=mock_result)
+    category_graph = MagicMock()
+    category_graph.invoke.return_value = mock_result
+    category_graph.ainvoke = AsyncMock(return_value=mock_result)
 
     # Override dependency for this test
-    def mock_category_graph() -> MockGraph:
+    def mock_category_graph() -> MagicMock:
         return category_graph
 
     app.dependency_overrides[get_graph] = mock_category_graph

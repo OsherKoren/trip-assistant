@@ -70,6 +70,12 @@ uv run pre-commit run --all-files
 
 Each service has its own `CLAUDE.md` with detailed specs. Navigate to the service directory for focused context.
 
+## Model Preferences
+
+- **Normal mode**: Sonnet (`claude-sonnet-4-5-20250929`)
+- **Plan mode**: Opus (`claude-opus-4-6`)
+- **Exploring**: Haiku (`claude-haiku-4-5-20251001`)
+
 ## Docs
 
 - `docs/architecture.md` - System design and data flow
