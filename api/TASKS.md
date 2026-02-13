@@ -415,68 +415,68 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 
 ### CI/CD Configuration
 
-- [ ] Create `.github/workflows/api-ci.yml`
-  - [ ] **Job 1: unit-tests**
-    - [ ] Matrix: Python 3.11, 3.12, 3.13
-    - [ ] Checkout code
-    - [ ] Install uv
-    - [ ] Install API dependencies: `cd api && uv sync`
-    - [ ] Install agent for imports: `uv pip install --system -e "../agent"`
-    - [ ] Set `ENVIRONMENT=dev` (force local agent import)
-    - [ ] Run: `uv run pytest tests/ -v -m "not integration"`
-  - [ ] **Job 2: integration-tests**
-    - [ ] Condition: Only on push to main (save OpenAI API costs)
-    - [ ] Python 3.11 only
-    - [ ] Install dependencies (same as unit-tests)
-    - [ ] Set `ENVIRONMENT=dev` and `OPENAI_API_KEY` from secrets
-    - [ ] Run: `uv run pytest tests/ -v -m integration`
-    - [ ] Note: Uses TestClient (NOT SAM CLI or Lambda invoke)
-  - [ ] **Job 3: quality-checks**
-    - [ ] Python 3.11
-    - [ ] Install uv and pre-commit
-    - [ ] Run: `pre-commit run --all-files`
-  - [ ] **Job 4: build-docker**
-    - [ ] Depends on: unit-tests, quality-checks
-    - [ ] Set up Docker Buildx
-    - [ ] Build production `Dockerfile` (API code only, no agent)
-    - [ ] Tag with commit SHA for verification
-    - [ ] No push (push happens in next job)
-  - [ ] **Job 5: push-to-ecr**
-    - [ ] Condition: Only on push to main
-    - [ ] Depends on: build-docker
-    - [ ] Configure AWS credentials (OIDC or access keys)
-    - [ ] Login to ECR
-    - [ ] Extract version: `python -c "import tomllib; print(tomllib.load(open('api/pyproject.toml', 'rb'))['project']['version'])"`
-    - [ ] Build and tag with 3 tags:
-      - [ ] `<ecr-repo>:<git-sha-short>`
-      - [ ] `<ecr-repo>:v<version>`
-      - [ ] `<ecr-repo>:latest`
-    - [ ] Push all tags to ECR
-  - [ ] **Job 6: create-release**
-    - [ ] Condition: Only on push to main
-    - [ ] Depends on: push-to-ecr, integration-tests
-    - [ ] Extract version from `pyproject.toml`
-    - [ ] Create git tag: `api-v<version>` (prefixed to avoid agent collision)
-    - [ ] Create GitHub release with CHANGELOG excerpt
-    - [ ] Attach release notes from `CHANGELOG.md`
+- [x] Create `.github/workflows/api-ci.yml`
+  - [x] **Job 1: unit-tests**
+    - [x] Matrix: Python 3.11, 3.12, 3.13
+    - [x] Checkout code
+    - [x] Install uv
+    - [x] Install API dependencies: `cd api && uv sync`
+    - [x] Install agent for imports: `uv pip install --system -e "../agent"`
+    - [x] Set `ENVIRONMENT=dev` (force local agent import)
+    - [x] Run: `uv run pytest tests/ -v -m "not integration"`
+  - [x] **Job 2: integration-tests**
+    - [x] Condition: Only on push to main (save OpenAI API costs)
+    - [x] Python 3.11 only
+    - [x] Install dependencies (same as unit-tests)
+    - [x] Set `ENVIRONMENT=dev` and `OPENAI_API_KEY` from secrets
+    - [x] Run: `uv run pytest tests/ -v -m integration`
+    - [x] Note: Uses TestClient (NOT SAM CLI or Lambda invoke)
+  - [x] **Job 3: quality-checks**
+    - [x] Python 3.11
+    - [x] Install uv and pre-commit
+    - [x] Run: `pre-commit run --all-files`
+  - [x] **Job 4: build-docker**
+    - [x] Depends on: unit-tests, quality-checks
+    - [x] Set up Docker Buildx
+    - [x] Build production `Dockerfile` (API code only, no agent)
+    - [x] Tag with commit SHA for verification
+    - [x] No push (push happens in next job)
+  - [x] **Job 5: push-to-ecr**
+    - [x] Condition: Only on push to main
+    - [x] Depends on: build-docker
+    - [x] Configure AWS credentials (OIDC or access keys)
+    - [x] Login to ECR
+    - [x] Extract version: `python -c "import tomllib; print(tomllib.load(open('api/pyproject.toml', 'rb'))['project']['version'])"`
+    - [x] Build and tag with 3 tags:
+      - [x] `<ecr-repo>:<git-sha-short>`
+      - [x] `<ecr-repo>:v<version>`
+      - [x] `<ecr-repo>:latest`
+    - [x] Push all tags to ECR
+  - [x] **Job 6: create-release**
+    - [x] Condition: Only on push to main
+    - [x] Depends on: push-to-ecr, integration-tests
+    - [x] Extract version from `pyproject.toml`
+    - [x] Create git tag: `api-v<version>` (prefixed to avoid agent collision)
+    - [x] Create GitHub release with CHANGELOG excerpt
+    - [x] Attach release notes from `CHANGELOG.md`
 
 ### Release Documentation
 
-- [ ] Create `CHANGELOG.md`
-  - [ ] Format: Keep a Changelog (https://keepachangelog.com)
-  - [ ] Sections: Added, Changed, Fixed, Removed
-  - [ ] Version v0.1.0: Document Phases 1-5 (FastAPI routes, Lambda handler, 37 unit tests)
-  - [ ] Unreleased section: Phases 6-9 (dual-mode deps, SAM config, integration tests, CI/CD)
+- [x] Create `CHANGELOG.md`
+  - [x] Format: Keep a Changelog (https://keepachangelog.com)
+  - [x] Sections: Added, Changed, Fixed, Removed
+  - [x] Version v0.1.0: Document Phases 1-5 (FastAPI routes, Lambda handler, 37 unit tests)
+  - [x] Unreleased section: Phases 6-9 (dual-mode deps, SAM config, integration tests, CI/CD)
 
 ### Validation
 
-- [ ] Push to feature branch and verify workflow runs
+- [x] Push to feature branch and verify workflow runs
 - [ ] Verify unit tests pass on Python 3.11, 3.12, 3.13
 - [ ] Verify quality checks pass (ruff, mypy, pre-commit)
 - [ ] Verify Docker build succeeds
 - [ ] Verify integration tests are skipped on feature branch (only run on main)
 - [ ] Verify ECR push and release jobs are skipped on feature branch
-- [ ] Commit changes: `git add .github/workflows/api-ci.yml CHANGELOG.md && git commit`
+- [x] Commit changes: `git add .github/workflows/api-ci.yml CHANGELOG.md && git commit`
 
 **Expected**: No new tests (CI/CD infrastructure)
 
@@ -500,7 +500,7 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 - [x] Phase 6 completed (Docker & deployment configuration)
 - [x] Phase 7 completed (Local development & SAM configuration)
 - [x] Phase 8 completed (Integration tests)
-- [ ] Phase 9 completed (CI/CD pipeline)
+- [x] Phase 9 completed (CI/CD pipeline)
 - [x] All unit tests passing (44 tests, mocked agent)
 - [x] Integration tests ready (11 tests, skip without API key)
 - [x] All quality checks passing (ruff, mypy, pre-commit)
@@ -509,7 +509,7 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 - [x] Direct FastAPI development works (`fastapi dev app/main.py`)
 - [x] SAM template valid for deployment (Docker optional for local testing)
 - [x] Integration tests validated with real OpenAI API
-- [ ] CI/CD pipeline runs all jobs successfully
-- [ ] Version tagging works (api-v prefix, 3-tag strategy)
+- [ ] CI/CD pipeline runs all jobs successfully (pending GitHub Actions verification)
+- [ ] Version tagging works (api-v prefix, 3-tag strategy, verified on merge to main)
 - [x] Ready for frontend integration (via direct FastAPI or SAM)
 - [x] Ready for AWS Lambda deployment (via infra/)
