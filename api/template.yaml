@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Trip Assistant API - FastAPI backend with Lambda/Mangum
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+
+Resources:
+  TripAssistantApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: trip-assistant-api
+      Handler: app.handler.handler
+      CodeUri: .
+      Description: FastAPI backend exposing LangGraph agent via HTTP
+      Environment:
+        Variables:
+          ENVIRONMENT: prod
+          AGENT_LAMBDA_FUNCTION_NAME: trip-assistant-agent
+      Events:
+        HealthCheck:
+          Type: HttpApi
+          Properties:
+            Path: /api/health
+            Method: GET
+        CreateMessage:
+          Type: HttpApi
+          Properties:
+            Path: /api/messages
+            Method: POST
+      Tags:
+        Service: trip-assistant
+        Component: api
+
+  TripAssistantHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - http://localhost:3000
+          - https://*.cloudfront.net
+        AllowHeaders:
+          - Content-Type
+          - X-Request-ID
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowCredentials: true
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${TripAssistantHttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt TripAssistantApiFunction.Arn
+
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref TripAssistantApiFunction

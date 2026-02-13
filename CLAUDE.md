@@ -21,16 +21,26 @@ A LangGraph-powered Q&A assistant for family travel. Monorepo with 4 services.
 
 ```bash
 # Run all service tests
-pytest agent/tests/ api/tests/ -v
+uv run pytest agent/tests/ api/tests/ -v
 
 # Quality checks across all services
-pre-commit run --all-files
+uv run pre-commit run --all-files
 
 # Service-specific commands: see ./[service]/CLAUDE.md
 ```
 
+## Package Management
+
+**Python services (agent, api) use `uv` - NEVER use `pip` directly**
+
+- Install packages: `uv pip install <package>`
+- Install editable: `uv pip install -e .`
+- Run commands: `uv run <command>` (uses project environment automatically)
+- Sync dependencies: `uv sync` (creates/updates uv.lock)
+
 ## Common Pitfalls
 
+- **Don't use pip directly** - Always use `uv pip` or `uv run` commands
 - **Don't use legacy LangGraph patterns** - Use StateGraph (not MessageGraph)
 - **Don't skip tests** - TDD is mandatory; tests must pass before task completion
 - **Don't create files unnecessarily** - Prefer editing existing files
@@ -43,9 +53,28 @@ pre-commit run --all-files
 - **Pull requests only** - All changes to main must go through PR review and CI/CD
 - **Branch naming** - Use descriptive names like `feature/agent`, `fix/integration-tests`
 
+### Commit Messages
+
+- **Keep it short** - 1-2 sentence summary (under 72 chars for title)
+- **Be specific** - "Add schemas for API requests" not "Update files"
+- **Focus on what, not how** - The diff shows how, commit explains what/why
+- **Always include co-author** - End with `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`
+
+### Pull Request Descriptions
+
+- **Title: Short and specific** - Under 60 chars, imperative mood
+- **Body: Brief summary** - 2-3 bullet points max, focus on user impact
+- **No verbose details** - Code changes are visible in the diff
+
 ## Working on a Service
 
 Each service has its own `CLAUDE.md` with detailed specs. Navigate to the service directory for focused context.
+
+## Model Preferences
+
+- **Normal mode**: Sonnet (`claude-sonnet-4-5-20250929`)
+- **Plan mode**: Opus (`claude-opus-4-6`)
+- **Exploring**: Haiku (`claude-haiku-4-5-20251001`)
 
 ## Docs
 

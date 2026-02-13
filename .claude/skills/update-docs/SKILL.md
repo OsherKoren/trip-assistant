@@ -1,7 +1,7 @@
 ---
 name: update-docs
 description: |
-  Update project documentation (README, CHANGELOG) based on recent changes.
+  Update project documentation (README, CHANGELOG, CLAUDE.md) based on recent changes.
   Use when: (1) After implementing new features or significant changes,
   (2) Before creating a pull request or release, (3) User explicitly requests
   documentation updates, (4) After completing a development phase/milestone.
@@ -10,13 +10,13 @@ description: |
 
 # Documentation Update Skill
 
-Update README.md, CHANGELOG.md, and other documentation based on recent code changes.
+Update README.md, CHANGELOG.md, and CLAUDE.md files based on recent code changes.
 
 ## Workflow
 
 1. **Analyze changes** - Use `git diff` or `git log` to understand what changed
 2. **Identify impact** - Determine which docs need updates
-3. **Update systematically** - README → CHANGELOG → other docs
+3. **Update systematically** - README → CHANGELOG → CLAUDE.md → other docs
 4. **Preserve style** - Match existing documentation tone and format
 
 ---
@@ -139,6 +139,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## CLAUDE.md Updates
+
+### When to Update CLAUDE.md
+
+CLAUDE.md files are **structural references** for developers. Update them only when project structure changes:
+
+- **Files moved or renamed** (update Key Files tree)
+- **New key files added** (new routers, services, configs)
+- **Architecture changes** (new endpoints, new patterns, new dependencies)
+- **Code pattern changes** (new conventions, updated examples)
+
+### When NOT to Update CLAUDE.md
+
+- Content changes within existing files (bug fixes, refactors)
+- Changes already covered by README or CHANGELOG
+- Trivial additions (test files, __pycache__, generated files)
+
+### Update Pattern
+
+1. Check if any files in the "Key Files" tree were moved, renamed, or added
+2. Check if architecture diagrams or endpoint lists need updating
+3. Check if code patterns/examples still match the actual code
+4. Update only the affected sections — don't rewrite unrelated parts
+
+### Scope
+
+- Root `CLAUDE.md` — monorepo-level structure and commands
+- Service `CLAUDE.md` files (e.g., `api/CLAUDE.md`, `agent/CLAUDE.md`) — service-level structure
+
+---
+
 ## Other Documentation
 
 ### API Documentation
@@ -173,7 +204,7 @@ git status
 ### 2. Ask User
 
 Before making changes, ask:
-- "Which documentation files should I update?"
+- "Which documentation files should I update?" (README, CHANGELOG, CLAUDE.md)
 - "Is this a feature, fix, or change?"
 - "Should this go in CHANGELOG under Unreleased?"
 
@@ -182,7 +213,8 @@ Before making changes, ask:
 Update in this order:
 1. CHANGELOG.md (always update for notable changes)
 2. README.md (if user-facing changes)
-3. Other docs (architecture, API docs, etc.)
+3. CLAUDE.md (if structure, files, or patterns changed)
+4. Other docs (architecture, API docs, etc.)
 
 ### 4. Show Preview
 
@@ -230,6 +262,27 @@ The agent uses a classifier-router pattern:
 2. Router sends to appropriate specialist node
 3. Specialist responds with relevant trip information
 ```
+
+### Scenario: Moved Schemas to Routers Package
+
+**CLAUDE.md (Key Files section):**
+```markdown
+# Before
+│   ├── schemas.py        # Pydantic request/response models
+
+# After
+│   ├── routers/
+│   │   └── schemas.py    # Pydantic request/response models
+```
+
+**CHANGELOG.md:**
+```markdown
+### Changed
+- Move schemas into `routers/` package (co-located with route handlers)
+```
+
+**README.md:**
+No update needed (internal restructure, not user-facing)
 
 ### Scenario: Fixed Bug in Document Loading
 

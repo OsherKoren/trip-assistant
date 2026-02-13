@@ -35,7 +35,7 @@ Trip Assistant helps families plan trips by answering questions about flights, a
 | Service | Path | Description | Status |
 |---------|------|-------------|--------|
 | **Agent** | [`./agent/`](./agent/README.md) | LangGraph agent with topic routing | ✅ Complete |
-| **API** | [`./api/`](./api/) | FastAPI backend serving the agent | 🚧 Planned |
+| **API** | [`./api/`](./api/CHANGELOG.md) | FastAPI backend serving the agent | 🚧 In Progress |
 | **Frontend** | [`./frontend/`](./frontend/) | React chat interface | 🚧 Planned |
 
 ## Infrastructure
@@ -49,34 +49,38 @@ Trip Assistant helps families plan trips by answering questions about flights, a
 ### Agent Service (Core)
 
 ```bash
-# Install dependencies
 cd agent
-pip install -e .
+uv pip install -e .
+cp .env.example .env  # Add your OPENAI_API_KEY
+uv run pytest tests/ -v
+```
 
-# Set up environment
-cp .env.example .env
-# Add your OPENAI_API_KEY to .env
+### API Service
+
+```bash
+cd api
+uv pip install -e ".[dev]"
+cp .env.example .env  # Add your OPENAI_API_KEY, set ENVIRONMENT=dev
 
 # Run tests
-pytest tests/ -v
+uv run pytest tests/ -v
 
-# Use the agent (Python)
-from src.graph import app
-result = app.invoke({"messages": [("user", "What flights should we take?")]})
+# Local development server
+fastapi dev app/main.py
 ```
 
 ### Run All Tests
 
 ```bash
 # From repository root
-pytest agent/tests/ -v
+uv run pytest agent/tests/ api/tests/ -v
 ```
 
 ### Quality Checks
 
 ```bash
 # Run pre-commit hooks across all services
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ## Documentation
@@ -114,10 +118,10 @@ This is a monorepo with separate application services and infrastructure:
 
 ## Project Status
 
-**Current Phase:** Agent service complete with comprehensive testing and CI/CD
+**Current Phase:** API service in progress (endpoints, Lambda handler, tests complete)
 
 **Next Steps:**
-1. API service implementation
+1. Finalize API service and merge to main
 2. Frontend development
 3. Infrastructure setup and deployment
 

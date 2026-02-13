@@ -1,0 +1,55 @@
+# Python cache and virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Test files and coverage reports
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Environment and secrets (NEVER include in Docker images)
+.env
+.env.local
+.env.*.local
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Linting and formatting cache
+.ruff_cache/
+.mypy_cache/
+.pre-commit-config.yaml
+
+# Documentation and development files
+README.md
+CLAUDE.md
+TASKS.md
+CHANGELOG.md
+*.md
+
+# SAM CLI files
+.aws-sam/
+template.yaml
+samconfig.toml
+events/
+
+# MacOS files
+.DS_Store
+
+# Windows files
+Thumbs.db

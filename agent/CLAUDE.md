@@ -25,8 +25,9 @@ agent/
 ## Setup
 
 - **Python**: 3.11+
+- **Package Manager**: [uv](https://github.com/astral-sh/uv) (fast Python package manager)
 - **Environment**: Requires `OPENAI_API_KEY` environment variable for integration tests
-- **Install**: `pip install -e .` from the agent directory
+- **Install**: `uv pip install -e .` from the agent directory
 - **Dependencies**: langgraph >= 1.0, langchain-openai, pydantic
 
 ## Environment Setup
@@ -146,6 +147,46 @@ Integration tests make **real API calls** to OpenAI and incur small costs (~$0.0
 - Don't create new files unless absolutely necessary
 - Prefer editing existing files over creating new ones
 - Don't create individual specialist files - use specialist factory
+
+## Python Coding Standards
+
+Follow these standards for production-ready code in mid-size organizations.
+
+### Type Hints
+
+- **Always type function signatures** - Include parameter types and return types
+- **Avoid `Any` types** - Use specific types or unions instead
+  - ✅ Good: `Callable[[str], bool]`, `str | None`, `TripAssistantState`
+  - ❌ Bad: `Any`
+  - Exception: Only use `Any` when truly necessary and add `# type: ignore` comment with explanation
+- **Type intermediate variables** - Help mypy infer types when needed
+- **Use union types** - Python 3.10+ syntax: `str | None` instead of `Optional[str]`
+
+### Error Handling
+
+- **Separation of concerns** - Different error details for different audiences:
+  - **User-facing errors** (state["answer"]): Generic, helpful messages
+  - **Developer logs** (CloudWatch, logs): Detailed errors with stack traces
+- **Always log context** - Include state fields, error details, node names
+- **Use structured logging** - `logger.error("message", key=value)` not string formatting
+- **Graceful degradation** - Return safe defaults, don't crash the graph
+
+Example:
+```python
+try:
+    result = llm.invoke(messages)
+except Exception as e:
+    logger.error("LLM call failed", error=str(e), node="classifier")
+    return {"category": "general", "confidence": 0.0}  # Safe fallback
+```
+
+### Testing
+
+- **Type all test functions** - Add `-> None` return types even for tests
+- **Use fixtures** - Don't repeat setup code across tests
+- **Mock external dependencies** - Never call real APIs (OpenAI) in unit tests
+- **Test error handling** - Verify both success and failure paths
+- **Mark integration tests** - Use `@pytest.mark.integration` for real API tests
 
 ## Naming Conventions
 

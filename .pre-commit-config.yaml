@@ -12,17 +12,21 @@ repos:
       - id: ruff-format
         files: ^(agent|api)/.*\.py$
 
-  # MyPy - Static type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+  # MyPy - Static type checking (per-service to avoid namespace conflicts)
+  - repo: local
     hooks:
-      - id: mypy
-        files: ^(agent|api)/.*\.py$
-        additional_dependencies:
-          - pydantic>=2.0
-          - langgraph>=1.0
-          - langchain-core
-          - langchain-openai
+      - id: mypy-agent
+        name: mypy (agent)
+        entry: bash -c 'cd agent && uv run mypy src/ tests/ --explicit-package-bases'
+        language: system
+        files: ^agent/.*\.py$
+        pass_filenames: false
+      - id: mypy-api
+        name: mypy (api)
+        entry: bash -c 'cd api && uv run mypy app/ tests/ --explicit-package-bases'
+        language: system
+        files: ^api/.*\.py$
+        pass_filenames: false
 
   # Pytest - Run tests for agent service
   - repo: local

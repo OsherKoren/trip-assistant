@@ -40,6 +40,10 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 
+# AWS SAM
+.aws-sam/
+
 # Environment variables
 .env
 .env.local
+env.json
