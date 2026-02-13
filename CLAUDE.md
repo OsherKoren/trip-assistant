@@ -1,6 +1,6 @@
 # Trip Assistant Agent
 
-A LangGraph-powered Q&A assistant for family travel. Monorepo with 4 services.
+A LangGraph-powered Q&A assistant for family travel. Monorepo with 3 services + infra.
 
 ## Services
 
@@ -9,7 +9,12 @@ A LangGraph-powered Q&A assistant for family travel. Monorepo with 4 services.
 | agent | `./agent/` | LangGraph agent (classifier → router → specialists) |
 | api | `./api/` | FastAPI backend serving the agent |
 | frontend | `./frontend/` | React chat interface |
-| infra | `./infra/` | AWS Lambda deployment (cheap/free tier) |
+
+## Infrastructure
+
+| Path | Description |
+|------|-------------|
+| `./infra/` | AWS Lambda deployment (cheap/free tier) |
 
 ## Quick Context
 
