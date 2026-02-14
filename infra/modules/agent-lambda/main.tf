@@ -50,15 +50,11 @@ resource "aws_iam_role_policy" "ssm_read" {
 resource "aws_lambda_function" "agent" {
   function_name = "${var.project_name}-agent-${var.environment}"
   role          = aws_iam_role.lambda.arn
-  runtime       = "python3.11"
-  architectures = ["arm64"]
-  handler       = "handler.handler"
+  package_type  = "Image"
+  image_uri     = var.ecr_image_uri
   memory_size   = 512
   timeout       = 30
-
-  # Placeholder — actual code deployed separately
-  filename         = "${path.module}/placeholder.zip"
-  source_code_hash = filebase64sha256("${path.module}/placeholder.zip")
+  publish       = true
 
   environment {
     variables = {
@@ -67,9 +63,25 @@ resource "aws_lambda_function" "agent" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [image_uri]
+  }
+
   tags = {
     Project     = var.project_name
     Environment = var.environment
+  }
+}
+
+# --- Lambda Alias (CD pipeline manages the version) ---
+
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.agent.function_name
+  function_version = aws_lambda_function.agent.version
+
+  lifecycle {
+    ignore_changes = [function_version]
   }
 }
 

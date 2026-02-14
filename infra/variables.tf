@@ -21,3 +21,9 @@ variable "openai_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "github_repo" {
+  description = "GitHub repository (owner/repo) for OIDC trust policy"
+  type        = string
+  default     = "OsherKoren/trip-assistant"
+}

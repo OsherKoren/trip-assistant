@@ -22,3 +22,8 @@ variable "agent_lambda_arn" {
   description = "ARN of the agent Lambda function (for IAM permissions)"
   type        = string
 }
+
+variable "ecr_image_uri" {
+  description = "ECR image URI for the API Lambda function"
+  type        = string
+}

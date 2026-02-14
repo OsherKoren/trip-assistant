@@ -178,20 +178,77 @@ Terraform validation is different from Python testing. Here's what replaces test
 
 ---
 
+## Phase 7: ECR Repositories ✅
+
+Container image registries for Lambda deployment.
+
+- [x] Create `infra/modules/ecr/` module
+  - [x] Two repositories: `trip-assistant-agent-{env}`, `trip-assistant-api-{env}`
+  - [x] Immutable tags, lifecycle policy (keep last 10), force_delete for dev
+- [x] Wire ECR module in `infra/main.tf`
+- [x] Add ECR repository URL outputs
+
+---
+
+## Phase 8: Container Image Lambdas ✅
+
+Switch from ZIP-based to container image deployment.
+
+- [x] Replace zip config with `package_type = "Image"` + `image_uri` in agent-lambda module
+- [x] Replace zip config with `package_type = "Image"` + `image_uri` in api-lambda module
+- [x] Add `lifecycle { ignore_changes = [image_uri] }` — CD pipeline manages images
+- [x] Wire ECR image URIs from root `main.tf`
+- [x] Validate: `terraform validate` passes
+
+---
+
+## Phase 9: GitHub OIDC + ECR Permissions ✅
+
+OIDC auth for GitHub Actions with ECR push access.
+
+- [x] Create `infra/modules/github-oidc/` with OIDC provider + IAM role
+- [x] Lambda deploy policy (UpdateFunctionCode, PublishVersion, UpdateAlias)
+- [x] ECR push policy (GetAuthorizationToken, PutImage, etc.)
+- [x] Lambda aliases (`live`) on both functions with `publish = true`
+- [x] API Gateway wired to alias ARN
+
+---
+
+## Phase 10: Agent Lambda Handler + Dockerfile ✅
+
+Lambda entry point and container image for the agent.
+
+- [x] `agent/handler.py` — Lambda entry point with lazy SSM fetch
+- [x] `agent/tests/test_handler.py` — 7 passing tests (refactored to monkeypatch/mocker)
+- [x] `agent/Dockerfile` — Updated with `awslambdaric` entrypoint
+- [x] `agent/pyproject.toml` — Added `awslambdaric` dependency
+
+---
+
+## Phase 11: CI/CD Workflows ✅
+
+Deployment pipeline and infrastructure CI.
+
+- [x] `.github/workflows/deploy.yml` — Build + push + deploy (OIDC, ARM64, rollback)
+- [x] `.github/workflows/infra-ci.yml` — Terraform fmt/validate/plan on PR, apply on merge
+- [x] Clean up `agent-ci.yml` — Removed deploy jobs (build-docker, push-to-ecr, create-release)
+- [x] Clean up `api-ci.yml` — Removed deploy jobs (build-docker, push-to-ecr, create-release)
+
+---
+
 ## Completion Criteria
 
-- [ ] All 5 modules created and validated (SSM, Agent Lambda, API Lambda, API Gateway, root)
-- [ ] `terraform validate` passes
+- [x] All modules created and validated (SSM, ECR, Agent Lambda, API Lambda, API Gateway, OIDC)
+- [x] `terraform validate` passes
 - [ ] `terraform plan` shows expected resources
 - [ ] Infrastructure deployed and health check returns 200
-- [ ] Ready for code deployment pipeline (future task)
+- [x] CI/CD pipeline configured (deploy.yml + infra-ci.yml)
 
 ---
 
 ## Future Tasks (Not in Scope)
 
 - [ ] S3 + CloudFront for frontend hosting
-- [ ] CI/CD pipeline for code deployment to Lambda
 - [ ] Custom domain + ACM certificate
 - [ ] Remote state backend (S3 + DynamoDB locking)
 - [ ] Production environment (`environments/prod/`)

@@ -17,3 +17,8 @@ variable "ssm_parameter_name" {
   description = "Name of the SSM parameter containing the OpenAI API key"
   type        = string
 }
+
+variable "ecr_image_uri" {
+  description = "ECR image URI for the agent Lambda function"
+  type        = string
+}

@@ -42,7 +42,7 @@ Trip Assistant helps families plan trips by answering questions about flights, a
 
 | Component | Path | Description | Status |
 |-----------|------|-------------|--------|
-| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform, Docker) | 🚧 Planned |
+| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform, Docker, ECR) | 🚧 In Progress |
 
 ## Quick Start
 
@@ -118,12 +118,18 @@ This is a monorepo with separate application services and infrastructure:
 
 ## Project Status
 
-**Current Phase:** API service in progress (endpoints, Lambda handler, tests complete)
+**Current Phase:** Infrastructure — container image Lambda deployment via Terraform
+
+**Completed:**
+- Agent service (LangGraph classifier → router → specialists)
+- API service (FastAPI + Mangum Lambda handler)
+- Terraform modules (ECR, Lambda, API Gateway, SSM, GitHub OIDC)
+- CI/CD pipelines (deploy.yml with OIDC auth, smoke tests, auto-rollback)
 
 **Next Steps:**
-1. Finalize API service and merge to main
+1. Deploy infrastructure and verify end-to-end
 2. Frontend development
-3. Infrastructure setup and deployment
+3. S3 + CloudFront for frontend hosting
 
 ## Contributing
 

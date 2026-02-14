@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Lambda handler (`handler.py`) with lazy SSM API key fetch and graph caching
+- `awslambdaric` dependency for Lambda container image runtime
+- 7 handler tests covering direct invocation, API Gateway proxy, SSM fetch, and caching
+
+### Changed
+- Dockerfile updated for Lambda container image deployment (awslambdaric entrypoint)
+- Handler tests refactored from `unittest.mock` to pytest `monkeypatch`/`mocker` fixtures
+
 ## [0.3.0] - 2026-02-07
 
 ### Added

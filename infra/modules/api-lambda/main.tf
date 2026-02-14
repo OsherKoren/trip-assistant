@@ -37,9 +37,12 @@ resource "aws_iam_role_policy" "invoke_agent" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = "lambda:InvokeFunction"
-        Resource = var.agent_lambda_arn
+        Effect = "Allow"
+        Action = "lambda:InvokeFunction"
+        Resource = [
+          var.agent_lambda_arn,
+          "${var.agent_lambda_arn}:*",
+        ]
       }
     ]
   })
@@ -50,15 +53,11 @@ resource "aws_iam_role_policy" "invoke_agent" {
 resource "aws_lambda_function" "api" {
   function_name = "${var.project_name}-api-${var.environment}"
   role          = aws_iam_role.lambda.arn
-  runtime       = "python3.11"
-  architectures = ["arm64"]
-  handler       = "app.handler.handler"
+  package_type  = "Image"
+  image_uri     = var.ecr_image_uri
   memory_size   = 512
   timeout       = 30
-
-  # Placeholder — actual code deployed separately
-  filename         = "${path.module}/placeholder.zip"
-  source_code_hash = filebase64sha256("${path.module}/placeholder.zip")
+  publish       = true
 
   environment {
     variables = {
@@ -68,9 +67,25 @@ resource "aws_lambda_function" "api" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [image_uri]
+  }
+
   tags = {
     Project     = var.project_name
     Environment = var.environment
+  }
+}
+
+# --- Lambda Alias (CD pipeline manages the version) ---
+
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.api.function_name
+  function_version = aws_lambda_function.api.version
+
+  lifecycle {
+    ignore_changes = [function_version]
   }
 }
 

@@ -17,3 +17,8 @@ variable "api_lambda_function_name" {
   description = "Name of the API Lambda function (for permission grant)"
   type        = string
 }
+
+variable "api_lambda_alias_name" {
+  description = "Name of the API Lambda alias (for permission qualifier)"
+  type        = string
+}
