@@ -38,7 +38,6 @@ jobs:
           filters: |
             agent:
               - 'agent/**'
-              - '.github/workflows/agent-ci.yml'
             docker:
               - 'agent/Dockerfile'
               - 'agent/pyproject.toml'
