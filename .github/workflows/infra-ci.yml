@@ -99,5 +99,35 @@ jobs:
               body: output
             });
 
-  # NOTE: Terraform apply is done locally until remote state backend (S3) is configured.
-  # Once S3 backend is enabled in main.tf, add an apply job here.
+  # ========================================
+  # JOB 3: Terraform Apply (merge to main only)
+  # ========================================
+  apply:
+    name: Apply
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve -input=false
+        env:
+          TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}

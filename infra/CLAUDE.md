@@ -55,6 +55,10 @@ infra/
 ├── variables.tf          # Root input variables
 ├── outputs.tf            # Root outputs (api_url, function names, ECR URLs)
 ├── .gitignore            # Ignores .terraform/, *.tfstate*, *.tfvars, *.zip
+├── bootstrap/            # One-time setup for remote state backend
+│   ├── main.tf           # S3 bucket + DynamoDB table (local state)
+│   ├── variables.tf
+│   └── outputs.tf
 └── modules/
     ├── ssm/              # Parameter Store for OpenAI API key
     │   ├── main.tf
@@ -88,31 +92,35 @@ infra/
 
 ## Resources Created
 
+### bootstrap (separate state, run once)
+- S3 bucket: `trip-assistant-terraform-state` (versioned, encrypted, public access blocked)
+- DynamoDB table: `trip-assistant-terraform-locks` (state locking)
+
 ### ssm module
 - Parameter: `/trip-assistant/{env}/openai-api-key` (SecureString)
 
 ### ecr module
-- ECR repository: `trip-assistant-agent-{env}` (immutable tags, keep last 10)
-- ECR repository: `trip-assistant-api-{env}` (immutable tags, keep last 10)
+- ECR repository: `trip-assistant-agent` (mutable tags, keep last 2)
+- ECR repository: `trip-assistant-api` (mutable tags, keep last 2)
 
 ### agent-lambda module
-- Lambda function: `trip-assistant-agent-{env}` (container image)
+- Lambda function: `trip-assistant-agent` (container image)
 - IAM role with CloudWatch Logs + SSM GetParameter
 - Package type: Image (from ECR), 512MB, 30s timeout
-- Lambda alias `live` (CD pipeline manages versions)
+- Lambda alias `{env}` (CD pipeline manages versions)
 - CloudWatch log group (7-day retention)
 
 ### api-lambda module
-- Lambda function: `trip-assistant-api-{env}` (container image)
+- Lambda function: `trip-assistant-api` (container image)
 - IAM role with CloudWatch Logs + lambda:InvokeFunction (agent)
 - Package type: Image (from ECR), 512MB, 30s timeout
-- Lambda alias `live` (CD pipeline manages versions)
+- Lambda alias `{env}` (CD pipeline manages versions)
 - CloudWatch log group (7-day retention)
 
 ### github-oidc module
 - OIDC provider for GitHub Actions
-- IAM role with Lambda deploy + ECR push permissions
-- Scoped to `main` branch of the repository
+- IAM role with Lambda deploy + ECR push + API Gateway read permissions
+- Scoped to `main` branch and pull requests
 
 ### api-gateway module
 - HTTP API Gateway: `trip-assistant-{env}`
@@ -130,6 +138,12 @@ infra/
 ## Deploy Commands
 
 ```bash
+# --- Bootstrap (run ONCE for new AWS account) ---
+cd infra/bootstrap
+terraform init && terraform apply
+# Then configure backend in infra/main.tf and run: terraform init -migrate-state
+
+# --- Main infrastructure ---
 cd infra
 
 # Set OpenAI API key (lives only in your shell session, not written to disk)
@@ -190,10 +204,10 @@ terraform destroy
 
 ```bash
 # Agent Lambda logs
-aws logs tail /aws/lambda/trip-assistant-agent-dev --follow
+aws logs tail /aws/lambda/trip-assistant-agent --follow
 
 # API Lambda logs
-aws logs tail /aws/lambda/trip-assistant-api-dev --follow
+aws logs tail /aws/lambda/trip-assistant-api --follow
 ```
 
 ## Rollback
@@ -208,5 +222,4 @@ aws logs tail /aws/lambda/trip-assistant-api-dev --follow
 
 - S3 + CloudFront for frontend hosting
 - Custom domain + ACM certificate
-- Remote state backend (S3 + DynamoDB locking)
 - Production environment

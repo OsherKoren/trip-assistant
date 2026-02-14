@@ -8,14 +8,14 @@ terraform {
     }
   }
 
-  # Remote state backend — uncomment when ready for team use
-  # backend "s3" {
-  #   bucket         = "trip-assistant-terraform-state"
-  #   key            = "dev/terraform.tfstate"
-  #   region         = "us-east-2"
-  #   dynamodb_table = "terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "trip-assistant-terraform-state"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-2"
+    dynamodb_table = "trip-assistant-terraform-locks"
+    encrypt        = true
+    use_lockfile   = true
+  }
 }
 
 provider "aws" {

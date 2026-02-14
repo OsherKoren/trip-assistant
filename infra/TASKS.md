@@ -236,13 +236,40 @@ Deployment pipeline and infrastructure CI.
 
 ---
 
+## Phase 12: Remote State Backend ✅
+
+S3 + DynamoDB backend for shared Terraform state, enabling CI/CD apply.
+
+- [x] Create `infra/bootstrap/` — one-time setup for state infrastructure
+  - [x] S3 bucket (`trip-assistant-terraform-state`) — versioned, encrypted, public access blocked
+  - [x] DynamoDB table (`trip-assistant-terraform-locks`) — pay-per-request
+- [x] Apply bootstrap locally (`terraform apply` in `infra/bootstrap/`)
+- [x] Uncomment S3 backend in `infra/main.tf`
+- [x] Migrate local state to S3 (`terraform init -migrate-state`)
+- [x] Re-enable apply job in `infra-ci.yml`
+
+---
+
+## Phase 13: CI/CD Fixes ✅
+
+Fix deploy workflow and OIDC issues discovered after first merge.
+
+- [x] Add `provenance: false` to `docker/build-push-action` (fix OCI manifest error)
+- [x] Use short SHA tags (7 chars) + `latest` for ECR images
+- [x] Switch ECR to mutable tags (allows `latest` overwrites)
+- [x] Add `pull_request` claim to OIDC trust policy (fix PR workflow auth)
+- [x] Add `apigatewayv2:GetApis` permission for smoke test
+
+---
+
 ## Completion Criteria
 
 - [x] All modules created and validated (SSM, ECR, Agent Lambda, API Lambda, API Gateway, OIDC)
 - [x] `terraform validate` passes
+- [x] Remote state backend configured (S3 + DynamoDB)
+- [x] CI/CD pipeline configured (deploy.yml + infra-ci.yml)
 - [ ] `terraform plan` shows expected resources
 - [ ] Infrastructure deployed and health check returns 200
-- [x] CI/CD pipeline configured (deploy.yml + infra-ci.yml)
 
 ---
 
@@ -250,5 +277,4 @@ Deployment pipeline and infrastructure CI.
 
 - [ ] S3 + CloudFront for frontend hosting
 - [ ] Custom domain + ACM certificate
-- [ ] Remote state backend (S3 + DynamoDB locking)
 - [ ] Production environment (`environments/prod/`)
