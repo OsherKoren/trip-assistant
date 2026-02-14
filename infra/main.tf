@@ -74,6 +74,7 @@ module "github_oidc" {
 
   project_name     = var.project_name
   environment      = var.environment
+  aws_region       = var.aws_region
   github_repo      = var.github_repo
   agent_lambda_arn = module.agent_lambda.function_arn
   api_lambda_arn   = module.api_lambda.function_arn

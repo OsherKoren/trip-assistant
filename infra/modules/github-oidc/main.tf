@@ -81,6 +81,40 @@ resource "aws_iam_role_policy" "lambda_deploy" {
   })
 }
 
+# --- Terraform State Access Policy ---
+
+resource "aws_iam_role_policy" "terraform_state" {
+  name = "${var.project_name}-terraform-state-${var.environment}"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket",
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project_name}-terraform-state",
+          "arn:aws:s3:::${var.project_name}-terraform-state/*",
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+        ]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:*:table/${var.project_name}-terraform-locks"
+      }
+    ]
+  })
+}
+
 # --- ECR Push/Pull Policy ---
 
 resource "aws_iam_role_policy" "ecr_push" {
