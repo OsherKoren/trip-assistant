@@ -1,10 +1,10 @@
-# Multi-stage Dockerfile for Trip Assistant Agent Service
-# Optimized for AWS Lambda container images
+# Multi-stage build for Trip Assistant Agent (Lambda container image)
+# Uses awslambdaric for Lambda Runtime Interface Client
 
 # ========================================
 # Stage 1: Builder
 # ========================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
@@ -35,13 +35,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy application code
 COPY src/ ./src/
 COPY data/ ./data/
+COPY handler.py ./
 
-# Set Python to run in unbuffered mode
-ENV PYTHONUNBUFFERED=1
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Health check (optional)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "from src.graph import graph; print('OK')" || exit 1
-
-# Default command - can be overridden
-CMD ["python", "-c", "from src.graph import graph; print('Agent loaded successfully')"]
+# Lambda Runtime Interface Client entrypoint
+ENTRYPOINT ["python", "-m", "awslambdaric"]
+CMD ["handler.handler"]

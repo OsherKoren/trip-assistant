@@ -33,14 +33,8 @@ COPY app/ ./app/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    ENVIRONMENT=prod
+    PYTHONDONTWRITEBYTECODE=1
 
-# Add labels for version tracking
-LABEL service="trip-assistant-api" \
-      version="0.1.0" \
-      description="FastAPI backend for trip assistant agent (Lambda deployment)"
-
-# Lambda Runtime Interface Emulator (for local testing with SAM CLI)
-# In production Lambda, AWS provides the runtime and invokes handler directly
-CMD ["python", "-m", "awslambdaric", "app.handler.handler"]
+# Lambda Runtime Interface Client entrypoint
+ENTRYPOINT ["python", "-m", "awslambdaric"]
+CMD ["app.handler.handler"]

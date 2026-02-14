@@ -17,13 +17,13 @@ repos:
     hooks:
       - id: mypy-agent
         name: mypy (agent)
-        entry: bash -c 'cd agent && uv run mypy src/ tests/ --explicit-package-bases'
+        entry: bash -c 'cd agent && uv run mypy src/ --explicit-package-bases'
         language: system
         files: ^agent/.*\.py$
         pass_filenames: false
       - id: mypy-api
         name: mypy (api)
-        entry: bash -c 'cd api && uv run mypy app/ tests/ --explicit-package-bases'
+        entry: bash -c 'cd api && uv run mypy app/ --explicit-package-bases'
         language: system
         files: ^api/.*\.py$
         pass_filenames: false

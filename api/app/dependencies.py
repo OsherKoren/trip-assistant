@@ -80,7 +80,13 @@ class AgentLambdaProxy:
 
                 # Read and parse response payload
                 payload_bytes = await response["Payload"].read()
-                result: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
+                lambda_response: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
+
+                # Agent handler returns {"statusCode": N, "body": "{...}"}
+                if "body" in lambda_response:
+                    result: dict[str, Any] = json.loads(lambda_response["body"])
+                else:
+                    result = lambda_response
 
                 logger.debug(
                     "Agent Lambda invoked successfully",
