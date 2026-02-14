@@ -96,6 +96,7 @@ resource "aws_iam_role_policy" "terraform" {
         Action = [
           "s3:GetObject",
           "s3:PutObject",
+          "s3:DeleteObject",
           "s3:ListBucket",
         ]
         Resource = [
@@ -152,12 +153,16 @@ resource "aws_iam_role_policy" "terraform" {
         Action = [
           "logs:CreateLogGroup",
           "logs:DeleteLogGroup",
-          "logs:DescribeLogGroups",
           "logs:ListTagsForResource",
           "logs:TagResource",
           "logs:PutRetentionPolicy",
         ]
         Resource = "arn:aws:logs:${var.aws_region}:*:log-group:/aws/lambda/${var.project_name}-*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "logs:DescribeLogGroups"
+        Resource = "*"
       },
       # SSM — manage parameters
       {
