@@ -80,6 +80,9 @@ jobs:
         with:
           platforms: arm64
 
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build and push agent image
         uses: docker/build-push-action@v5
         with:
@@ -87,8 +90,10 @@ jobs:
           file: ./agent/Dockerfile
           push: true
           platforms: linux/arm64
+          provenance: false
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-agent:sha-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-agent:${{ env.SHORT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-agent:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -105,7 +110,7 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name trip-assistant-agent \
-            --image-uri ${{ steps.login-ecr.outputs.registry }}/trip-assistant-agent:sha-${{ github.sha }} \
+            --image-uri ${{ steps.login-ecr.outputs.registry }}/trip-assistant-agent:${{ env.SHORT_SHA }} \
             --no-cli-pager
 
       - name: Wait for function update
@@ -161,6 +166,9 @@ jobs:
         with:
           platforms: arm64
 
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build and push API image
         uses: docker/build-push-action@v5
         with:
@@ -168,8 +176,10 @@ jobs:
           file: ./api/Dockerfile
           push: true
           platforms: linux/arm64
+          provenance: false
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-api:sha-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-api:${{ env.SHORT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/trip-assistant-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -186,7 +196,7 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name trip-assistant-api \
-            --image-uri ${{ steps.login-ecr.outputs.registry }}/trip-assistant-api:sha-${{ github.sha }} \
+            --image-uri ${{ steps.login-ecr.outputs.registry }}/trip-assistant-api:${{ env.SHORT_SHA }} \
             --no-cli-pager
 
       - name: Wait for function update
