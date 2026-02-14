@@ -19,11 +19,39 @@ env:
 
 jobs:
   # ========================================
+  # JOB 0: Detect Changes
+  # ========================================
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for API changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'api/**'
+              - '.github/workflows/api-ci.yml'
+            docker:
+              - 'api/Dockerfile'
+              - 'api/pyproject.toml'
+              - 'api/app/**'
+
+  # ========================================
   # JOB 1: Unit Tests (Fast, Mocked, Always Run)
   # ========================================
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -70,9 +98,9 @@ jobs:
   integration-tests:
     name: Integration Tests (Python 3.11)
     runs-on: ubuntu-latest
-    needs: unit-tests
-    # Only run after merge to main to save API costs (not on PRs)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, unit-tests]
+    # Only run after merge to main, and only if API files changed
+    if: needs.changes.outputs.api == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     defaults:
       run:
         working-directory: ${{ env.API_DIR }}
@@ -113,6 +141,8 @@ jobs:
   quality-checks:
     name: Code Quality (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -152,8 +182,8 @@ jobs:
   build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [unit-tests, quality-checks]
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    needs: [changes, unit-tests, quality-checks]
+    if: needs.changes.outputs.docker == 'true' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main'))
 
     steps:
       - name: Checkout code
@@ -183,8 +213,8 @@ jobs:
   push-to-ecr:
     name: Push to AWS ECR
     runs-on: ubuntu-latest
-    needs: [build-docker, integration-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, build-docker, integration-tests]
+    if: needs.changes.outputs.docker == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
@@ -235,8 +265,8 @@ jobs:
   create-release:
     name: Create Git Tag and GitHub Release
     runs-on: ubuntu-latest
-    needs: [push-to-ecr]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, push-to-ecr]
+    if: needs.changes.outputs.docker == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
 
