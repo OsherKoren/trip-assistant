@@ -71,16 +71,22 @@ class AgentLambdaProxy:
             # Create aioboto3 session and Lambda client
             session = aioboto3.Session()
             async with session.client("lambda", region_name=self.region) as lambda_client:
-                # Invoke Lambda function with JSON payload
+                # Invoke Lambda function with JSON payload (use :live alias)
                 response = await lambda_client.invoke(
-                    FunctionName=self.function_name,
+                    FunctionName=f"{self.function_name}:live",
                     InvocationType="RequestResponse",
                     Payload=json.dumps(state).encode("utf-8"),
                 )
 
                 # Read and parse response payload
                 payload_bytes = await response["Payload"].read()
-                result: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
+                lambda_response: dict[str, Any] = json.loads(payload_bytes.decode("utf-8"))
+
+                # Agent handler returns {"statusCode": N, "body": "{...}"}
+                if "body" in lambda_response:
+                    result: dict[str, Any] = json.loads(lambda_response["body"])
+                else:
+                    result = lambda_response
 
                 logger.debug(
                     "Agent Lambda invoked successfully",

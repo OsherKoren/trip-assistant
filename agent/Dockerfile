@@ -37,8 +37,9 @@ COPY src/ ./src/
 COPY data/ ./data/
 COPY handler.py ./
 
-# Set Python to run in unbuffered mode
-ENV PYTHONUNBUFFERED=1
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Lambda Runtime Interface Client entrypoint
 ENTRYPOINT ["python", "-m", "awslambdaric"]
