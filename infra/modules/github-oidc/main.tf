@@ -63,6 +63,7 @@ resource "aws_iam_role_policy" "lambda_deploy" {
           "lambda:UpdateAlias",
           "lambda:GetAlias",
           "lambda:GetFunction",
+          "lambda:GetFunctionConfiguration",
         ]
         Resource = [
           var.agent_lambda_arn,
@@ -70,6 +71,11 @@ resource "aws_iam_role_policy" "lambda_deploy" {
           var.api_lambda_arn,
           "${var.api_lambda_arn}:*",
         ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = "apigatewayv2:GetApis"
+        Resource = "*"
       }
     ]
   })
