@@ -1,6 +1,15 @@
 #!/bin/bash
 # Pre-push review hook: blocks git push until review skills have been run.
-# After reviews are done, Claude creates a marker file, and the next push succeeds.
+# Claude Code passes JSON on stdin with tool_input.command.
+
+# Read JSON input from stdin, extract command using python (jq not available)
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | python -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command',''))" 2>/dev/null)
+
+# Only act on git push commands
+if ! echo "$COMMAND" | grep -q "git push"; then
+    exit 0
+fi
 
 MARKER=".claude/.reviews-done"
 
@@ -13,7 +22,6 @@ fi
 # Determine which files changed compared to main
 CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null)
 if [ -z "$CHANGED" ]; then
-    # Fallback: compare with last commit
     CHANGED=$(git diff --name-only HEAD~1 2>/dev/null)
 fi
 
@@ -24,7 +32,6 @@ fi
 
 # Determine which skills to run
 SKILLS="/review-python"
-SECURITY="security-review"
 
 if echo "$CHANGED" | grep -q "^agent/"; then
     SKILLS="$SKILLS, /review-langgraph"
@@ -34,8 +41,8 @@ if echo "$CHANGED" | grep -q "^api/"; then
     SKILLS="$SKILLS, /review-fastapi"
 fi
 
-# Block the push and instruct Claude
-cat >&2 <<EOF
+# Build the deny reason
+read -r -d '' REASON <<REASON_EOF
 PUSH BLOCKED - Code reviews required before pushing.
 
 Changed services detected from diff against main:
@@ -43,12 +50,24 @@ $(echo "$CHANGED" | sed 's/^/  /')
 
 Please run the following review skills in order:
   1. $SKILLS
-  2. $SECURITY (check for vulnerabilities, secrets, injection risks)
+  2. security-review (check for vulnerabilities, secrets, injection risks)
 
 After all reviews pass, create the marker file:
   touch .claude/.reviews-done
 
 Then retry the push.
-EOF
+REASON_EOF
 
-exit 2
+# Escape the reason for JSON output using python
+REASON_JSON=$(echo "$REASON" | python -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))")
+
+# Output JSON deny decision to block the push
+cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": $REASON_JSON
+  }
+}
+EOF
