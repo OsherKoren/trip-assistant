@@ -1,5 +1,5 @@
 # Multi-stage build for Trip Assistant Agent (Lambda container image)
-# Uses awslambdaric for AWS Lambda Runtime Interface Client
+# Uses awslambdaric for Lambda Runtime Interface Client (RIC)
 
 # ========================================
 # Stage 1: Builder

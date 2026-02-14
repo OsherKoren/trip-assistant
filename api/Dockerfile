@@ -1,4 +1,4 @@
-# Multi-stage build for Trip Assistant API (Lambda deployment)
+# Multi-stage build for Trip Assistant API (Lambda container image)
 # Production image contains only API code - agent is invoked via Lambda proxy
 
 # --- Builder Stage ---
