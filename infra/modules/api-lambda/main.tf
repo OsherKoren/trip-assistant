@@ -51,7 +51,7 @@ resource "aws_iam_role_policy" "invoke_agent" {
 # --- Lambda Function ---
 
 resource "aws_lambda_function" "api" {
-  function_name = "${var.project_name}-api-${var.environment}"
+  function_name = "${var.project_name}-api"
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = var.ecr_image_uri
@@ -79,8 +79,8 @@ resource "aws_lambda_function" "api" {
 
 # --- Lambda Alias (CD pipeline manages the version) ---
 
-resource "aws_lambda_alias" "live" {
-  name             = "live"
+resource "aws_lambda_alias" "env" {
+  name             = var.environment
   function_name    = aws_lambda_function.api.function_name
   function_version = aws_lambda_function.api.version
 

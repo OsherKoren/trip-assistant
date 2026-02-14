@@ -71,9 +71,9 @@ class AgentLambdaProxy:
             # Create aioboto3 session and Lambda client
             session = aioboto3.Session()
             async with session.client("lambda", region_name=self.region) as lambda_client:
-                # Invoke Lambda function with JSON payload (use :live alias)
+                # Invoke Lambda function with JSON payload
                 response = await lambda_client.invoke(
-                    FunctionName=f"{self.function_name}:live",
+                    FunctionName=self.function_name,
                     InvocationType="RequestResponse",
                     Payload=json.dumps(state).encode("utf-8"),
                 )

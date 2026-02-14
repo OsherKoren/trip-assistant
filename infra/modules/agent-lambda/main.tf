@@ -48,7 +48,7 @@ resource "aws_iam_role_policy" "ssm_read" {
 # --- Lambda Function ---
 
 resource "aws_lambda_function" "agent" {
-  function_name = "${var.project_name}-agent-${var.environment}"
+  function_name = "${var.project_name}-agent"
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = var.ecr_image_uri
@@ -75,8 +75,8 @@ resource "aws_lambda_function" "agent" {
 
 # --- Lambda Alias (CD pipeline manages the version) ---
 
-resource "aws_lambda_alias" "live" {
-  name             = "live"
+resource "aws_lambda_alias" "env" {
+  name             = var.environment
   function_name    = aws_lambda_function.agent.function_name
   function_version = aws_lambda_function.agent.version
 

@@ -15,10 +15,10 @@ output "invoke_arn" {
 
 output "alias_invoke_arn" {
   description = "Agent Lambda alias invoke ARN"
-  value       = aws_lambda_alias.live.invoke_arn
+  value       = aws_lambda_alias.env.invoke_arn
 }
 
 output "alias_name" {
   description = "Agent Lambda alias name"
-  value       = aws_lambda_alias.live.name
+  value       = aws_lambda_alias.env.name
 }

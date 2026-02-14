@@ -54,7 +54,7 @@ module "api_lambda" {
   project_name               = var.project_name
   environment                = var.environment
   aws_region                 = var.aws_region
-  agent_lambda_function_name = module.agent_lambda.function_name
+  agent_lambda_function_name = "${module.agent_lambda.function_name}:${module.agent_lambda.alias_name}"
   agent_lambda_arn           = module.agent_lambda.function_arn
   ecr_image_uri              = "${module.ecr.api_repository_url}:initial"
 }
