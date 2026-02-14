@@ -52,6 +52,7 @@ resource "aws_lambda_function" "agent" {
   role          = aws_iam_role.lambda.arn
   package_type  = "Image"
   image_uri     = var.ecr_image_uri
+  architectures = ["arm64"]
   memory_size   = 512
   timeout       = 30
   publish       = true
