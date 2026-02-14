@@ -81,15 +81,16 @@ resource "aws_iam_role_policy" "lambda_deploy" {
   })
 }
 
-# --- Terraform State Access Policy ---
+# --- Terraform CI/CD Policy (state + infrastructure management) ---
 
-resource "aws_iam_role_policy" "terraform_state" {
-  name = "${var.project_name}-terraform-state-${var.environment}"
+resource "aws_iam_role_policy" "terraform" {
+  name = "${var.project_name}-terraform-${var.environment}"
   role = aws_iam_role.github_actions.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      # State backend access
       {
         Effect = "Allow"
         Action = [
@@ -110,7 +111,89 @@ resource "aws_iam_role_policy" "terraform_state" {
           "dynamodb:DeleteItem",
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:*:table/${var.project_name}-terraform-locks"
-      }
+      },
+      # IAM — manage Lambda execution roles and policies
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:GetRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListInstanceProfilesForRole",
+          "iam:PassRole",
+          "iam:GetOpenIDConnectProvider",
+          "iam:TagOpenIDConnectProvider",
+        ]
+        Resource = [
+          "arn:aws:iam::*:role/${var.project_name}-*",
+          "arn:aws:iam::*:oidc-provider/token.actions.githubusercontent.com",
+        ]
+      },
+      # Lambda — full management for plan/apply
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:*",
+        ]
+        Resource = [
+          "arn:aws:lambda:${var.aws_region}:*:function:${var.project_name}-*",
+        ]
+      },
+      # CloudWatch Logs — manage log groups
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:DeleteLogGroup",
+          "logs:DescribeLogGroups",
+          "logs:ListTagsForResource",
+          "logs:TagResource",
+          "logs:PutRetentionPolicy",
+        ]
+        Resource = "arn:aws:logs:${var.aws_region}:*:log-group:/aws/lambda/${var.project_name}-*"
+      },
+      # SSM — manage parameters
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:PutParameter",
+          "ssm:DeleteParameter",
+          "ssm:DescribeParameters",
+          "ssm:ListTagsForResource",
+          "ssm:AddTagsToResource",
+        ]
+        Resource = "arn:aws:ssm:${var.aws_region}:*:parameter/${var.project_name}/*"
+      },
+      # API Gateway — manage HTTP APIs
+      {
+        Effect = "Allow"
+        Action = [
+          "apigatewayv2:*",
+        ]
+        Resource = "*"
+      },
+      # ECR — manage repositories
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:DescribeRepositories",
+          "ecr:ListTagsForResource",
+          "ecr:GetLifecyclePolicy",
+          "ecr:GetRepositoryPolicy",
+        ]
+        Resource = [
+          "arn:aws:ecr:${var.aws_region}:*:repository/${var.project_name}-*",
+        ]
+      },
     ]
   })
 }
