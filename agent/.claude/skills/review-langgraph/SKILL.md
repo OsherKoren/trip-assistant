@@ -442,6 +442,10 @@ Currently confidence score is calculated but not used. Consider:
 
 ---
 
+## Companion Skill
+
+For general Python/OOP review (SOLID principles, Pythonic idioms), also invoke the **`review-python`** skill at the monorepo root.
+
 ## When NOT to Review
 
 Don't run this skill for:

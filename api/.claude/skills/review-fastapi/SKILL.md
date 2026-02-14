@@ -431,6 +431,10 @@ async def create_message(...):
 
 ---
 
+## Companion Skill
+
+For general Python/OOP review (SOLID principles, Pythonic idioms), also invoke the **`review-python`** skill at the monorepo root.
+
 ## When NOT to Review
 
 Don't run this skill for:

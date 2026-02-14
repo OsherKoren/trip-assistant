@@ -6,7 +6,7 @@ A LangGraph-powered Q&A assistant for family travel planning. Built as a monorep
 
 Trip Assistant helps families plan trips by answering questions about flights, accommodations, routes, and destinations. The agent uses topic-based routing to specialized nodes for accurate, context-aware responses.
 
-**Trip Context:** France/Italy Alps, July 7-20, 2026, 5 family members
+**Trip Context:** France & Italy Alps, July 7-20, 2026, 5 family members
 
 ## Architecture
 
