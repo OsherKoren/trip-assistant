@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir uv
 WORKDIR /app
 
 # Copy only API package files (no agent code)
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock* ./
 COPY app/ ./app/
 
 # Install API dependencies using uv
