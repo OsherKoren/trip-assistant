@@ -8,6 +8,11 @@ variable "environment" {
   type        = string
 }
 
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
 variable "github_repo" {
   description = "GitHub repository (owner/repo) for OIDC trust policy"
   type        = string

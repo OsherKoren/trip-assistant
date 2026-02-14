@@ -8,14 +8,14 @@ terraform {
     }
   }
 
-  # Remote state backend — uncomment when ready for team use
-  # backend "s3" {
-  #   bucket         = "trip-assistant-terraform-state"
-  #   key            = "dev/terraform.tfstate"
-  #   region         = "us-east-2"
-  #   dynamodb_table = "terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "trip-assistant-terraform-state"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-2"
+    dynamodb_table = "trip-assistant-terraform-locks"
+    encrypt        = true
+    use_lockfile   = true
+  }
 }
 
 provider "aws" {
@@ -74,6 +74,7 @@ module "github_oidc" {
 
   project_name     = var.project_name
   environment      = var.environment
+  aws_region       = var.aws_region
   github_repo      = var.github_repo
   agent_lambda_arn = module.agent_lambda.function_arn
   api_lambda_arn   = module.api_lambda.function_arn
