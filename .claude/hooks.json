@@ -7,6 +7,14 @@
       "script": "pre-commit run --all-files",
       "blocking": true,
       "timeout_ms": 120000
+    },
+    {
+      "event": "pre_tool_use",
+      "tool": "Bash",
+      "match_command": "^git push",
+      "script": ".claude/hooks/pre-push-review.sh",
+      "blocking": true,
+      "timeout_ms": 30000
     }
   ]
 }
