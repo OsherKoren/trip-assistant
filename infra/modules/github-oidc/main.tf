@@ -74,7 +74,7 @@ resource "aws_iam_role_policy" "lambda_deploy" {
       },
       {
         Effect   = "Allow"
-        Action   = "apigatewayv2:GetApis"
+        Action   = "apigateway:GET"
         Resource = "*"
       }
     ]
@@ -167,17 +167,21 @@ resource "aws_iam_role_policy" "terraform" {
           "ssm:GetParameters",
           "ssm:PutParameter",
           "ssm:DeleteParameter",
-          "ssm:DescribeParameters",
           "ssm:ListTagsForResource",
           "ssm:AddTagsToResource",
         ]
         Resource = "arn:aws:ssm:${var.aws_region}:*:parameter/${var.project_name}/*"
       },
-      # API Gateway — manage HTTP APIs
+      {
+        Effect   = "Allow"
+        Action   = "ssm:DescribeParameters"
+        Resource = "*"
+      },
+      # API Gateway — manage HTTP APIs (IAM uses apigateway: prefix for v2)
       {
         Effect = "Allow"
         Action = [
-          "apigatewayv2:*",
+          "apigateway:*",
         ]
         Resource = "*"
       },
