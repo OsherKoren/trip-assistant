@@ -2,7 +2,7 @@
 # Production image contains only API code - agent is invoked via Lambda proxy
 
 # --- Builder Stage (same base as runtime to match glibc for native extensions) ---
-FROM public.ecr.aws/lambda/python:3.11 AS builder
+FROM public.ecr.aws/lambda/python:3.12 AS builder
 
 WORKDIR /build
 
@@ -19,9 +19,9 @@ RUN uv venv /opt/venv && \
     uv pip install --no-cache .
 
 # --- Runtime Stage (AWS Lambda base image includes RIC/RIE) ---
-FROM public.ecr.aws/lambda/python:3.11
+FROM public.ecr.aws/lambda/python:3.12
 
-COPY --from=builder /opt/venv/lib/python3.11/site-packages ${LAMBDA_TASK_ROOT}/
+COPY --from=builder /opt/venv/lib/python3.12/site-packages ${LAMBDA_TASK_ROOT}/
 COPY app/ ${LAMBDA_TASK_ROOT}/app/
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
