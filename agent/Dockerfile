@@ -1,9 +1,7 @@
 # Multi-stage build for Trip Assistant Agent (Lambda container image)
-# Uses awslambdaric for Lambda Runtime Interface Client
+# Uses AWS Lambda base image which includes the Runtime Interface Client
 
-# ========================================
-# Stage 1: Builder
-# ========================================
+# --- Builder Stage ---
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
@@ -17,30 +15,16 @@ COPY pyproject.toml uv.lock* ./
 # Install dependencies to a virtual environment
 RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
-    uv pip install --no-cache -e .
+    uv pip install --no-cache .
 
-# ========================================
-# Stage 2: Runtime
-# ========================================
-FROM python:3.11-slim
+# --- Runtime Stage (AWS Lambda base image includes RIC/RIE) ---
+FROM public.ecr.aws/lambda/python:3.11
 
-WORKDIR /app
+COPY --from=builder /opt/venv/lib/python3.11/site-packages ${LAMBDA_TASK_ROOT}/
+COPY src/ ${LAMBDA_TASK_ROOT}/src/
+COPY data/ ${LAMBDA_TASK_ROOT}/data/
+COPY handler.py ${LAMBDA_TASK_ROOT}/
 
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
-# Add venv to PATH
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy application code
-COPY src/ ./src/
-COPY data/ ./data/
-COPY handler.py ./
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
-# Lambda Runtime Interface Client entrypoint
-ENTRYPOINT ["python", "-m", "awslambdaric"]
 CMD ["handler.handler"]

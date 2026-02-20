@@ -4,37 +4,26 @@
 # --- Builder Stage ---
 FROM python:3.11-slim AS builder
 
+WORKDIR /build
+
 # Install uv package manager
 RUN pip install --no-cache-dir uv
-
-# Set working directory
-WORKDIR /app
 
 # Copy only API package files (no agent code)
 COPY pyproject.toml ./
 COPY app/ ./app/
 
-# Install API dependencies using uv
-# Note: Agent is NOT installed - production uses Lambda proxy
-RUN uv pip install --system --no-cache .
+# Install API dependencies using uv into a virtual environment
+RUN uv venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    uv pip install --no-cache .
 
-# --- Runtime Stage ---
-FROM python:3.11-slim
+# --- Runtime Stage (AWS Lambda base image includes RIC/RIE) ---
+FROM public.ecr.aws/lambda/python:3.11
 
-# Set working directory
-WORKDIR /app
+COPY --from=builder /opt/venv/lib/python3.11/site-packages ${LAMBDA_TASK_ROOT}/
+COPY app/ ${LAMBDA_TASK_ROOT}/app/
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
-# Copy application code
-COPY app/ ./app/
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
-# Lambda Runtime Interface Client entrypoint
-ENTRYPOINT ["python", "-m", "awslambdaric"]
 CMD ["app.handler.handler"]
