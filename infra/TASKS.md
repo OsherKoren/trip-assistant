@@ -153,12 +153,11 @@ Create HTTP API Gateway that routes requests to the API Lambda.
 
 Apply infrastructure and verify with real AWS resources.
 
-- [ ] Create `infra/environments/dev/terraform.tfvars` (gitignored)
-  - [ ] Set `environment`, `aws_region`, `openai_api_key`
-- [ ] Run `terraform apply` — create all resources
-- [ ] Verify outputs: `terraform output` shows `api_url`
-- [ ] Smoke test: `curl <api_url>/api/health` returns 200
-- [ ] Document deployment steps in `infra/CLAUDE.md`
+- [x] ~~Create `infra/environments/dev/terraform.tfvars`~~ — Not needed; CI/CD uses `TF_VAR_` env vars
+- [x] Run `terraform apply` — applied via `infra-ci.yml` on merge to main
+- [x] Verify outputs: `terraform output` shows `api_url`
+- [x] Smoke test: `curl <api_url>/api/health` returns 200
+- [x] Document deployment steps in `infra/CLAUDE.md`
 
 ---
 
@@ -268,8 +267,8 @@ Fix deploy workflow and OIDC issues discovered after first merge.
 - [x] `terraform validate` passes
 - [x] Remote state backend configured (S3 + DynamoDB)
 - [x] CI/CD pipeline configured (deploy.yml + infra-ci.yml)
-- [ ] `terraform plan` shows expected resources
-- [ ] Infrastructure deployed and health check returns 200
+- [x] `terraform plan` shows expected resources
+- [x] Infrastructure deployed and health check returns 200
 
 ---
 
