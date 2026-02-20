@@ -257,6 +257,28 @@ jobs:
           echo "Health check failed after 3 attempts"
           exit 1
 
+      - name: Full chain ping (API → Agent Lambda)
+        run: |
+          for i in 1 2 3 4 5; do
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST -H "Content-Type: application/json" \
+              -d '{"question": "__ping__"}' \
+              "${{ steps.api-url.outputs.url }}/api/messages" || true)
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            if [ "$HTTP_CODE" = "200" ]; then
+              ANSWER=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('answer',''))")
+              if [ "$ANSWER" = "pong" ]; then
+                echo "Full chain ping passed on attempt $i"
+                exit 0
+              fi
+            fi
+            echo "Attempt $i: HTTP $HTTP_CODE, retrying in 15s..."
+            sleep 15
+          done
+          echo "Full chain ping failed after 5 attempts"
+          exit 1
+
   # ========================================
   # JOB 4: Rollback on Smoke Test Failure
   # ========================================

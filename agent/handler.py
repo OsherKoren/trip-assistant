@@ -11,6 +11,7 @@ from typing import Any
 import boto3
 
 _graph = None
+PING_SENTINEL = "__ping__"
 
 
 def _get_graph():
@@ -52,6 +53,20 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:  # noqa: ARG
         return {
             "statusCode": 400,
             "body": json.dumps({"error": "Missing 'question' field"}),
+        }
+
+    if question == PING_SENTINEL:
+        _get_graph()  # validate cold start (SSM + LangGraph init)
+        return {
+            "statusCode": 200,
+            "body": json.dumps(
+                {
+                    "answer": "pong",
+                    "category": "ping",
+                    "confidence": 1.0,
+                    "source": None,
+                }
+            ),
         }
 
     graph = _get_graph()
