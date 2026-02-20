@@ -1,84 +1,54 @@
-"""Tests for dependency injection."""
+"""Tests for dependency injection (build_graph factory)."""
 
-import sys
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import HTTPException
-from starlette.requests import Request
 
-from app.dependencies import get_graph
+from app.dependencies import AgentLambdaProxy, build_graph
 
 
-@pytest.fixture
-def mock_request() -> MagicMock:
-    """Create a mock FastAPI Request object.
+class TestBuildGraph:
+    """Tests for build_graph() factory."""
 
-    Returns a request with no Lambda context (simulates local development).
-    """
-    request = MagicMock(spec=Request)
-    request.scope = {}  # No aws.context in local dev
-    return request
-
-
-class TestGetGraph:
-    """Tests for get_graph dependency."""
-
-    def test_get_graph_returns_callable(self, mock_request: MagicMock) -> None:
-        """Test that get_graph returns an object with invoke and ainvoke methods."""
-        graph = get_graph(mock_request)
+    def test_local_mode_returns_graph(self) -> None:
+        """Test that local mode imports and returns the agent graph."""
+        graph = build_graph("local")
         assert graph is not None
-        assert hasattr(graph, "invoke")
-        assert callable(graph.invoke)
         assert hasattr(graph, "ainvoke")
         assert callable(graph.ainvoke)
 
-    def test_get_graph_can_be_invoked(self, mock_request: MagicMock) -> None:
-        """Test that returned graph can be invoked with sample state."""
-        graph = get_graph(mock_request)
-        # Should have invoke and ainvoke methods (we don't call them to avoid real agent execution)
-        assert callable(getattr(graph, "invoke", None))
-        assert callable(getattr(graph, "ainvoke", None))
+    def test_lambda_mode_returns_proxy(self) -> None:
+        """Test that lambda mode returns AgentLambdaProxy."""
+        graph = build_graph("lambda", function_name="test-fn", region="us-west-2")
+        assert isinstance(graph, AgentLambdaProxy)
+        assert graph.function_name == "test-fn"
+        assert graph.region == "us-west-2"
 
-    def test_get_graph_handles_import_error(self, mock_request: MagicMock) -> None:
-        """Test that import errors raise HTTPException 500."""
-        # Remove src.graph from sys.modules and prevent re-import
-        original = sys.modules.pop("src.graph", None)
-        original_src = sys.modules.pop("src", None)
+    def test_lambda_mode_missing_function_name_raises(self) -> None:
+        """Test that lambda mode without function name raises RuntimeError."""
+        with pytest.raises(RuntimeError, match="AGENT_LAMBDA_FUNCTION_NAME"):
+            build_graph("lambda")
 
-        # Create a mock module that raises ImportError on attribute access
-        class FailingModule:
-            def __getattr__(self, name: str) -> None:
-                raise ImportError(f"No module named 'src.{name}'")
+    def test_local_mode_import_error_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that local mode raises RuntimeError when agent is not installed."""
+        import sys
 
-        sys.modules["src"] = FailingModule()  # type: ignore[assignment]
+        monkeypatch.delitem(sys.modules, "src.graph", raising=False)
+        monkeypatch.delitem(sys.modules, "src", raising=False)
+        monkeypatch.setitem(sys.modules, "src.graph", None)  # type: ignore[arg-type]
 
-        try:
-            with pytest.raises(HTTPException) as exc_info:
-                get_graph(mock_request)
-            assert exc_info.value.status_code == 500
-            assert "not available" in exc_info.value.detail.lower()
-        finally:
-            # Restore original modules
-            sys.modules.pop("src", None)
-            if original is not None:
-                sys.modules["src.graph"] = original
-            if original_src is not None:
-                sys.modules["src"] = original_src
+        with pytest.raises(RuntimeError, match="not available"):
+            build_graph("local")
 
-    def test_get_graph_dependency_override_works(self, mock_request: MagicMock) -> None:
-        """Test that dependency can be overridden for testing."""
+    def test_dependency_override_works(self) -> None:
+        """Test that get_graph can be overridden via app.dependency_overrides."""
+        from app.dependencies import get_graph
         from app.main import app
 
         mock_graph = MagicMock()
-        mock_graph.invoke.return_value = {"answer": "test"}
+        app.dependency_overrides[get_graph] = lambda: mock_graph
 
-        # Test override mechanism (must accept Request parameter)
-        app.dependency_overrides[get_graph] = lambda _request: mock_graph
+        overridden = app.dependency_overrides[get_graph]()
+        assert overridden is mock_graph
 
-        # Verify override works
-        overridden_graph = app.dependency_overrides[get_graph](mock_request)
-        assert overridden_graph == mock_graph
-
-        # Cleanup
         app.dependency_overrides.clear()

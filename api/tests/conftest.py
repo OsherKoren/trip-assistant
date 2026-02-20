@@ -95,15 +95,10 @@ def client(mock_graph: MockGraph) -> Generator[TestClient, None, None]:
         TestClient instance with overridden dependency.
     """
 
-    # Override dependency to use mock graph (needs to be a proper function, not lambda)
-    def mock_get_graph() -> MockGraph:
-        return mock_graph
-
-    app.dependency_overrides[get_graph] = mock_get_graph
-
-    # Create test client with context manager for proper cleanup
+    # Create test client first (lifespan wires the real graph),
+    # then override with mock so tests don't call the real agent.
     with TestClient(app) as test_client:
+        app.dependency_overrides[get_graph] = lambda: mock_graph
         yield test_client
 
-    # Cleanup: clear overrides after test
     app.dependency_overrides.clear()

@@ -77,7 +77,7 @@ Each service has its own `CLAUDE.md` with detailed specs. Navigate to the servic
 
 ## Model Preferences
 
-- **Normal mode**: Sonnet (`claude-sonnet-4-5-20250929`)
+- **Normal mode**: Sonnet (`claude-sonnet-4-6-20250929`)
 - **Plan mode**: Opus (`claude-opus-4-6`)
 - **Exploring**: Haiku (`claude-haiku-4-5-20251001`)
 
