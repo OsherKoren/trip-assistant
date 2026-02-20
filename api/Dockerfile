@@ -1,4 +1,4 @@
-# Multi-stage build for Trip Assistant API (Lambda deployment)
+# Multi-stage build for Trip Assistant API (Lambda container image)
 # Production image contains only API code - agent is invoked via Lambda proxy
 
 # --- Builder Stage ---
@@ -10,7 +10,7 @@ WORKDIR /build
 RUN pip install --no-cache-dir uv
 
 # Copy only API package files (no agent code)
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock* ./
 COPY app/ ./app/
 
 # Install API dependencies using uv into a virtual environment
