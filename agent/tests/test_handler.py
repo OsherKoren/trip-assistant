@@ -79,6 +79,32 @@ class TestHandler:
 
         assert result["statusCode"] == 400
 
+    def test_ping_returns_pong_without_invoking_graph(self, mock_graph):
+        """Ping sentinel returns pong without calling graph.invoke()."""
+        from handler import handler
+
+        event = {"question": "__ping__"}
+        result = handler(event, None)
+
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["answer"] == "pong"
+        assert body["category"] == "ping"
+        assert body["confidence"] == 1.0
+        assert body["source"] is None
+        mock_graph.invoke.assert_not_called()
+
+    def test_ping_initializes_graph(self, mocker):
+        """Ping sentinel calls _get_graph() for cold start validation."""
+        from handler import handler
+
+        mock_get_graph = mocker.patch("handler._get_graph")
+        event = {"question": "__ping__"}
+        result = handler(event, None)
+
+        assert result["statusCode"] == 200
+        mock_get_graph.assert_called_once()
+
 
 class TestGetGraph:
     """Tests for lazy graph initialization."""
