@@ -1,8 +1,8 @@
 # Multi-stage build for Trip Assistant Agent (Lambda container image)
 # Uses AWS Lambda base image which includes the Runtime Interface Client
 
-# --- Builder Stage ---
-FROM python:3.11-slim AS builder
+# --- Builder Stage (same base as runtime to match glibc for native extensions) ---
+FROM public.ecr.aws/lambda/python:3.11 AS builder
 
 WORKDIR /build
 
