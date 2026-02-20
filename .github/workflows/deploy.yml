@@ -6,7 +6,9 @@ on:
       - main
     paths:
       - 'agent/**'
+      - '!agent/tests/**'
       - 'api/**'
+      - '!api/tests/**'
 
 permissions:
   id-token: write
