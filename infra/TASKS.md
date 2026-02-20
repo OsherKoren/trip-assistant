@@ -261,6 +261,17 @@ Fix deploy workflow and OIDC issues discovered after first merge.
 
 ---
 
+## Phase 14: Full-Chain Smoke Test ✅
+
+End-to-end deploy validation covering the entire Lambda chain.
+
+- [x] Add `__ping__` sentinel in `agent/handler.py` — exercises SSM + LangGraph init, skips OpenAI
+- [x] Add 2 ping tests in `agent/tests/test_handler.py`
+- [x] Add "Full chain ping" step in `deploy.yml` — POSTs to `/api/messages`, validates full chain
+- [x] Exclude `agent/tests/**` and `api/tests/**` from deploy workflow trigger
+
+---
+
 ## Completion Criteria
 
 - [x] All modules created and validated (SSM, ECR, Agent Lambda, API Lambda, API Gateway, OIDC)
@@ -269,6 +280,7 @@ Fix deploy workflow and OIDC issues discovered after first merge.
 - [x] CI/CD pipeline configured (deploy.yml + infra-ci.yml)
 - [x] `terraform plan` shows expected resources
 - [x] Infrastructure deployed and health check returns 200
+- [x] Full-chain smoke test validates API Gateway → API Lambda → Agent Lambda
 
 ---
 
