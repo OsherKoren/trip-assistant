@@ -15,7 +15,6 @@ dependencies = [
     "pydantic>=2.0",
     "loguru>=0.7",
     "aioboto3>=13.0",
-    "awslambdaric>=2.0",
 ]
 
 [project.optional-dependencies]
