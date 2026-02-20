@@ -30,6 +30,7 @@ GitHub Actions (OIDC) ──▶ Build ARM64 image ──▶ Push to ECR ──�
 - `deploy.yml` builds ARM64 images, pushes to ECR, updates Lambda, publishes version, updates alias
 - `infra-ci.yml` validates Terraform on PR, applies on merge to main
 - Uses GitHub OIDC for AWS auth (no static keys)
+- Smoke test: health check (`GET /api/health`) + full-chain ping (`POST /api/messages` with `__ping__`)
 - Automatic rollback on smoke test failure
 
 ## AWS Services (Cheap Stack)
