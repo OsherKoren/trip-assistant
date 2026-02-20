@@ -2,20 +2,15 @@
 
 import json
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from mangum import Mangum
 
 from app.handler import handler
-from app.main import app
 
 
 def _mock_lambda_context() -> MagicMock:
-    """Create a mock Lambda context for testing.
-
-    Returns:
-        Mock Lambda context with required attributes.
-    """
+    """Create a mock Lambda context for testing."""
     context = MagicMock()
     context.request_id = "test-request-id"
     context.function_name = "trip-assistant-api"
@@ -41,12 +36,6 @@ def test_handler_is_callable() -> None:
 
 def test_health_endpoint_via_lambda_event(mock_graph: Any) -> None:
     """Test GET /api/health returns healthy status via Lambda event."""
-    # Override dependency for testing
-    from app.dependencies import get_graph
-
-    app.dependency_overrides[get_graph] = lambda: mock_graph
-
-    # API Gateway HTTP API (v2.0) event for GET /api/health
     event = {
         "version": "2.0",
         "routeKey": "GET /api/health",
@@ -76,31 +65,20 @@ def test_health_endpoint_via_lambda_event(mock_graph: Any) -> None:
         "isBase64Encoded": False,
     }
 
-    # Invoke handler
-    response = handler(event, _mock_lambda_context())
+    with patch("app.main.build_graph", return_value=mock_graph):
+        response = handler(event, _mock_lambda_context())
 
-    # Verify response structure
     assert response["statusCode"] == 200
     assert "body" in response
 
-    # Parse response body
     body = json.loads(response["body"])
     assert body["status"] == "healthy"
     assert body["service"] == "trip-assistant-api"
     assert "version" in body
 
-    # Cleanup
-    app.dependency_overrides.clear()
-
 
 def test_messages_endpoint_via_lambda_event(mock_graph: Any) -> None:
     """Test POST /api/messages processes message via Lambda event."""
-    # Override dependency for testing
-    from app.dependencies import get_graph
-
-    app.dependency_overrides[get_graph] = lambda: mock_graph
-
-    # API Gateway HTTP API (v2.0) event for POST /api/messages
     event = {
         "version": "2.0",
         "routeKey": "POST /api/messages",
@@ -131,36 +109,24 @@ def test_messages_endpoint_via_lambda_event(mock_graph: Any) -> None:
         "isBase64Encoded": False,
     }
 
-    # Invoke handler
-    response = handler(event, _mock_lambda_context())
+    with patch("app.main.build_graph", return_value=mock_graph):
+        response = handler(event, _mock_lambda_context())
 
-    # Verify response structure
     assert response["statusCode"] == 200
     assert "body" in response
 
-    # Parse response body
     body = json.loads(response["body"])
     assert body["answer"] == "Your flight departs at 3:00 PM from Terminal 3."
     assert body["category"] == "flight"
     assert body["confidence"] == 0.95
     assert body["source"] == "flight.txt"
 
-    # Verify agent was invoked
     assert len(mock_graph.invoke_calls) == 1
     assert mock_graph.invoke_calls[0]["question"] == "What car did we rent?"
-
-    # Cleanup
-    app.dependency_overrides.clear()
 
 
 def test_invalid_request_handling_via_lambda_event(mock_graph: Any) -> None:
     """Test Lambda event with invalid request body returns 422."""
-    # Override dependency for testing
-    from app.dependencies import get_graph
-
-    app.dependency_overrides[get_graph] = lambda: mock_graph
-
-    # API Gateway HTTP API (v2.0) event with empty question
     event = {
         "version": "2.0",
         "routeKey": "POST /api/messages",
@@ -187,24 +153,19 @@ def test_invalid_request_handling_via_lambda_event(mock_graph: Any) -> None:
             "time": "01/Jan/2026:00:00:00 +0000",
             "timeEpoch": 1704067200000,
         },
-        "body": json.dumps({"question": ""}),  # Invalid: empty question
+        "body": json.dumps({"question": ""}),
         "isBase64Encoded": False,
     }
 
-    # Invoke handler
-    response = handler(event, _mock_lambda_context())
+    with patch("app.main.build_graph", return_value=mock_graph):
+        response = handler(event, _mock_lambda_context())
 
-    # Verify error response
-    assert response["statusCode"] == 422  # Validation error
-
-    # Cleanup
-    app.dependency_overrides.clear()
+    assert response["statusCode"] == 422
 
 
 def test_agent_error_handling_via_lambda_event() -> None:
     """Test Lambda event handles agent invocation errors gracefully."""
 
-    # Create a custom MockGraph that raises an error
     class ErrorMockGraph:
         def invoke(self, _state: dict[str, Any]) -> dict[str, Any]:
             raise RuntimeError("Agent processing failed")
@@ -214,12 +175,6 @@ def test_agent_error_handling_via_lambda_event() -> None:
 
     error_graph = ErrorMockGraph()
 
-    # Override dependency for testing
-    from app.dependencies import get_graph
-
-    app.dependency_overrides[get_graph] = lambda: error_graph
-
-    # API Gateway HTTP API (v2.0) event
     event = {
         "version": "2.0",
         "routeKey": "POST /api/messages",
@@ -250,17 +205,11 @@ def test_agent_error_handling_via_lambda_event() -> None:
         "isBase64Encoded": False,
     }
 
-    # Invoke handler
-    response = handler(event, _mock_lambda_context())
+    with patch("app.main.build_graph", return_value=error_graph):
+        response = handler(event, _mock_lambda_context())
 
-    # Verify error response
     assert response["statusCode"] == 500
 
-    # Parse error response
     body = json.loads(response["body"])
     assert "detail" in body
-    # Should not expose internal error details
     assert "Agent processing failed" not in body["detail"]
-
-    # Cleanup
-    app.dependency_overrides.clear()

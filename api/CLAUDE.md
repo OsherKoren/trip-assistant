@@ -22,7 +22,8 @@ api/
 │   │   ├── health.py     # GET /health endpoint
 │   │   └── schemas.py    # Pydantic request/response models
 │   ├── handler.py        # Lambda handler (Mangum)
-│   ├── dependencies.py   # Agent initialization
+│   ├── settings.py       # pydantic-settings config (env vars, validation)
+│   ├── dependencies.py   # Agent graph factory + dependency stub
 │   └── logger.py         # Logging configuration (loguru)
 ├── tests/
 ├── Dockerfile
@@ -140,6 +141,7 @@ logger.debug("Initializing agent graph")
 
 - fastapi >= 0.115
 - mangum >= 1.8 (Lambda adapter)
+- pydantic-settings >= 2.0 (env var config with validation)
 - loguru >= 0.7 (structured logging)
 - agent service (local import)
 
@@ -270,9 +272,9 @@ chmod 644 .env
 
 **Agent Lambda not accessible**
 ```bash
-# Verify ENVIRONMENT variable in .env
-# For local testing: ENVIRONMENT=dev (imports local agent)
-# For production testing: ENVIRONMENT=prod (calls agent Lambda)
+# Verify AGENT_MODE variable in .env
+# For local testing: AGENT_MODE=local (imports local agent, default)
+# For production testing: AGENT_MODE=lambda (calls agent Lambda)
 ```
 
 **Port 3001 already in use**
@@ -284,24 +286,25 @@ netstat -ano | findstr :3001   # Windows (find PID, then taskkill)
 
 ### Production vs. Local Mode
 
-The API supports two modes via the `ENVIRONMENT` variable:
+The API supports two modes via the `AGENT_MODE` environment variable:
 
-- **`ENVIRONMENT=dev`** (local): Imports agent graph directly from `../agent/src/graph.py`
+- **`AGENT_MODE=local`** (default): Imports agent graph directly from `../agent/src/graph.py`
   - Use for: Local development, SAM local testing, CI/CD unit tests
   - Requires: Agent package installed via `uv pip install -e ../agent`
 
-- **`ENVIRONMENT=prod`** (production): Calls agent via Lambda proxy
+- **`AGENT_MODE=lambda`** (production): Calls agent via Lambda proxy
   - Use for: Production deployment, integration testing with deployed agent
   - Requires: `AGENT_LAMBDA_FUNCTION_NAME` and AWS credentials
 
-**Local testing always uses `ENVIRONMENT=dev`** - set this in your `.env` file.
+`AGENT_MODE` defaults to `local` — zero config for local dev. `ENVIRONMENT` is the environment name (e.g. `dev`, `prod`) and is separate from execution mode.
 
 ## Environment Variables
 
 - `OPENAI_API_KEY` - From Parameter Store in Lambda (or `.env` for local)
-- `ENVIRONMENT` - `dev` (local agent) or `prod` (Lambda proxy)
-- `AGENT_LAMBDA_FUNCTION_NAME` - Agent Lambda function name (production only)
-- `AWS_REGION` - AWS region (production only)
+- `ENVIRONMENT` - Environment name (`dev`, `prod`) — used for logging/config, not mode selection
+- `AGENT_MODE` - `local` (direct import) or `lambda` (Lambda proxy) — defaults to `local`
+- `AGENT_LAMBDA_FUNCTION_NAME` - Agent Lambda function name (required when `AGENT_MODE=lambda`)
+- `AWS_REGION` - AWS region (defaults to `us-east-2`)
 
 ## Python Coding Standards
 
@@ -348,31 +351,33 @@ Follow these patterns for production-ready FastAPI code.
 ### Dependency Injection
 
 - **Use `Depends()` for shared resources** - Agent graph, database connections, etc.
-- **Accept `Request` in dependencies** - For Lambda context and request ID access
+- **Wire dependencies at startup via lifespan** - Not per-request
 - **Test with `app.dependency_overrides`** - Mock dependencies in tests
 
 ```python
-# dependencies.py
-def get_graph(request: Request) -> CompiledGraph:
-    lambda_context = request.scope.get("aws.context")
-    request_id = lambda_context.request_id if lambda_context else "local"
+# settings.py — validated config at startup
+class Settings(BaseSettings):
+    agent_mode: Literal["local", "lambda"] = "local"
+    agent_lambda_function_name: str = ""
 
-    try:
-        from src.graph import graph
-        logger.debug("Graph initialized", request_id=request_id)
-        return graph
-    except ImportError as e:
-        logger.error("Import failed", error=str(e), request_id=request_id)
-        raise HTTPException(status_code=500, detail="Service unavailable") from e
+# dependencies.py — pure factory + stub
+def build_graph(agent_mode, function_name, region) -> AgentGraphProtocol:
+    if agent_mode == "lambda":
+        return AgentLambdaProxy(function_name=function_name, region=region)
+    from src.graph import graph
+    return graph
 
-# routes.py
-@app.post("/api/messages")
-async def create_message(
-    message: MessageRequest,
-    graph = Depends(get_graph)  # Injected dependency
-):
-    result = graph.invoke({"question": message.question})
-    return MessageResponse(**result)
+def get_graph() -> AgentGraphProtocol:  # Stub, overridden by lifespan
+    raise RuntimeError("Not wired")
+
+# main.py — wire once at startup
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    settings = get_settings()
+    graph = build_graph(settings.agent_mode, ...)
+    app.dependency_overrides[get_graph] = lambda: graph
+    yield
+    app.dependency_overrides.clear()
 ```
 
 ### Middleware
@@ -433,20 +438,14 @@ except Exception as e:
 
 ```python
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
 
-def test_create_message():
-    mock_graph = MagicMock()
-    mock_graph.invoke.return_value = {"answer": "test", "category": "general"}
-
-    # Override dependency
-    app.dependency_overrides[get_graph] = lambda _request: mock_graph
-
-    client = TestClient(app)
-    response = client.post("/api/messages", json={"question": "test"})
-
-    assert response.status_code == 200
-    app.dependency_overrides.clear()  # Cleanup
+# conftest.py — override AFTER TestClient enters (lifespan runs on enter)
+@pytest.fixture
+def client(mock_graph: MockGraph) -> Generator[TestClient, None, None]:
+    with TestClient(app) as test_client:
+        app.dependency_overrides[get_graph] = lambda: mock_graph
+        yield test_client
+    app.dependency_overrides.clear()
 ```
 
 ### Request Tracing
