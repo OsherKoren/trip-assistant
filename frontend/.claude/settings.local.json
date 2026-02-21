@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "WebFetch(domain:react.dev)",
+      "WebFetch(domain:tailwindcss.com)",
+      "WebFetch(domain:vitejs.dev)",
+      "WebSearch",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm install 2>&1)",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm run build 2>&1)",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm install tailwindcss @tailwindcss/vite 2>&1)",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm install --save-dev vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom 2>&1)",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm test 2>&1)",
+      "Bash(cd /c/Users/oshra/PycharmProjects/trip-assistant/frontend && npm run build 2>&1 && npm test 2>&1)"
+    ]
+  }
+}

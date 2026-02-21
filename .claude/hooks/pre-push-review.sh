@@ -41,6 +41,10 @@ if echo "$CHANGED" | grep -q "^api/"; then
     SKILLS="$SKILLS, /review-fastapi"
 fi
 
+if echo "$CHANGED" | grep -q "^frontend/"; then
+    SKILLS="$SKILLS, /review-react"
+fi
+
 # Build the deny reason
 read -r -d '' REASON <<REASON_EOF
 PUSH BLOCKED - Code reviews required before pushing.
