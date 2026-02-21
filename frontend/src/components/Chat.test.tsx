@@ -7,6 +7,12 @@ import type { MessageResponse } from '../types';
 
 vi.mock('../api/client');
 
+vi.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue('mock-token'),
+  }),
+}));
+
 const mockResponse: MessageResponse = {
   answer: 'You rented a car from Sixt.',
   category: 'car_rental',

@@ -6,6 +6,12 @@ import type { MessageResponse } from '../types';
 
 vi.mock('../api/client');
 
+vi.mock('./useAuth', () => ({
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue('mock-token'),
+  }),
+}));
+
 const mockResponse: MessageResponse = {
   answer: 'You rented a car from Sixt.',
   category: 'car_rental',
@@ -70,6 +76,17 @@ describe('useMessages', () => {
     expect(result.current.messages[1].role).toBe('assistant');
     expect(result.current.messages[1].content).toBe('You rented a car from Sixt.');
     expect(result.current.messages[1].category).toBe('car_rental');
+  });
+
+  it('passes getToken to sendMessage', async () => {
+    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(client.sendMessage).toHaveBeenCalledWith('hello', expect.any(Function));
   });
 
   it('sets error on API failure', async () => {

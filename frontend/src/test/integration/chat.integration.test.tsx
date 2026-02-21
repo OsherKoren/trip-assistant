@@ -3,6 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { Chat } from '../../components/Chat';
 import { API_URL } from './setup';
 
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue('mock-token'),
+  }),
+}));
+
 const canReachApi = async (): Promise<boolean> => {
   if (!API_URL) return false;
   try {
