@@ -284,8 +284,98 @@ End-to-end deploy validation covering the entire Lambda chain.
 
 ---
 
+## Phase 15: S3 + CloudFront for Frontend Hosting
+
+Add static hosting infrastructure for the React frontend.
+
+**Architecture**: `S3 (static) → CloudFront (CDN) → User Browser`
+
+### Task 15.1: Create S3 + CloudFront module
+- [ ] Create `infra/modules/s3-cloudfront/variables.tf`
+  - [ ] `project_name` (string)
+  - [ ] `environment` (string)
+- [ ] Create `infra/modules/s3-cloudfront/main.tf`
+  - [ ] S3 bucket: `${project_name}-frontend-${environment}`
+    - Block ALL public access (CloudFront-only via OAC)
+    - Server-side encryption (AES256)
+    - Tags: Project, Environment
+  - [ ] CloudFront Origin Access Control (OAC)
+    - Signing behavior: `always`, protocol: `sigv4`
+  - [ ] CloudFront distribution
+    - Origin: S3 bucket with OAC
+    - Default root object: `index.html`
+    - Custom error response: 403/404 → `/index.html` (SPA routing)
+    - Viewer protocol policy: `redirect-to-https`
+    - Cache policy: `CachingOptimized` (managed policy)
+    - Price class: `PriceClass_100` (cheapest — US/EU only)
+    - Default CloudFront certificate (no custom domain yet)
+  - [ ] S3 bucket policy: Allow CloudFront OAC `s3:GetObject` only
+- [ ] Create `infra/modules/s3-cloudfront/outputs.tf`
+  - [ ] `s3_bucket_name` — for deployment workflow
+  - [ ] `s3_bucket_arn` — for IAM policy
+  - [ ] `cloudfront_distribution_id` — for cache invalidation
+  - [ ] `cloudfront_distribution_arn` — for IAM policy
+  - [ ] `cloudfront_url` — the `https://dXXX.cloudfront.net` URL
+
+### Task 15.2: Wire module in root configuration
+- [ ] Add `module "s3_cloudfront"` block in `infra/main.tf`
+  - [ ] Pass `project_name` and `environment`
+- [ ] Add root outputs in `infra/outputs.tf`
+  - [ ] `frontend_url` → CloudFront URL
+  - [ ] `frontend_s3_bucket` → S3 bucket name
+  - [ ] `cloudfront_distribution_id` → for deploy workflow
+
+### Task 15.3: Update GitHub OIDC permissions
+- [ ] Add `frontend_s3_bucket_arn` and `cloudfront_distribution_arn` variables to `modules/github-oidc/variables.tf`
+- [ ] Pass new variables from root `main.tf` to `github_oidc` module
+- [ ] Add new IAM policy in `modules/github-oidc/main.tf`
+  - [ ] S3 deploy: `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket`, `s3:GetObject` on frontend bucket
+  - [ ] CloudFront: `cloudfront:CreateInvalidation`, `cloudfront:GetInvalidation` on distribution
+- [ ] Add S3/CloudFront management permissions to Terraform CI/CD policy
+  - [ ] S3: bucket and object management for `${project_name}-frontend-*`
+  - [ ] CloudFront: distribution management
+
+### Task 15.4: Validate and commit
+- [ ] `terraform fmt -recursive`
+- [ ] `terraform validate`
+- [ ] Commit phase 15 changes
+
+---
+
+## Phase 16: Frontend Deployment Workflow
+
+GitHub Actions workflow to build and deploy frontend to S3/CloudFront.
+
+### Task 16.1: Create frontend deploy workflow
+- [ ] Create `.github/workflows/frontend-deploy.yml`
+  - [ ] Trigger: push to `main`, paths `frontend/**`
+  - [ ] Job 1: Detect Changes (`dorny/paths-filter`)
+  - [ ] Job 2: Build & Deploy
+    - [ ] Checkout, setup Node 20, `npm ci`, `npm run build`
+    - [ ] Configure AWS credentials (OIDC, same role as deploy.yml)
+    - [ ] `aws s3 sync dist/ s3://$BUCKET --delete`
+    - [ ] `aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"`
+  - [ ] Job 3: Smoke Test
+    - [ ] `curl` CloudFront URL returns 200
+    - [ ] Verify response contains HTML content
+
+### Task 16.2: Commit and verify
+- [ ] Commit phase 16 changes
+- [ ] Merge to main → infra-ci applies Terraform → frontend-deploy deploys app
+- [ ] Verify CloudFront URL serves the React app
+
+---
+
+## Completion Criteria (Updated)
+
+- [x] Phases 1-14: Backend infrastructure deployed and operational
+- [ ] Phase 15: S3 + CloudFront module created and applied
+- [ ] Phase 16: Frontend deployment workflow operational
+- [ ] CloudFront URL serves the React chat interface
+
+---
+
 ## Future Tasks (Not in Scope)
 
-- [ ] S3 + CloudFront for frontend hosting
 - [ ] Custom domain + ACM certificate
 - [ ] Production environment (`environments/prod/`)
