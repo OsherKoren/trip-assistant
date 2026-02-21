@@ -16,7 +16,8 @@ describe('MessageList', () => {
 
   it('renders empty state when no messages', () => {
     render(<MessageList messages={[]} isLoading={false} />);
-    expect(screen.getByText('No messages yet')).toBeInTheDocument();
+    expect(screen.getByText(/welcome/i)).toBeInTheDocument();
+    expect(screen.getByText(/ask me anything about your family trip/i)).toBeInTheDocument();
   });
 
   it('shows loading indicator when isLoading=true', () => {

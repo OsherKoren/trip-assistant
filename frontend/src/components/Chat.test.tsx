@@ -23,7 +23,7 @@ describe('Chat', () => {
     render(<Chat />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
-    expect(screen.getByText('No messages yet')).toBeInTheDocument();
+    expect(screen.getByText(/welcome/i)).toBeInTheDocument();
   });
 
   it('displays error message when error exists', async () => {
