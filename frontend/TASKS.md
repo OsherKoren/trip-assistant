@@ -310,7 +310,7 @@ Refine mobile-first layout, loading/error UX, and dark/light mode.
 Create production Docker image.
 
 ### Task 6.1: Create Dockerfile
-- [ ] Multi-stage build: node:20-alpine builder + nginx:alpine server
+- [x] Multi-stage build: node:20-alpine builder + nginx:alpine server
 
 ```dockerfile
 FROM node:20-alpine AS builder
@@ -325,9 +325,12 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
 ```
 
-- [ ] Create `.dockerignore`
-  - [ ] Exclude `node_modules`, `.env`, `.git`
-  - [ ] Exclude `coverage/`, `.claude/`
+- [x] Create `.dockerignore`
+  - [x] Exclude `node_modules`, `.env`, `.git`
+  - [x] Exclude `coverage/`, `.claude/`
+
+### Task 6.2: Commit
+- [ ] Commit phase 6 changes
 
 ---
 
@@ -349,6 +352,9 @@ End-to-end tests with real API (like agent/api integration test phases).
   - [ ] Test error handling when API is down
   - [ ] Test multiple messages in sequence
 - [ ] Run `npm run test:integration` (must pass with API running)
+
+### Task 7.3: Commit
+- [ ] Commit phase 7 changes
 
 **Integration test pattern** (like Python `@pytest.mark.integration`):
 ```typescript
@@ -390,6 +396,9 @@ Final validation before PR.
 - [ ] Test on mobile viewport (Chrome DevTools device mode)
 - [ ] Verify Android + iPhone rendering (responsive check)
 
+### Task 8.3: Commit
+- [ ] Commit phase 8 changes
+
 ---
 
 ## Completion Criteria
@@ -400,7 +409,7 @@ Final validation before PR.
 - [x] Phase 3 completed (State management with tests)
 - [x] Phase 4 completed (Components with tests)
 - [x] Phase 5 completed (Styling & polish with tests)
-- [ ] Phase 6 completed (Dockerfile)
+- [x] Phase 6 completed (Dockerfile)
 - [ ] Phase 7 completed (Integration tests with real API)
 - [ ] Phase 8 completed (Final build & verify)
 - [ ] All unit tests passing (mocked API)
