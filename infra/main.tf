@@ -62,11 +62,13 @@ module "api_lambda" {
 module "api_gateway" {
   source = "./modules/api-gateway"
 
-  project_name             = var.project_name
-  environment              = var.environment
-  api_lambda_invoke_arn    = module.api_lambda.alias_invoke_arn
-  api_lambda_function_name = module.api_lambda.function_name
-  api_lambda_alias_name    = module.api_lambda.alias_name
+  project_name                = var.project_name
+  environment                 = var.environment
+  api_lambda_invoke_arn       = module.api_lambda.alias_invoke_arn
+  api_lambda_function_name    = module.api_lambda.function_name
+  api_lambda_alias_name       = module.api_lambda.alias_name
+  cognito_user_pool_endpoint  = module.cognito.user_pool_endpoint
+  cognito_user_pool_client_id = module.cognito.user_pool_client_id
 }
 
 module "s3_cloudfront" {
@@ -74,6 +76,24 @@ module "s3_cloudfront" {
 
   project_name = var.project_name
   environment  = var.environment
+}
+
+module "cognito" {
+  source = "./modules/cognito"
+
+  project_name         = var.project_name
+  environment          = var.environment
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
+
+  callback_urls = [
+    "https://${module.s3_cloudfront.cloudfront_domain_name}",
+    "http://localhost:5173",
+  ]
+  logout_urls = [
+    "https://${module.s3_cloudfront.cloudfront_domain_name}",
+    "http://localhost:5173",
+  ]
 }
 
 module "github_oidc" {

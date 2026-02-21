@@ -22,3 +22,13 @@ variable "api_lambda_alias_name" {
   description = "Name of the API Lambda alias (for permission qualifier)"
   type        = string
 }
+
+variable "cognito_user_pool_endpoint" {
+  description = "Cognito User Pool endpoint (issuer URL for JWT validation)"
+  type        = string
+}
+
+variable "cognito_user_pool_client_id" {
+  description = "Cognito User Pool Client ID (audience for JWT validation)"
+  type        = string
+}

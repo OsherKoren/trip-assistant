@@ -27,3 +27,15 @@ variable "github_repo" {
   type        = string
   default     = "OsherKoren/trip-assistant"
 }
+
+variable "google_client_id" {
+  description = "Google OAuth client ID for Cognito"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret for Cognito"
+  type        = string
+  sensitive   = true
+}

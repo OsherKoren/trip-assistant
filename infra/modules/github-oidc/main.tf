@@ -234,6 +234,14 @@ resource "aws_iam_role_policy" "terraform" {
           "arn:aws:s3:::${var.project_name}-frontend-*",
         ]
       },
+      # Cognito — manage user pools
+      {
+        Effect = "Allow"
+        Action = [
+          "cognito-idp:*",
+        ]
+        Resource = "arn:aws:cognito-idp:${var.aws_region}:*:userpool/*"
+      },
       # CloudFront — manage distributions
       {
         Effect = "Allow"

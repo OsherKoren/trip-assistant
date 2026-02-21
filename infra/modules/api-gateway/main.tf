@@ -7,7 +7,7 @@ resource "aws_apigatewayv2_api" "api" {
   cors_configuration {
     allow_origins = ["*"]
     allow_methods = ["POST", "GET", "OPTIONS"]
-    allow_headers = ["Content-Type"]
+    allow_headers = ["Content-Type", "Authorization"]
     max_age       = 300
   }
 
@@ -27,12 +27,36 @@ resource "aws_apigatewayv2_integration" "lambda" {
   payload_format_version = "2.0"
 }
 
-# --- Catch-all Route ---
+# --- JWT Authorizer (Cognito) ---
+
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  api_id           = aws_apigatewayv2_api.api.id
+  authorizer_type  = "JWT"
+  name             = "cognito-jwt"
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    issuer   = var.cognito_user_pool_endpoint
+    audience = [var.cognito_user_pool_client_id]
+  }
+}
+
+# --- Health Check Route (no auth — for smoke tests) ---
+
+resource "aws_apigatewayv2_route" "health" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "GET /api/health"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
+# --- Catch-all Route (JWT-protected) ---
 
 resource "aws_apigatewayv2_route" "default" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.api.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 # --- Default Stage (auto-deploy) ---

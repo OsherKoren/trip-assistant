@@ -383,29 +383,29 @@ User opens CloudFront URL
 **Social Login**: Google (free). Apple Sign-In deferred (requires $99/year Apple Developer Program).
 
 ### Task 17.1: Create Cognito module
-- [ ] Create `infra/modules/cognito/variables.tf`
-  - [ ] `project_name` (string)
-  - [ ] `environment` (string)
-  - [ ] `callback_urls` (list of strings — CloudFront URL + localhost for dev)
-  - [ ] `logout_urls` (list of strings)
-  - [ ] `google_client_id` (string, sensitive)
-  - [ ] `google_client_secret` (string, sensitive)
-- [ ] Create `infra/modules/cognito/main.tf`
-  - [ ] `aws_cognito_user_pool`
+- [x] Create `infra/modules/cognito/variables.tf`
+  - [x] `project_name` (string)
+  - [x] `environment` (string)
+  - [x] `callback_urls` (list of strings — CloudFront URL + localhost for dev)
+  - [x] `logout_urls` (list of strings)
+  - [x] `google_client_id` (string, sensitive)
+  - [x] `google_client_secret` (string, sensitive)
+- [x] Create `infra/modules/cognito/main.tf`
+  - [x] `aws_cognito_user_pool`
     - Name: `${project_name}-${environment}`
     - Email as sign-in alias (family members sign in with email)
     - Password policy: minimum 8 chars (keep it simple for family)
     - Auto-verified attributes: email
     - Account recovery: email only (no SMS — free)
     - Tags: Project, Environment
-  - [ ] `aws_cognito_user_pool_domain`
+  - [x] `aws_cognito_user_pool_domain`
     - Cognito-hosted domain: `${project_name}-${environment}` (free, no custom domain needed)
-  - [ ] `aws_cognito_identity_provider` (Google)
+  - [x] `aws_cognito_identity_provider` (Google)
     - Provider type: Google
     - Client ID + secret from variables
     - Attribute mapping: email, name
     - Scopes: `openid`, `email`, `profile`
-  - [ ] `aws_cognito_user_pool_client`
+  - [x] `aws_cognito_user_pool_client`
     - Name: `${project_name}-frontend-${environment}`
     - Supported identity providers: `COGNITO` + `Google`
     - Allowed OAuth flows: `code` (authorization code grant — most secure)
@@ -414,38 +414,38 @@ User opens CloudFront URL
     - Logout URLs: from variable
     - No client secret (public client — SPA can't keep secrets)
     - Token validity: access token 1 hour, refresh token 30 days
-- [ ] Create `infra/modules/cognito/outputs.tf`
-  - [ ] `user_pool_id` — for API Gateway authorizer
-  - [ ] `user_pool_arn` — for IAM policies
-  - [ ] `user_pool_client_id` — for React frontend config
-  - [ ] `user_pool_endpoint` — Cognito issuer URL for JWT validation
-  - [ ] `user_pool_domain` — for hosted UI / OAuth endpoints
+- [x] Create `infra/modules/cognito/outputs.tf`
+  - [x] `user_pool_id` — for API Gateway authorizer
+  - [x] `user_pool_arn` — for IAM policies
+  - [x] `user_pool_client_id` — for React frontend config
+  - [x] `user_pool_endpoint` — Cognito issuer URL for JWT validation
+  - [x] `user_pool_domain` — for hosted UI / OAuth endpoints
 
 ### Task 17.2: Add API Gateway JWT authorizer
-- [ ] Update `infra/modules/api-gateway/variables.tf`
-  - [ ] Add `cognito_user_pool_endpoint` (string)
-  - [ ] Add `cognito_user_pool_client_id` (string)
-- [ ] Update `infra/modules/api-gateway/main.tf`
-  - [ ] Add `aws_apigatewayv2_authorizer` — JWT type
+- [x] Update `infra/modules/api-gateway/variables.tf`
+  - [x] Add `cognito_user_pool_endpoint` (string)
+  - [x] Add `cognito_user_pool_client_id` (string)
+- [x] Update `infra/modules/api-gateway/main.tf`
+  - [x] Add `aws_apigatewayv2_authorizer` — JWT type
     - Issuer: Cognito user pool endpoint
     - Audience: user pool client ID
-  - [ ] Update `aws_apigatewayv2_route` to use the authorizer
+  - [x] Update `aws_apigatewayv2_route` to use the authorizer
     - Protect `$default` route with JWT authorizer
-  - [ ] Add new route: `GET /api/health` — **no** authorizer (for smoke tests)
+  - [x] Add new route: `GET /api/health` — **no** authorizer (for smoke tests)
 
 ### Task 17.3: Wire Cognito module in root configuration
-- [ ] Add `google_client_id` and `google_client_secret` to root `variables.tf` (sensitive)
-- [ ] Add `module "cognito"` block in `infra/main.tf`
-  - [ ] Pass variables + callback/logout URLs using CloudFront output
-- [ ] Pass Cognito outputs to `api-gateway` module
-- [ ] Add root outputs in `infra/outputs.tf`
-  - [ ] `cognito_user_pool_id`
-  - [ ] `cognito_user_pool_client_id`
-  - [ ] `cognito_user_pool_domain`
+- [x] Add `google_client_id` and `google_client_secret` to root `variables.tf` (sensitive)
+- [x] Add `module "cognito"` block in `infra/main.tf`
+  - [x] Pass variables + callback/logout URLs using CloudFront output
+- [x] Pass Cognito outputs to `api-gateway` module
+- [x] Add root outputs in `infra/outputs.tf`
+  - [x] `cognito_user_pool_id`
+  - [x] `cognito_user_pool_client_id`
+  - [x] `cognito_user_pool_domain`
 
 ### Task 17.4: Update GitHub OIDC permissions
-- [ ] Add Cognito management permissions to Terraform CI/CD policy in `modules/github-oidc/main.tf`
-  - [ ] `cognito-idp:*` scoped to project user pools
+- [x] Add Cognito management permissions to Terraform CI/CD policy in `modules/github-oidc/main.tf`
+  - [x] `cognito-idp:*` scoped to project user pools
 
 ### Task 17.5: Create family user accounts
 - [ ] After `terraform apply`, create 5 user accounts via CLI:
@@ -455,8 +455,8 @@ User opens CloudFront URL
   - [ ] Or family members self-register via Google sign-in (no manual creation needed)
 
 ### Task 17.6: Validate and commit
-- [ ] `terraform fmt -recursive`
-- [ ] `terraform validate`
+- [x] `terraform fmt -recursive`
+- [x] `terraform validate`
 - [ ] Commit phase 17 changes
 
 ---

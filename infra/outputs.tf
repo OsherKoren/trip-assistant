@@ -42,3 +42,18 @@ output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID for cache invalidation"
   value       = module.s3_cloudfront.cloudfront_distribution_id
 }
+
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID"
+  value       = module.cognito.user_pool_id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "Cognito User Pool Client ID for frontend"
+  value       = module.cognito.user_pool_client_id
+}
+
+output "cognito_user_pool_domain" {
+  description = "Cognito-hosted domain for OAuth endpoints"
+  value       = module.cognito.user_pool_domain
+}
