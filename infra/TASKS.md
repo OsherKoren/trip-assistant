@@ -284,8 +284,212 @@ End-to-end deploy validation covering the entire Lambda chain.
 
 ---
 
+## Phase 15: S3 + CloudFront for Frontend Hosting
+
+Add static hosting infrastructure for the React frontend.
+
+**Architecture**: `S3 (static) → CloudFront (CDN) → User Browser`
+
+### Task 15.1: Create S3 + CloudFront module
+- [x] Create `infra/modules/s3-cloudfront/variables.tf`
+  - [x] `project_name` (string)
+  - [x] `environment` (string)
+- [x] Create `infra/modules/s3-cloudfront/main.tf`
+  - [x] S3 bucket: `${project_name}-frontend-${environment}`
+    - Block ALL public access (CloudFront-only via OAC)
+    - Server-side encryption (AES256)
+    - Tags: Project, Environment
+  - [x] CloudFront Origin Access Control (OAC)
+    - Signing behavior: `always`, protocol: `sigv4`
+  - [x] CloudFront distribution
+    - Origin: S3 bucket with OAC
+    - Default root object: `index.html`
+    - Custom error response: 403/404 → `/index.html` (SPA routing)
+    - Viewer protocol policy: `redirect-to-https`
+    - Cache policy: `CachingOptimized` (managed policy)
+    - Price class: `PriceClass_100` (cheapest — US/EU only)
+    - Default CloudFront certificate (no custom domain yet)
+  - [x] S3 bucket policy: Allow CloudFront OAC `s3:GetObject` only
+- [x] Create `infra/modules/s3-cloudfront/outputs.tf`
+  - [x] `s3_bucket_name` — for deployment workflow
+  - [x] `s3_bucket_arn` — for IAM policy
+  - [x] `cloudfront_distribution_id` — for cache invalidation
+  - [x] `cloudfront_distribution_arn` — for IAM policy
+  - [x] `cloudfront_url` — the `https://dXXX.cloudfront.net` URL
+
+### Task 15.2: Wire module in root configuration
+- [x] Add `module "s3_cloudfront"` block in `infra/main.tf`
+  - [x] Pass `project_name` and `environment`
+- [x] Add root outputs in `infra/outputs.tf`
+  - [x] `frontend_url` → CloudFront URL
+  - [x] `frontend_s3_bucket` → S3 bucket name
+  - [x] `cloudfront_distribution_id` → for deploy workflow
+
+### Task 15.3: Update GitHub OIDC permissions
+- [x] Add `frontend_s3_bucket_arn` and `cloudfront_distribution_arn` variables to `modules/github-oidc/variables.tf`
+- [x] Pass new variables from root `main.tf` to `github_oidc` module
+- [x] Add new IAM policy in `modules/github-oidc/main.tf`
+  - [x] S3 deploy: `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket`, `s3:GetObject` on frontend bucket
+  - [x] CloudFront: `cloudfront:CreateInvalidation`, `cloudfront:GetInvalidation` on distribution
+- [x] Add S3/CloudFront management permissions to Terraform CI/CD policy
+  - [x] S3: bucket and object management for `${project_name}-frontend-*`
+  - [x] CloudFront: distribution management
+
+### Task 15.4: Validate and commit
+- [x] `terraform fmt -recursive`
+- [x] `terraform validate`
+- [ ] Commit phase 15 changes
+
+---
+
+## Phase 16: Frontend Deployment Workflow
+
+GitHub Actions workflow to build and deploy frontend to S3/CloudFront.
+
+### Task 16.1: Create frontend deploy workflow
+- [x] Create `.github/workflows/frontend-deploy.yml`
+  - [x] Trigger: push to `main`, paths `frontend/**`
+  - [x] Job 1: Detect Changes (`dorny/paths-filter`)
+  - [x] Job 2: Build & Deploy
+    - [x] Checkout, setup Node 20, `npm ci`, `npm run build`
+    - [x] Configure AWS credentials (OIDC, same role as deploy.yml)
+    - [x] `aws s3 sync dist/ s3://$BUCKET --delete`
+    - [x] `aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"`
+  - [x] Job 3: Smoke Test
+    - [x] `curl` CloudFront URL returns 200
+    - [x] Verify response contains HTML content
+
+### Task 16.2: Commit and verify
+- [ ] Commit phase 16 changes
+- [ ] Merge to main → infra-ci applies Terraform → frontend-deploy deploys app
+- [ ] Verify CloudFront URL serves the React app
+
+---
+
+## Phase 17: Cognito Authentication (Google + Email/Password)
+
+Add user authentication using AWS Cognito. Industry-standard pattern for mid-size organizations.
+Free tier covers 50,000 MAU — more than enough for 5 family members.
+
+**Architecture**:
+```
+User opens CloudFront URL
+  → React login page (Google sign-in button + email/password form)
+  → Cognito authenticates → returns JWT token
+  → Browser stores token → sends with every API request
+  → API Gateway validates JWT → rejects unauthorized requests
+```
+
+**Social Login**: Google (free). Apple Sign-In deferred (requires $99/year Apple Developer Program).
+
+### Task 17.1: Create Cognito module
+- [ ] Create `infra/modules/cognito/variables.tf`
+  - [ ] `project_name` (string)
+  - [ ] `environment` (string)
+  - [ ] `callback_urls` (list of strings — CloudFront URL + localhost for dev)
+  - [ ] `logout_urls` (list of strings)
+  - [ ] `google_client_id` (string, sensitive)
+  - [ ] `google_client_secret` (string, sensitive)
+- [ ] Create `infra/modules/cognito/main.tf`
+  - [ ] `aws_cognito_user_pool`
+    - Name: `${project_name}-${environment}`
+    - Email as sign-in alias (family members sign in with email)
+    - Password policy: minimum 8 chars (keep it simple for family)
+    - Auto-verified attributes: email
+    - Account recovery: email only (no SMS — free)
+    - Tags: Project, Environment
+  - [ ] `aws_cognito_user_pool_domain`
+    - Cognito-hosted domain: `${project_name}-${environment}` (free, no custom domain needed)
+  - [ ] `aws_cognito_identity_provider` (Google)
+    - Provider type: Google
+    - Client ID + secret from variables
+    - Attribute mapping: email, name
+    - Scopes: `openid`, `email`, `profile`
+  - [ ] `aws_cognito_user_pool_client`
+    - Name: `${project_name}-frontend-${environment}`
+    - Supported identity providers: `COGNITO` + `Google`
+    - Allowed OAuth flows: `code` (authorization code grant — most secure)
+    - Allowed OAuth scopes: `openid`, `email`, `profile`
+    - Callback URLs: from variable (CloudFront URL + localhost)
+    - Logout URLs: from variable
+    - No client secret (public client — SPA can't keep secrets)
+    - Token validity: access token 1 hour, refresh token 30 days
+- [ ] Create `infra/modules/cognito/outputs.tf`
+  - [ ] `user_pool_id` — for API Gateway authorizer
+  - [ ] `user_pool_arn` — for IAM policies
+  - [ ] `user_pool_client_id` — for React frontend config
+  - [ ] `user_pool_endpoint` — Cognito issuer URL for JWT validation
+  - [ ] `user_pool_domain` — for hosted UI / OAuth endpoints
+
+### Task 17.2: Add API Gateway JWT authorizer
+- [ ] Update `infra/modules/api-gateway/variables.tf`
+  - [ ] Add `cognito_user_pool_endpoint` (string)
+  - [ ] Add `cognito_user_pool_client_id` (string)
+- [ ] Update `infra/modules/api-gateway/main.tf`
+  - [ ] Add `aws_apigatewayv2_authorizer` — JWT type
+    - Issuer: Cognito user pool endpoint
+    - Audience: user pool client ID
+  - [ ] Update `aws_apigatewayv2_route` to use the authorizer
+    - Protect `$default` route with JWT authorizer
+  - [ ] Add new route: `GET /api/health` — **no** authorizer (for smoke tests)
+
+### Task 17.3: Wire Cognito module in root configuration
+- [ ] Add `google_client_id` and `google_client_secret` to root `variables.tf` (sensitive)
+- [ ] Add `module "cognito"` block in `infra/main.tf`
+  - [ ] Pass variables + callback/logout URLs using CloudFront output
+- [ ] Pass Cognito outputs to `api-gateway` module
+- [ ] Add root outputs in `infra/outputs.tf`
+  - [ ] `cognito_user_pool_id`
+  - [ ] `cognito_user_pool_client_id`
+  - [ ] `cognito_user_pool_domain`
+
+### Task 17.4: Update GitHub OIDC permissions
+- [ ] Add Cognito management permissions to Terraform CI/CD policy in `modules/github-oidc/main.tf`
+  - [ ] `cognito-idp:*` scoped to project user pools
+
+### Task 17.5: Create family user accounts
+- [ ] After `terraform apply`, create 5 user accounts via CLI:
+  ```bash
+  aws cognito-idp admin-create-user --user-pool-id <pool-id> --username <email>
+  ```
+  - [ ] Or family members self-register via Google sign-in (no manual creation needed)
+
+### Task 17.6: Validate and commit
+- [ ] `terraform fmt -recursive`
+- [ ] `terraform validate`
+- [ ] Commit phase 17 changes
+
+---
+
+## Phase 18: Frontend Auth Integration
+
+Add login/logout flow to the React frontend using Cognito.
+
+> **Note**: Tracked here for dependency clarity. Detailed tasks in `frontend/TASKS.md`.
+
+- [ ] Install `@aws-amplify/auth` (lightweight — just the auth module, not all of Amplify)
+- [ ] Add Cognito config (User Pool ID, Client ID, domain) from Terraform outputs
+- [ ] Add login page with Google sign-in button + email/password form
+- [ ] Add auth context/provider — protect routes, redirect to login if unauthenticated
+- [ ] Attach JWT token to API requests (`Authorization: Bearer <token>`)
+- [ ] Add logout button
+- [ ] Test on mobile browser (iPhone/Samsung) and desktop
+
+---
+
+## Completion Criteria (Updated)
+
+- [x] Phases 1-14: Backend infrastructure deployed and operational
+- [ ] Phase 15: S3 + CloudFront module created and applied
+- [ ] Phase 16: Frontend deployment workflow operational
+- [ ] Phase 17: Cognito authentication with Google + email/password
+- [ ] Phase 18: Frontend login flow integrated
+- [ ] CloudFront URL serves the React chat interface with login
+
+---
+
 ## Future Tasks (Not in Scope)
 
-- [ ] S3 + CloudFront for frontend hosting
+- [ ] Apple Sign-In (requires $99/year Apple Developer Program)
 - [ ] Custom domain + ACM certificate
 - [ ] Production environment (`environments/prod/`)

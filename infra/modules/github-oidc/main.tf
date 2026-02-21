@@ -203,6 +203,56 @@ resource "aws_iam_role_policy" "terraform" {
           "arn:aws:ecr:${var.aws_region}:*:repository/${var.project_name}-*",
         ]
       },
+      # S3 — manage frontend bucket
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:CreateBucket",
+          "s3:DeleteBucket",
+          "s3:GetBucketPolicy",
+          "s3:PutBucketPolicy",
+          "s3:DeleteBucketPolicy",
+          "s3:GetBucketAcl",
+          "s3:GetBucketCORS",
+          "s3:GetBucketWebsite",
+          "s3:GetBucketVersioning",
+          "s3:GetBucketLogging",
+          "s3:GetBucketObjectLockConfiguration",
+          "s3:GetBucketRequestPayment",
+          "s3:GetBucketTagging",
+          "s3:PutBucketTagging",
+          "s3:GetEncryptionConfiguration",
+          "s3:PutEncryptionConfiguration",
+          "s3:GetBucketPublicAccessBlock",
+          "s3:PutBucketPublicAccessBlock",
+          "s3:GetLifecycleConfiguration",
+          "s3:GetReplicationConfiguration",
+          "s3:GetAccelerateConfiguration",
+          "s3:ListBucket",
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project_name}-frontend-*",
+        ]
+      },
+      # CloudFront — manage distributions
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateDistribution",
+          "cloudfront:DeleteDistribution",
+          "cloudfront:GetDistribution",
+          "cloudfront:UpdateDistribution",
+          "cloudfront:TagResource",
+          "cloudfront:UntagResource",
+          "cloudfront:ListTagsForResource",
+          "cloudfront:CreateOriginAccessControl",
+          "cloudfront:DeleteOriginAccessControl",
+          "cloudfront:GetOriginAccessControl",
+          "cloudfront:UpdateOriginAccessControl",
+          "cloudfront:ListOriginAccessControls",
+        ]
+        Resource = "*"
+      },
     ]
   })
 }
@@ -238,6 +288,41 @@ resource "aws_iam_role_policy" "ecr_push" {
           var.agent_ecr_arn,
           var.api_ecr_arn,
         ]
+      }
+    ]
+  })
+}
+
+# --- Frontend Deploy Policy ---
+
+resource "aws_iam_role_policy" "frontend_deploy" {
+  name = "${var.project_name}-frontend-deploy-${var.environment}"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:GetObject",
+        ]
+        Resource = "${var.frontend_s3_bucket_arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "s3:ListBucket"
+        Resource = var.frontend_s3_bucket_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateInvalidation",
+          "cloudfront:GetInvalidation",
+        ]
+        Resource = var.cloudfront_distribution_arn
       }
     ]
   })

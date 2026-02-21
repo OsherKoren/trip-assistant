@@ -27,3 +27,18 @@ output "github_actions_role_arn" {
   description = "IAM role ARN for GitHub Actions OIDC"
   value       = module.github_oidc.github_actions_role_arn
 }
+
+output "frontend_url" {
+  description = "CloudFront distribution URL for frontend"
+  value       = module.s3_cloudfront.cloudfront_url
+}
+
+output "frontend_s3_bucket" {
+  description = "S3 bucket name for frontend deployment"
+  value       = module.s3_cloudfront.s3_bucket_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for cache invalidation"
+  value       = module.s3_cloudfront.cloudfront_distribution_id
+}

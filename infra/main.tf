@@ -69,15 +69,24 @@ module "api_gateway" {
   api_lambda_alias_name    = module.api_lambda.alias_name
 }
 
+module "s3_cloudfront" {
+  source = "./modules/s3-cloudfront"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
 module "github_oidc" {
   source = "./modules/github-oidc"
 
-  project_name     = var.project_name
-  environment      = var.environment
-  aws_region       = var.aws_region
-  github_repo      = var.github_repo
-  agent_lambda_arn = module.agent_lambda.function_arn
-  api_lambda_arn   = module.api_lambda.function_arn
-  agent_ecr_arn    = module.ecr.agent_repository_arn
-  api_ecr_arn      = module.ecr.api_repository_arn
+  project_name                = var.project_name
+  environment                 = var.environment
+  aws_region                  = var.aws_region
+  github_repo                 = var.github_repo
+  agent_lambda_arn            = module.agent_lambda.function_arn
+  api_lambda_arn              = module.api_lambda.function_arn
+  agent_ecr_arn               = module.ecr.agent_repository_arn
+  api_ecr_arn                 = module.ecr.api_repository_arn
+  frontend_s3_bucket_arn      = module.s3_cloudfront.s3_bucket_arn
+  cloudfront_distribution_arn = module.s3_cloudfront.cloudfront_distribution_arn
 }
