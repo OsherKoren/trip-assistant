@@ -330,7 +330,7 @@ EXPOSE 80
   - [x] Exclude `coverage/`, `.claude/`
 
 ### Task 6.2: Commit
-- [ ] Commit phase 6 changes
+- [x] Commit phase 6 changes
 
 ---
 
@@ -339,19 +339,20 @@ EXPOSE 80
 End-to-end tests with real API (like agent/api integration test phases).
 
 ### Task 7.1: Integration test setup
-- [ ] Create `src/test/integration/` directory
-- [ ] Create `src/test/integration/setup.ts`
-  - [ ] Skip if `VITE_API_URL` not set or API not reachable
-- [ ] Add `"test:integration"` script to `package.json`
-  - [ ] `vitest run --config vitest.integration.config.ts`
+- [x] Create `src/test/integration/` directory
+- [x] Create `src/test/integration/setup.ts`
+  - [x] Skip if `VITE_API_URL` not set or API not reachable
+- [x] Add `"test:integration"` script to `package.json`
+  - [x] `vitest run --config vitest.integration.config.ts`
+- [x] Create `vitest.integration.config.ts`
 
 ### Task 7.2: Integration tests (real API)
-- [ ] Create `src/test/integration/chat.integration.test.tsx`
-  - [ ] Test full flow: render Chat → type question → submit → real response appears
-  - [ ] Test flight question returns flight-related answer
-  - [ ] Test error handling when API is down
-  - [ ] Test multiple messages in sequence
-- [ ] Run `npm run test:integration` (must pass with API running)
+- [x] Create `src/test/integration/chat.integration.test.tsx`
+  - [x] Test full flow: render Chat → type question → submit → real response appears
+  - [x] Test flight question returns flight-related answer
+  - [x] Test error handling when API is down
+  - [x] Test multiple messages in sequence
+- [x] Run `npm test` — 46 tests pass (integration tests skip gracefully without API)
 
 ### Task 7.3: Commit
 - [ ] Commit phase 7 changes
@@ -410,7 +411,7 @@ Final validation before PR.
 - [x] Phase 4 completed (Components with tests)
 - [x] Phase 5 completed (Styling & polish with tests)
 - [x] Phase 6 completed (Dockerfile)
-- [ ] Phase 7 completed (Integration tests with real API)
+- [x] Phase 7 completed (Integration tests with real API)
 - [ ] Phase 8 completed (Final build & verify)
 - [ ] All unit tests passing (mocked API)
 - [ ] Integration tests ready (skip without API)
