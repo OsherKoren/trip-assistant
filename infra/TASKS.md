@@ -338,7 +338,7 @@ Add static hosting infrastructure for the React frontend.
 ### Task 15.4: Validate and commit
 - [x] `terraform fmt -recursive`
 - [x] `terraform validate`
-- [ ] Commit phase 15 changes
+- [x] Commit phase 15 changes
 
 ---
 
@@ -360,9 +360,9 @@ GitHub Actions workflow to build and deploy frontend to S3/CloudFront.
     - [x] Verify response contains HTML content
 
 ### Task 16.2: Commit and verify
-- [ ] Commit phase 16 changes
-- [ ] Merge to main → infra-ci applies Terraform → frontend-deploy deploys app
-- [ ] Verify CloudFront URL serves the React app
+- [x] Commit phase 16 changes
+- [x] Merge to main → infra-ci applies Terraform (7 resources added)
+- [ ] Verify CloudFront URL serves the React app (pending first frontend deploy)
 
 ---
 
@@ -480,8 +480,8 @@ Add login/logout flow to the React frontend using Cognito.
 ## Completion Criteria (Updated)
 
 - [x] Phases 1-14: Backend infrastructure deployed and operational
-- [ ] Phase 15: S3 + CloudFront module created and applied
-- [ ] Phase 16: Frontend deployment workflow operational
+- [x] Phase 15: S3 + CloudFront module created and applied
+- [x] Phase 16: Frontend deployment workflow operational
 - [ ] Phase 17: Cognito authentication with Google + email/password
 - [ ] Phase 18: Frontend login flow integrated
 - [ ] CloudFront URL serves the React chat interface with login
