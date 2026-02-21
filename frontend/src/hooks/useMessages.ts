@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Message } from '../types';
 import { sendMessage as sendApiMessage } from '../api/client';
+import { useAuth } from './useAuth';
 
 let nextId = 0;
 function generateId(): string {
@@ -8,6 +9,7 @@ function generateId(): string {
 }
 
 export function useMessages() {
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function useMessages() {
     setError(null);
 
     try {
-      const response = await sendApiMessage(question);
+      const response = await sendApiMessage(question, getToken);
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',

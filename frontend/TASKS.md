@@ -402,6 +402,49 @@ Final validation before PR.
 
 ---
 
+## Phase 9: Auth Integration (Cognito) ✅
+
+Add login/logout flow using AWS Cognito (deployed in Phase 17 infra).
+
+### Task 9.1: Install Amplify auth packages
+- [x] `npm install @aws-amplify/auth @aws-amplify/core`
+
+### Task 9.2: Create auth module
+- [x] Create `src/auth/config.ts` — `configureAuth()` reads `VITE_COGNITO_*` env vars
+- [x] Create `src/auth/types.ts` — `AuthUser`, `AuthContextType` interfaces
+- [x] Create `src/auth/context.ts` — `AuthContext` (separate file for fast refresh)
+- [x] Create `src/auth/AuthContext.tsx` — `AuthProvider` with session restore, Hub listener
+- [x] Create `src/hooks/useAuth.ts` — convenience hook with error guard
+- [x] Create `src/auth/AuthContext.test.tsx` — 7 tests (restore, signIn, signUp, signOut, getToken)
+
+### Task 9.3: Create auth UI components
+- [x] Create `src/components/LoginPage.tsx` — email/password form + Google sign-in
+- [x] Create `src/components/LoginPage.test.tsx` — 7 tests
+- [x] Create `src/components/LogoutButton.tsx` — header sign-out button
+- [x] Create `src/components/LogoutButton.test.tsx` — 2 tests
+
+### Task 9.4: Wire auth into app
+- [x] Update `src/main.tsx` — call `configureAuth()`, wrap in `<AuthProvider>`
+- [x] Update `src/App.tsx` — conditional rendering (loading/login/chat), user email + logout button
+- [x] Update `src/api/client.ts` — add `getToken` parameter, `Authorization: Bearer` header
+- [x] Update `src/hooks/useMessages.ts` — pass `getToken` from `useAuth`
+- [x] Update `.env.example` — add Cognito env vars
+
+### Task 9.5: Update tests
+- [x] Update `src/App.test.tsx` — 7 tests (loading, unauthenticated, authenticated states)
+- [x] Update `src/api/client.test.ts` — 7 tests (auth header verification)
+- [x] Update `src/hooks/useMessages.test.ts` — 9 tests (mock useAuth)
+- [x] Update `src/components/Chat.test.tsx` — mock useAuth for useMessages
+- [x] Update `src/test/integration/chat.integration.test.tsx` — mock useAuth
+
+### Task 9.6: Verify and commit
+- [x] `npm test` — 68 tests pass
+- [x] `npm run build` — TypeScript compiles, no errors
+- [x] `npm run lint` — ESLint passes
+- [x] Commit
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -413,7 +456,8 @@ Final validation before PR.
 - [x] Phase 6 completed (Dockerfile)
 - [x] Phase 7 completed (Integration tests with real API)
 - [x] Phase 8 completed (Final build & verify)
-- [x] All unit tests passing (mocked API)
+- [x] Phase 9 completed (Auth integration with Cognito)
+- [x] All unit tests passing (68 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
 - [x] Ready for S3 + CloudFront deployment
