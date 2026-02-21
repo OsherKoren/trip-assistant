@@ -242,6 +242,16 @@ resource "aws_iam_role_policy" "terraform" {
         ]
         Resource = "arn:aws:cognito-idp:${var.aws_region}:*:userpool/*"
       },
+      # Cognito — domain operations (not scoped to a specific user pool ARN)
+      {
+        Effect = "Allow"
+        Action = [
+          "cognito-idp:DescribeUserPoolDomain",
+          "cognito-idp:CreateUserPoolDomain",
+          "cognito-idp:DeleteUserPoolDomain",
+        ]
+        Resource = "*"
+      },
       # CloudFront — manage distributions
       {
         Effect = "Allow"
