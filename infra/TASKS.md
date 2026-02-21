@@ -457,7 +457,8 @@ User opens CloudFront URL
 ### Task 17.6: Validate and commit
 - [x] `terraform fmt -recursive`
 - [x] `terraform validate`
-- [ ] Commit phase 17 changes
+- [x] Commit phase 17 changes
+- [x] `terraform apply` — 5 resources added (user pool, domain, Google IdP, client, JWT authorizer)
 
 ---
 
@@ -482,7 +483,7 @@ Add login/logout flow to the React frontend using Cognito.
 - [x] Phases 1-14: Backend infrastructure deployed and operational
 - [x] Phase 15: S3 + CloudFront module created and applied
 - [x] Phase 16: Frontend deployment workflow operational
-- [ ] Phase 17: Cognito authentication with Google + email/password
+- [x] Phase 17: Cognito authentication with Google + email/password
 - [ ] Phase 18: Frontend login flow integrated
 - [ ] CloudFront URL serves the React chat interface with login
 
