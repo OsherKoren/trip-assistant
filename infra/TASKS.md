@@ -462,19 +462,20 @@ User opens CloudFront URL
 
 ---
 
-## Phase 18: Frontend Auth Integration
+## Phase 18: Frontend Auth Integration ✅
 
 Add login/logout flow to the React frontend using Cognito.
 
-> **Note**: Tracked here for dependency clarity. Detailed tasks in `frontend/TASKS.md`.
+> **Note**: Detailed tasks in `frontend/TASKS.md` (Phase 9).
 
-- [ ] Install `@aws-amplify/auth` (lightweight — just the auth module, not all of Amplify)
-- [ ] Add Cognito config (User Pool ID, Client ID, domain) from Terraform outputs
-- [ ] Add login page with Google sign-in button + email/password form
-- [ ] Add auth context/provider — protect routes, redirect to login if unauthenticated
-- [ ] Attach JWT token to API requests (`Authorization: Bearer <token>`)
-- [ ] Add logout button
-- [ ] Test on mobile browser (iPhone/Samsung) and desktop
+- [x] Install `@aws-amplify/auth` + `@aws-amplify/core` (tree-shakeable auth only)
+- [x] Add Cognito config (`configureAuth()` reads `VITE_COGNITO_*` env vars)
+- [x] Add login page with Google sign-in button + email/password form
+- [x] Add auth context/provider — conditional rendering (loading → login → chat)
+- [x] Attach JWT token to API requests (`Authorization: Bearer <token>`)
+- [x] Add logout button in header
+- [x] 68 unit tests pass, build clean, lint clean
+- [ ] Test on mobile browser (iPhone/Samsung) and desktop (pending deploy)
 
 ---
 
@@ -484,7 +485,7 @@ Add login/logout flow to the React frontend using Cognito.
 - [x] Phase 15: S3 + CloudFront module created and applied
 - [x] Phase 16: Frontend deployment workflow operational
 - [x] Phase 17: Cognito authentication with Google + email/password
-- [ ] Phase 18: Frontend login flow integrated
+- [x] Phase 18: Frontend login flow integrated (68 tests, build clean)
 - [ ] CloudFront URL serves the React chat interface with login
 
 ---
