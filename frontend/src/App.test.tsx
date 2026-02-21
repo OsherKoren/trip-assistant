@@ -13,7 +13,7 @@ function mockAuthContext(overrides: Partial<AuthContextType> = {}): AuthContextT
     signOut: vi.fn(),
     getToken: vi.fn().mockResolvedValue('token'),
     signInWithGoogle: vi.fn(),
-    googleSignInUrl: 'https://example.com/oauth2/authorize',
+    googleSignInUrl: null,
     ...overrides,
   }
 }

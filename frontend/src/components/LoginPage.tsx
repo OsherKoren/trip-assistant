@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 type Mode = 'signIn' | 'signUp';
 
 export function LoginPage() {
-  const { signIn, signUp, googleSignInUrl } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -133,22 +133,13 @@ export function LoginPage() {
           </div>
         </div>
 
-        {googleSignInUrl ? (
-          <a
-            href={googleSignInUrl}
-            className="block w-full text-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[44px] leading-[44px] no-underline"
-          >
-            Sign in with Google
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-gray-400 font-medium min-h-[44px] cursor-not-allowed"
-          >
-            Google sign-in unavailable
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={signInWithGoogle}
+          className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[44px]"
+        >
+          Sign in with Google
+        </button>
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           {mode === 'signIn' ? "Don't have an account? " : 'Already have an account? '}

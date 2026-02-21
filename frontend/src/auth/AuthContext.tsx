@@ -4,6 +4,7 @@ import {
   signIn as amplifySignIn,
   signUp as amplifySignUp,
   signOut as amplifySignOut,
+  signInWithRedirect,
   fetchAuthSession,
   fetchUserAttributes,
 } from '@aws-amplify/auth';
@@ -76,30 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = () => {
-    const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const redirectUri = encodeURIComponent(window.location.origin + '/');
-    const url =
-      `https://${domain}/oauth2/authorize` +
-      `?response_type=code` +
-      `&client_id=${clientId}` +
-      `&redirect_uri=${redirectUri}` +
-      `&identity_provider=Google` +
-      `&scope=openid+email+profile`;
-    window.location.href = url;
+    signInWithRedirect({ provider: 'Google' });
   };
-
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const redirectUri = encodeURIComponent(window.location.origin + '/');
-  const googleSignInUrl = domain && clientId
-    ? `https://${domain}/oauth2/authorize` +
-      `?response_type=code` +
-      `&client_id=${clientId}` +
-      `&redirect_uri=${redirectUri}` +
-      `&identity_provider=Google` +
-      `&scope=openid+email+profile`
-    : null;
 
   return (
     <AuthContext.Provider
@@ -112,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut: handleSignOut,
         getToken,
         signInWithGoogle,
-        googleSignInUrl,
+        googleSignInUrl: null,
       }}
     >
       {children}
