@@ -393,12 +393,12 @@ Final validation before PR.
 ### Task 8.2: Final checks
 - [x] `npm run build` passes with no TypeScript errors
 - [x] `npm test` passes (all unit tests)
-- [ ] `npm run preview` serves the app correctly *(manual)*
-- [ ] Test on mobile viewport (Chrome DevTools device mode) *(manual)*
-- [ ] Verify Android + iPhone rendering (responsive check) *(manual)*
+- [x] `npm run preview` serves the app correctly *(manual)*
+- [x] Test on mobile viewport (Chrome DevTools device mode) *(manual)*
+- [x] Verify Android + iPhone rendering (responsive check) *(manual)*
 
 ### Task 8.3: Commit
-- [ ] Commit phase 8 changes
+- [x] Commit phase 8 changes
 
 ---
 

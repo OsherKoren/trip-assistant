@@ -17,7 +17,10 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.length === 0 && !isLoading && (
-        <p className="text-center text-gray-500 dark:text-gray-400">No messages yet</p>
+        <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+          <p className="text-2xl mb-2">Welcome! ✈️</p>
+          <p>Ask me anything about your family trip to the Alps.</p>
+        </div>
       )}
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
