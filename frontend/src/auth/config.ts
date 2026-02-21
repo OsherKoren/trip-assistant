@@ -1,18 +1,19 @@
 import { Amplify } from '@aws-amplify/core';
 
-export function configureAuth(): void {
-  const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
-  const userPoolClientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+// Configure Amplify at module level (side effect) so it runs BEFORE
+// @aws-amplify/auth is imported. The auth module auto-detects OAuth
+// redirect codes on import and needs the config to already be set.
 
-  if (!userPoolId || !userPoolClientId) {
-    console.warn('Cognito env vars not set — auth disabled');
-    return;
-  }
+const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
+const userPoolClientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+const domain = import.meta.env.VITE_COGNITO_DOMAIN;
 
+if (!userPoolId || !userPoolClientId) {
+  console.warn('Cognito env vars not set — auth disabled');
+} else {
   const redirectUrl = window.location.origin + '/';
 
-  const authConfig = {
+  Amplify.configure({
     Auth: {
       Cognito: {
         userPoolId,
@@ -30,8 +31,5 @@ export function configureAuth(): void {
           : undefined,
       },
     },
-  };
-
-  console.log('[Auth] Configuring Amplify:', JSON.stringify(authConfig, null, 2));
-  Amplify.configure(authConfig);
+  });
 }
