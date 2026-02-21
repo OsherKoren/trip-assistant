@@ -1,4 +1,4 @@
-import { Amplify } from '@aws-amplify/core';
+import { Amplify } from 'aws-amplify';
 
 // Configure Amplify at module level (side effect) so it runs BEFORE
 // @aws-amplify/auth is imported. The auth module auto-detects OAuth

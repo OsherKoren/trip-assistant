@@ -10,7 +10,7 @@ const mockFetchAuthSession = vi.fn();
 const mockFetchUserAttributes = vi.fn();
 const mockSignInWithRedirect = vi.fn();
 
-vi.mock('@aws-amplify/auth', () => ({
+vi.mock('aws-amplify/auth', () => ({
   getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
   signIn: (...args: unknown[]) => mockSignIn(...args),
   signUp: (...args: unknown[]) => mockSignUp(...args),
@@ -20,7 +20,7 @@ vi.mock('@aws-amplify/auth', () => ({
   signInWithRedirect: (...args: unknown[]) => mockSignInWithRedirect(...args),
 }));
 
-vi.mock('@aws-amplify/core', () => ({
+vi.mock('aws-amplify/utils', () => ({
   Hub: {
     listen: vi.fn(() => vi.fn()),
   },
