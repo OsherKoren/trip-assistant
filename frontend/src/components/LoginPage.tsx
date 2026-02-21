@@ -30,6 +30,15 @@ export function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+    }
+  };
+
   const toggleMode = () => {
     setMode((m) => (m === 'signIn' ? 'signUp' : 'signIn'));
     setError('');
@@ -133,7 +142,7 @@ export function LoginPage() {
 
         <button
           type="button"
-          onClick={signInWithGoogle}
+          onClick={handleGoogleSignIn}
           className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[44px]"
         >
           Sign in with Google
