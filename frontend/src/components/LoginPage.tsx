@@ -30,20 +30,9 @@ export function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setError('');
-    try {
-      await signInWithGoogle();
-    } catch (err) {
-      console.error('[LoginPage] Google sign-in error:', err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : typeof err === 'string'
-            ? err
-            : JSON.stringify(err);
-      setError(message || 'Google sign-in failed');
-    }
+    signInWithGoogle();
   };
 
   const toggleMode = () => {
