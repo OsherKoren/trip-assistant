@@ -28,13 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = Hub.listen('auth', async ({ payload }) => {
-      console.log('[Auth] Hub event:', payload.event, payload);
       if (payload.event === 'signInWithRedirect') {
         const resolved = await resolveUser();
         setUser(resolved);
-      }
-      if (payload.event === 'signInWithRedirect_failure') {
-        console.error('[Auth] OAuth redirect failed:', payload.data);
       }
       if (payload.event === 'signedOut') {
         setUser(null);
@@ -47,10 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getCurrentUser()
       .then(() => resolveUser())
       .then(setUser)
-      .catch((err) => {
-        console.log('[Auth] getCurrentUser failed:', err);
-        setUser(null);
-      })
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
   }, []);
 
