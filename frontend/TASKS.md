@@ -374,7 +374,16 @@ describe.skipIf(!import.meta.env.VITE_API_URL)('Integration', () => {
 
 Final validation before PR.
 
-### Task 8.1: Final checks
+### Task 8.1: GitHub Actions CI workflow
+- [x] Create `.github/workflows/frontend-ci.yml`
+  - [x] Trigger on `frontend/**` changes (push + PR)
+  - [x] Job 0: Detect changes (dorny/paths-filter)
+  - [x] Job 1: Unit tests (Node 20 + 22 matrix, `npm test`)
+  - [x] Job 2: Build check (`npm run build`)
+  - [x] Job 3: Code quality (ESLint via `npm run lint`)
+- [x] Follows same pattern as `agent-ci.yml` and `api-ci.yml`
+
+### Task 8.2: Final checks
 - [ ] `npm run build` passes with no TypeScript errors
 - [ ] `npm test` passes (all unit tests)
 - [ ] `npm run preview` serves the app correctly
