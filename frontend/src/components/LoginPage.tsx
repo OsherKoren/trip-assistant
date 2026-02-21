@@ -35,7 +35,14 @@ export function LoginPage() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+      console.error('[LoginPage] Google sign-in error:', err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'string'
+            ? err
+            : JSON.stringify(err);
+      setError(message || 'Google sign-in failed');
     }
   };
 
