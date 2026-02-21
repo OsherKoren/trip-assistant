@@ -7,8 +7,8 @@ import {
   signInWithRedirect,
   fetchAuthSession,
   fetchUserAttributes,
-} from '@aws-amplify/auth';
-import { Hub } from '@aws-amplify/core';
+} from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 import type { AuthUser } from './types';
 import { AuthContext } from './context';
 
