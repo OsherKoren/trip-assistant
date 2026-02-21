@@ -347,17 +347,17 @@ Add static hosting infrastructure for the React frontend.
 GitHub Actions workflow to build and deploy frontend to S3/CloudFront.
 
 ### Task 16.1: Create frontend deploy workflow
-- [ ] Create `.github/workflows/frontend-deploy.yml`
-  - [ ] Trigger: push to `main`, paths `frontend/**`
-  - [ ] Job 1: Detect Changes (`dorny/paths-filter`)
-  - [ ] Job 2: Build & Deploy
-    - [ ] Checkout, setup Node 20, `npm ci`, `npm run build`
-    - [ ] Configure AWS credentials (OIDC, same role as deploy.yml)
-    - [ ] `aws s3 sync dist/ s3://$BUCKET --delete`
-    - [ ] `aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"`
-  - [ ] Job 3: Smoke Test
-    - [ ] `curl` CloudFront URL returns 200
-    - [ ] Verify response contains HTML content
+- [x] Create `.github/workflows/frontend-deploy.yml`
+  - [x] Trigger: push to `main`, paths `frontend/**`
+  - [x] Job 1: Detect Changes (`dorny/paths-filter`)
+  - [x] Job 2: Build & Deploy
+    - [x] Checkout, setup Node 20, `npm ci`, `npm run build`
+    - [x] Configure AWS credentials (OIDC, same role as deploy.yml)
+    - [x] `aws s3 sync dist/ s3://$BUCKET --delete`
+    - [x] `aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"`
+  - [x] Job 3: Smoke Test
+    - [x] `curl` CloudFront URL returns 200
+    - [x] Verify response contains HTML content
 
 ### Task 16.2: Commit and verify
 - [ ] Commit phase 16 changes
