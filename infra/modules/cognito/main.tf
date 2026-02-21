@@ -35,7 +35,7 @@ resource "aws_cognito_user_pool" "main" {
 # --- Cognito-hosted Domain (free) ---
 
 resource "aws_cognito_user_pool_domain" "main" {
-  domain       = "${var.project_name}-${var.environment}"
+  domain       = "${var.project_name}-auth-${var.environment}"
   user_pool_id = aws_cognito_user_pool.main.id
 }
 
