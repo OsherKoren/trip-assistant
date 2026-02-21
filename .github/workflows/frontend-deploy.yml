@@ -73,6 +73,12 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+          VITE_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          VITE_COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+          VITE_AWS_REGION: us-east-2
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
