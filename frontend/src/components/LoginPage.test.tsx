@@ -14,7 +14,7 @@ function mockAuthContext(overrides: Partial<AuthContextType> = {}): AuthContextT
     signOut: vi.fn(),
     getToken: vi.fn(),
     signInWithGoogle: vi.fn(),
-    googleSignInUrl: 'https://example.com/oauth2/authorize?test=1',
+    googleSignInUrl: null,
     ...overrides,
   };
 }
@@ -83,15 +83,12 @@ describe('LoginPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials');
   });
 
-  it('renders Google sign in as a link', () => {
-    renderLoginPage();
-    const link = screen.getByRole('link', { name: 'Sign in with Google' });
-    expect(link).toHaveAttribute('href', 'https://example.com/oauth2/authorize?test=1');
-  });
+  it('calls signInWithGoogle on Google button click', async () => {
+    const user = userEvent.setup();
+    const ctx = renderLoginPage();
 
-  it('shows disabled button when Google URL is not available', () => {
-    renderLoginPage({ googleSignInUrl: null });
-    expect(screen.getByText('Google sign-in unavailable')).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Sign in with Google' }));
+    expect(ctx.signInWithGoogle).toHaveBeenCalled();
   });
 
   it('disables submit button while submitting', async () => {
