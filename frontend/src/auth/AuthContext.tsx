@@ -77,7 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    await signInWithRedirect({ provider: 'Google' });
+    console.log('[Auth] signInWithGoogle called — about to redirect');
+    try {
+      await signInWithRedirect({ provider: 'Google' });
+      console.log('[Auth] signInWithRedirect returned (page should navigate away)');
+    } catch (err) {
+      console.error('[Auth] signInWithRedirect error:', err);
+      throw err;
+    }
   };
 
   return (

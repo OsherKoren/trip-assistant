@@ -12,7 +12,7 @@ export function configureAuth(): void {
 
   const redirectUrl = window.location.origin + '/';
 
-  Amplify.configure({
+  const authConfig = {
     Auth: {
       Cognito: {
         userPoolId,
@@ -24,11 +24,14 @@ export function configureAuth(): void {
                 scopes: ['openid', 'email', 'profile'],
                 redirectSignIn: [redirectUrl],
                 redirectSignOut: [redirectUrl],
-                responseType: 'code',
+                responseType: 'code' as const,
               },
             }
           : undefined,
       },
     },
-  });
+  };
+
+  console.log('[Auth] Configuring Amplify:', JSON.stringify(authConfig, null, 2));
+  Amplify.configure(authConfig);
 }
