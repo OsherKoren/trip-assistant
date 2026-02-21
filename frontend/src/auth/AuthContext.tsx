@@ -6,7 +6,6 @@ import {
   signOut as amplifySignOut,
   signInWithRedirect,
   fetchAuthSession,
-  fetchUserAttributes,
 } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 import type { AuthUser } from './types';
@@ -15,10 +14,11 @@ import { AuthContext } from './context';
 export { AuthContext };
 
 async function resolveUser(): Promise<AuthUser> {
-  const attrs = await fetchUserAttributes();
+  const session = await fetchAuthSession();
+  const claims = session.tokens?.idToken?.payload;
   return {
-    email: attrs.email ?? '',
-    name: attrs.name,
+    email: (claims?.email as string) ?? '',
+    name: claims?.name as string | undefined,
   };
 }
 

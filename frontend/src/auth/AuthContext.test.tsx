@@ -7,7 +7,6 @@ const mockSignIn = vi.fn();
 const mockSignUp = vi.fn();
 const mockSignOut = vi.fn();
 const mockFetchAuthSession = vi.fn();
-const mockFetchUserAttributes = vi.fn();
 const mockSignInWithRedirect = vi.fn();
 
 vi.mock('aws-amplify/auth', () => ({
@@ -16,7 +15,6 @@ vi.mock('aws-amplify/auth', () => ({
   signUp: (...args: unknown[]) => mockSignUp(...args),
   signOut: (...args: unknown[]) => mockSignOut(...args),
   fetchAuthSession: (...args: unknown[]) => mockFetchAuthSession(...args),
-  fetchUserAttributes: (...args: unknown[]) => mockFetchUserAttributes(...args),
   signInWithRedirect: (...args: unknown[]) => mockSignInWithRedirect(...args),
 }));
 
@@ -56,7 +54,7 @@ describe('AuthContext', () => {
 
   it('restores session on mount when user exists', async () => {
     mockGetCurrentUser.mockResolvedValue({ userId: '1' });
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com', name: 'Alice' });
+    mockFetchAuthSession.mockResolvedValue({ tokens: { idToken: { payload: { email: 'a@b.com', name: 'Alice' }, toString: () => 'token' } } });
 
     render(
       <AuthProvider>
@@ -89,7 +87,7 @@ describe('AuthContext', () => {
   it('signIn sets user', async () => {
     mockGetCurrentUser.mockRejectedValue(new Error('no user'));
     mockSignIn.mockResolvedValue({});
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com' });
+    mockFetchAuthSession.mockResolvedValue({ tokens: { idToken: { payload: { email: 'a@b.com' }, toString: () => 'token' } } });
 
     render(
       <AuthProvider>
@@ -113,7 +111,7 @@ describe('AuthContext', () => {
     mockGetCurrentUser.mockRejectedValue(new Error('no user'));
     mockSignUp.mockResolvedValue({});
     mockSignIn.mockResolvedValue({});
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com', name: 'Alice' });
+    mockFetchAuthSession.mockResolvedValue({ tokens: { idToken: { payload: { email: 'a@b.com', name: 'Alice' }, toString: () => 'token' } } });
 
     render(
       <AuthProvider>
@@ -140,7 +138,7 @@ describe('AuthContext', () => {
 
   it('signOut clears user', async () => {
     mockGetCurrentUser.mockResolvedValue({ userId: '1' });
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com' });
+    mockFetchAuthSession.mockResolvedValue({ tokens: { idToken: { payload: { email: 'a@b.com' }, toString: () => 'token' } } });
     mockSignOut.mockResolvedValue(undefined);
 
     render(
@@ -162,10 +160,9 @@ describe('AuthContext', () => {
 
   it('getToken returns id token', async () => {
     mockGetCurrentUser.mockResolvedValue({ userId: '1' });
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com' });
-    mockFetchAuthSession.mockResolvedValue({
-      tokens: { idToken: { toString: () => 'test-token-123' } },
-    });
+    mockFetchAuthSession
+      .mockResolvedValueOnce({ tokens: { idToken: { payload: { email: 'a@b.com' }, toString: () => 'token' } } })
+      .mockResolvedValueOnce({ tokens: { idToken: { payload: { email: 'a@b.com' }, toString: () => 'test-token-123' } } });
 
     render(
       <AuthProvider>
@@ -186,8 +183,9 @@ describe('AuthContext', () => {
 
   it('getToken throws when no token available', async () => {
     mockGetCurrentUser.mockResolvedValue({ userId: '1' });
-    mockFetchUserAttributes.mockResolvedValue({ email: 'a@b.com' });
-    mockFetchAuthSession.mockResolvedValue({ tokens: undefined });
+    mockFetchAuthSession
+      .mockResolvedValueOnce({ tokens: { idToken: { payload: { email: 'a@b.com' }, toString: () => 'token' } } })
+      .mockResolvedValueOnce({ tokens: undefined });
 
     render(
       <AuthProvider>
