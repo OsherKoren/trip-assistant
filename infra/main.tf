@@ -87,12 +87,12 @@ module "cognito" {
   google_client_secret = var.google_client_secret
 
   callback_urls = [
-    "https://${module.s3_cloudfront.cloudfront_domain_name}",
-    "http://localhost:5173",
+    "https://${module.s3_cloudfront.cloudfront_domain_name}/",
+    "http://localhost:5173/",
   ]
   logout_urls = [
-    "https://${module.s3_cloudfront.cloudfront_domain_name}",
-    "http://localhost:5173",
+    "https://${module.s3_cloudfront.cloudfront_domain_name}/",
+    "http://localhost:5173/",
   ]
 }
 
