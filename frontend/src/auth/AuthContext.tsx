@@ -86,9 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       `&redirect_uri=${redirectUri}` +
       `&identity_provider=Google` +
       `&scope=openid+email+profile`;
-    console.log('[Auth] Redirecting to Cognito:', url);
-    window.location.assign(url);
+    window.location.href = url;
   };
+
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+  const redirectUri = encodeURIComponent(window.location.origin + '/');
+  const googleSignInUrl = domain && clientId
+    ? `https://${domain}/oauth2/authorize` +
+      `?response_type=code` +
+      `&client_id=${clientId}` +
+      `&redirect_uri=${redirectUri}` +
+      `&identity_provider=Google` +
+      `&scope=openid+email+profile`
+    : null;
 
   return (
     <AuthContext.Provider
@@ -101,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut: handleSignOut,
         getToken,
         signInWithGoogle,
+        googleSignInUrl,
       }}
     >
       {children}
