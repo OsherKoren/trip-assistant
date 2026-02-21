@@ -329,8 +329,9 @@ resource "aws_iam_role_policy" "frontend_deploy" {
         Action = [
           "cloudfront:CreateInvalidation",
           "cloudfront:GetInvalidation",
+          "cloudfront:ListDistributions",
         ]
-        Resource = var.cloudfront_distribution_arn
+        Resource = "*"
       }
     ]
   })
