@@ -73,7 +73,7 @@ Initialize Vite project, Tailwind CSS, and testing framework.
 Define TypeScript interfaces and create the API client function.
 
 ### Task 2.1: Define TypeScript types
-- [ ] Create `src/types.ts`
+- [x] Create `src/types.ts`
 
 ```typescript
 export interface Message {
@@ -93,7 +93,7 @@ export interface MessageResponse {
 ```
 
 ### Task 2.2: Create API client
-- [ ] Create `src/api/client.ts`
+- [x] Create `src/api/client.ts`
 
 ```typescript
 const API_URL = import.meta.env.VITE_API_URL;
@@ -114,13 +114,13 @@ export async function sendMessage(question: string): Promise<MessageResponse> {
 ```
 
 ### Task 2.3: Unit tests for API client
-- [ ] Create `src/api/client.test.ts`
-  - [ ] Test `sendMessage` sends correct POST request (mock fetch)
-  - [ ] Test `sendMessage` returns parsed MessageResponse
-  - [ ] Test `sendMessage` throws on non-OK response (400, 500)
-  - [ ] Test `sendMessage` throws on network error
-  - [ ] Test request body contains `{ question }` JSON
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/api/client.test.ts`
+  - [x] Test `sendMessage` sends correct POST request (mock fetch)
+  - [x] Test `sendMessage` returns parsed MessageResponse
+  - [x] Test `sendMessage` throws on non-OK response (400, 500)
+  - [x] Test `sendMessage` throws on network error
+  - [x] Test request body contains `{ question }` JSON
+- [x] Run `npm test` (must pass)
 
 **Mocking pattern** (like `monkeypatch` in Python):
 ```typescript
@@ -138,7 +138,7 @@ globalThis.fetch = vi.fn().mockResolvedValue({
 Create the custom hook that manages messages, loading, and errors.
 
 ### Task 3.1: Create useMessages hook
-- [ ] Create `src/hooks/useMessages.ts`
+- [x] Create `src/hooks/useMessages.ts`
 
 ```typescript
 function useMessages() {
@@ -159,16 +159,16 @@ function useMessages() {
 ```
 
 ### Task 3.2: Unit tests for useMessages hook
-- [ ] Create `src/hooks/useMessages.test.ts`
-  - [ ] Test initial state: empty messages, not loading, no error
-  - [ ] Test `sendMessage` adds user message to state
-  - [ ] Test `sendMessage` sets isLoading while waiting
-  - [ ] Test `sendMessage` adds assistant response after API call
-  - [ ] Test `sendMessage` sets error on API failure
-  - [ ] Test `sendMessage` clears previous error on new message
-  - [ ] Test messages have unique IDs
-  - [ ] Test messages have timestamps
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/hooks/useMessages.test.ts`
+  - [x] Test initial state: empty messages, not loading, no error
+  - [x] Test `sendMessage` adds user message to state
+  - [x] Test `sendMessage` sets isLoading while waiting
+  - [x] Test `sendMessage` adds assistant response after API call
+  - [x] Test `sendMessage` sets error on API failure
+  - [x] Test `sendMessage` clears previous error on new message
+  - [x] Test messages have unique IDs
+  - [x] Test messages have timestamps
+- [x] Run `npm test` (must pass)
 
 **Hook testing pattern** (like testing a Python class with state):
 ```typescript
@@ -190,44 +190,44 @@ expect(result.current.messages).toHaveLength(2); // user + assistant
 Build UI components with unit tests for each.
 
 ### Task 4.1: Create MessageBubble component
-- [ ] Create `src/components/MessageBubble.tsx`
-  - [ ] User messages: right-aligned, blue background, white text
-  - [ ] Assistant messages: left-aligned, gray background, dark text
-  - [ ] Responsive: `max-w-xs` on mobile, `max-w-md` on `md:` screens
-- [ ] Create `src/components/MessageBubble.test.tsx`
-  - [ ] Test renders user message content
-  - [ ] Test renders assistant message content
-  - [ ] Test user message is right-aligned (has `justify-end` class)
-  - [ ] Test assistant message is left-aligned (has `justify-start` class)
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/components/MessageBubble.tsx`
+  - [x] User messages: right-aligned, blue background, white text
+  - [x] Assistant messages: left-aligned, gray background, dark text
+  - [x] Responsive: `max-w-xs` on mobile, `max-w-md` on `md:` screens
+- [x] Create `src/components/MessageBubble.test.tsx`
+  - [x] Test renders user message content
+  - [x] Test renders assistant message content
+  - [x] Test user message is right-aligned (has `justify-end` class)
+  - [x] Test assistant message is left-aligned (has `justify-start` class)
+- [x] Run `npm test` (must pass)
 
 ### Task 4.2: Create MessageList component
-- [ ] Create `src/components/MessageList.tsx`
-  - [ ] Render list of `MessageBubble` components
-  - [ ] Auto-scroll to bottom on new messages
-  - [ ] Show loading indicator when `isLoading` is true
-- [ ] Create `src/components/MessageList.test.tsx`
-  - [ ] Test renders multiple messages
-  - [ ] Test renders empty state when no messages
-  - [ ] Test shows loading indicator when isLoading=true
-  - [ ] Test hides loading indicator when isLoading=false
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/components/MessageList.tsx`
+  - [x] Render list of `MessageBubble` components
+  - [x] Auto-scroll to bottom on new messages
+  - [x] Show loading indicator when `isLoading` is true
+- [x] Create `src/components/MessageList.test.tsx`
+  - [x] Test renders multiple messages
+  - [x] Test renders empty state when no messages
+  - [x] Test shows loading indicator when isLoading=true
+  - [x] Test hides loading indicator when isLoading=false
+- [x] Run `npm test` (must pass)
 
 ### Task 4.3: Create MessageInput component
-- [ ] Create `src/components/MessageInput.tsx`
-  - [ ] Text input + send button
-  - [ ] Submit on Enter key or button click
-  - [ ] Disable input while loading
-  - [ ] Clear input after sending
-  - [ ] Accessible: label on input, button type="submit"
-- [ ] Create `src/components/MessageInput.test.tsx`
-  - [ ] Test renders input and send button
-  - [ ] Test calls onSend with input value on submit
-  - [ ] Test clears input after submit
-  - [ ] Test submits on Enter key press
-  - [ ] Test disables input and button when disabled=true
-  - [ ] Test does not submit empty input
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/components/MessageInput.tsx`
+  - [x] Text input + send button
+  - [x] Submit on Enter key or button click
+  - [x] Disable input while loading
+  - [x] Clear input after sending
+  - [x] Accessible: label on input, button type="submit"
+- [x] Create `src/components/MessageInput.test.tsx`
+  - [x] Test renders input and send button
+  - [x] Test calls onSend with input value on submit
+  - [x] Test clears input after submit
+  - [x] Test submits on Enter key press
+  - [x] Test disables input and button when disabled=true
+  - [x] Test does not submit empty input
+- [x] Run `npm test` (must pass)
 
 **Component testing pattern** (render + interact + assert):
 ```typescript
@@ -244,50 +244,64 @@ expect(mockFn).toHaveBeenCalledWith('Hello');
 ```
 
 ### Task 4.4: Create Chat container component
-- [ ] Create `src/components/Chat.tsx`
-  - [ ] Wire `useMessages` hook
-  - [ ] Compose `MessageList` + `MessageInput`
-  - [ ] Display error messages if present
-- [ ] Create `src/components/Chat.test.tsx`
-  - [ ] Test renders MessageList and MessageInput
-  - [ ] Test displays error message when error exists
-  - [ ] Test sends message through the full flow (mock API)
-- [ ] Run `npm test` (must pass)
+- [x] Create `src/components/Chat.tsx`
+  - [x] Wire `useMessages` hook
+  - [x] Compose `MessageList` + `MessageInput`
+  - [x] Display error messages if present
+- [x] Create `src/components/Chat.test.tsx`
+  - [x] Test renders MessageList and MessageInput
+  - [x] Test displays error message when error exists
+  - [x] Test sends message through the full flow (mock API)
+- [x] Run `npm test` (must pass)
 
 ### Task 4.5: Wire App component
-- [ ] Update `src/App.tsx` to render `Chat`
-  - [ ] Add app title/header
-  - [ ] Full-height layout for mobile chat experience
-- [ ] Update `src/App.test.tsx`
-  - [ ] Test renders app header
-  - [ ] Test renders Chat component
-- [ ] Run `npm test` (must pass)
-- [ ] Run `npm run build` (must pass)
+- [x] Update `src/App.tsx` to render `Chat`
+  - [x] Add app title/header
+  - [x] Full-height layout for mobile chat experience
+- [x] Update `src/App.test.tsx`
+  - [x] Test renders app header
+  - [x] Test renders Chat component
+- [x] Run `npm test` (must pass)
+- [x] Run `npm run build` (must pass)
 
 ---
 
 ## Phase 5: Styling and Polish
 
-Refine mobile-first layout and add loading/error UX.
+Refine mobile-first layout, loading/error UX, and dark/light mode.
 
 ### Task 5.1: Mobile-first responsive layout
-- [ ] Full viewport height chat layout (`h-dvh` or `h-screen`)
-- [ ] Sticky input at bottom
-- [ ] Scrollable message area
-- [ ] Touch-friendly button sizes (min 44px tap targets)
+- [x] Full viewport height chat layout (`h-dvh` or `h-screen`)
+- [x] Sticky input at bottom
+- [x] Scrollable message area
+- [x] Touch-friendly button sizes (min 44px tap targets)
 
 ### Task 5.2: Loading and error states
-- [ ] Typing indicator / spinner while waiting for response
-- [ ] Error message display (inline, dismissible)
-- [ ] Empty state: welcome message when no messages yet
+- [x] Typing indicator / spinner while waiting for response
+- [x] Error message display (inline, dismissible)
+- [x] Empty state: welcome message when no messages yet
 
 ### Task 5.3: Styling tests
-- [ ] Create/update tests for visual states:
-  - [ ] Test welcome message shown when no messages
-  - [ ] Test typing indicator visible during loading
-  - [ ] Test error message displayed and dismissible
-- [ ] Run `npm test` (must pass)
-- [ ] Run `npm run build` (must pass)
+- [x] Create/update tests for visual states:
+  - [x] Test welcome message shown when no messages
+  - [x] Test typing indicator visible during loading
+  - [x] Test error message displayed and dismissible
+- [x] Run `npm test` (must pass)
+- [x] Run `npm run build` (must pass)
+
+### Task 5.4: Dark/light mode
+- [x] Enable class-based dark mode in `src/index.css` (`@variant dark`)
+- [x] Add flash-prevention script in `index.html`
+- [x] Mock `matchMedia` in `src/test/setup.ts`
+- [x] Create `useTheme` hook with localStorage persistence + system preference fallback
+- [x] Create `useTheme.test.ts` (5 tests)
+- [x] Create `ThemeToggle` component with sun/moon SVG icons
+- [x] Create `ThemeToggle.test.tsx` (3 tests)
+- [x] Wire theme toggle in `App.tsx` header
+- [x] Add toggle assertion in `App.test.tsx`
+- [x] Add `dark:` variants to all components (MessageBubble, MessageList, MessageInput, Chat)
+- [x] Run `npm test` — 42 tests pass
+- [x] Run `npm run build` — no TypeScript errors
 
 ---
 
@@ -372,11 +386,11 @@ Final validation before PR.
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
-- [ ] Phase 1 completed (Project setup & test infrastructure)
-- [ ] Phase 2 completed (Types & API client with tests)
-- [ ] Phase 3 completed (State management with tests)
-- [ ] Phase 4 completed (Components with tests)
-- [ ] Phase 5 completed (Styling & polish with tests)
+- [x] Phase 1 completed (Project setup & test infrastructure)
+- [x] Phase 2 completed (Types & API client with tests)
+- [x] Phase 3 completed (State management with tests)
+- [x] Phase 4 completed (Components with tests)
+- [x] Phase 5 completed (Styling & polish with tests)
 - [ ] Phase 6 completed (Dockerfile)
 - [ ] Phase 7 completed (Integration tests with real API)
 - [ ] Phase 8 completed (Final build & verify)
