@@ -27,24 +27,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const hasOAuthCode =
+      window.location.search.includes('code=') ||
+      window.location.search.includes('error=');
+
     const unsubscribe = Hub.listen('auth', async ({ payload }) => {
       if (payload.event === 'signInWithRedirect') {
         const resolved = await resolveUser();
         setUser(resolved);
+        setIsLoading(false);
+      }
+      if (payload.event === 'signInWithRedirect_failure') {
+        setUser(null);
+        setIsLoading(false);
       }
       if (payload.event === 'signedOut') {
         setUser(null);
       }
     });
-    return unsubscribe;
-  }, []);
 
-  useEffect(() => {
     getCurrentUser()
       .then(() => resolveUser())
       .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        // If an OAuth code is present, Amplify is still exchanging it —
+        // wait for the Hub event instead of showing the login page.
+        if (!hasOAuthCode) {
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (!hasOAuthCode) {
+          setIsLoading(false);
+        }
+      });
+
+    return unsubscribe;
   }, []);
 
   const signIn = async (email: string, password: string) => {

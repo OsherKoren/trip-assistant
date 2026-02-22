@@ -13,7 +13,7 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
     <div data-testid="message-bubble" className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div>
         <div
-          className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg ${
+          className={`max-w-[85vw] md:max-w-md px-4 py-2 rounded-lg ${
             isUser ? 'bg-blue-500 dark:bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
           }`}
         >
