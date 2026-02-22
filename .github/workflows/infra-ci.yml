@@ -83,6 +83,7 @@ jobs:
           TF_VAR_openai_api_key: "placeholder-for-plan"
           TF_VAR_google_client_id: "placeholder-for-plan"
           TF_VAR_google_client_secret: "placeholder-for-plan"
+          TF_VAR_feedback_email: "placeholder-for-plan"
 
       - name: Comment plan on PR
         uses: actions/github-script@v7
@@ -135,3 +136,4 @@ jobs:
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
           TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TF_VAR_feedback_email: ${{ secrets.FEEDBACK_EMAIL }}
