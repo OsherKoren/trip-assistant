@@ -50,18 +50,14 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument()
   })
 
-  it('renders theme toggle when authenticated', () => {
+  it('renders user menu avatar when authenticated', () => {
     renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
-    expect(screen.getByRole('button', { name: /switch to dark mode/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
   })
 
-  it('displays user email when authenticated', () => {
+  it('does not show raw email in header', () => {
     renderWithAuth({ isAuthenticated: true, user: { email: 'test@example.com' } })
-    expect(screen.getByText('test@example.com')).toBeInTheDocument()
-  })
-
-  it('renders logout button when authenticated', () => {
-    renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
-    expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument()
+    // Email should only appear inside the dropdown, not directly in the header
+    expect(screen.queryByText('test@example.com')).not.toBeInTheDocument()
   })
 })
