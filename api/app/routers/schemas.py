@@ -1,5 +1,7 @@
 """Pydantic schemas for API request and response models."""
 
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -70,6 +72,34 @@ class HealthResponse(BaseModel):
             }
         }
     }
+
+
+class FeedbackRequest(BaseModel):
+    """Request model for feedback endpoint.
+
+    Attributes:
+        message_content: The assistant message being rated
+        category: Topic category of the message (optional)
+        rating: Thumbs up or down
+        comment: Optional user comment explaining the rating
+    """
+
+    message_content: str = Field(..., min_length=1, description="Assistant message being rated")
+    category: str | None = Field(None, description="Topic category of the message")
+    rating: Literal["up", "down"] = Field(..., description="Feedback rating")
+    comment: str | None = Field(None, description="Optional comment explaining the rating")
+
+
+class FeedbackResponse(BaseModel):
+    """Response model for feedback endpoint.
+
+    Attributes:
+        status: Feedback processing status
+        id: Unique feedback ID
+    """
+
+    status: str = Field(..., description="Feedback processing status")
+    id: str = Field(..., description="Unique feedback ID")
 
 
 class ErrorResponse(BaseModel):

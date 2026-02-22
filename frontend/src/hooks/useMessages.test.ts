@@ -146,4 +146,40 @@ describe('useMessages', () => {
       expect(msg.timestamp).toBeInstanceOf(Date);
     }
   });
+
+  it('setFeedback updates message feedback', async () => {
+    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    const assistantMsg = result.current.messages[1];
+
+    act(() => {
+      result.current.setFeedback(assistantMsg.id, { rating: 'up' });
+    });
+
+    expect(result.current.messages[1].feedback).toEqual({ rating: 'up' });
+    // User message should be unaffected
+    expect(result.current.messages[0].feedback).toBeUndefined();
+  });
+
+  it('setFeedback with down rating and comment', async () => {
+    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    const assistantMsg = result.current.messages[1];
+
+    act(() => {
+      result.current.setFeedback(assistantMsg.id, { rating: 'down', comment: 'Wrong answer' });
+    });
+
+    expect(result.current.messages[1].feedback).toEqual({ rating: 'down', comment: 'Wrong answer' });
+  });
 });

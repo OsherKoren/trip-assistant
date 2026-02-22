@@ -48,6 +48,42 @@ resource "aws_iam_role_policy" "invoke_agent" {
   })
 }
 
+# DynamoDB PutItem permission for feedback
+resource "aws_iam_role_policy" "feedback_dynamodb" {
+  count = var.feedback_table_arn != "" ? 1 : 0
+  name  = "${var.project_name}-api-${var.environment}-feedback-dynamodb"
+  role  = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "dynamodb:PutItem"
+        Resource = var.feedback_table_arn
+      }
+    ]
+  })
+}
+
+# SES SendEmail permission for feedback notifications
+resource "aws_iam_role_policy" "feedback_ses" {
+  count = var.feedback_email != "" ? 1 : 0
+  name  = "${var.project_name}-api-${var.environment}-feedback-ses"
+  role  = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["ses:SendEmail", "ses:SendRawEmail"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # --- Lambda Function ---
 
 resource "aws_lambda_function" "api" {
@@ -67,6 +103,8 @@ resource "aws_lambda_function" "api" {
       AGENT_LAMBDA_FUNCTION_NAME     = var.agent_lambda_function_name
       AWS_LAMBDA_EXEC_WRAPPER_REGION = var.aws_region
       ALLOWED_ORIGINS                = var.frontend_url
+      FEEDBACK_TABLE_NAME            = var.feedback_table_name
+      FEEDBACK_EMAIL                 = var.feedback_email
     }
   }
 

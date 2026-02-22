@@ -445,6 +445,65 @@ Add login/logout flow using AWS Cognito (deployed in Phase 17 infra).
 
 ---
 
+## Phase 10: Message Feedback (Thumbs Up/Down) ✅
+
+Add thumbs up/down feedback buttons on assistant messages. Thumbs down opens a textarea; "Send feedback" opens a mailto link to oshrats@gmail.com. No backend changes.
+
+### Task 10.1: Add Feedback types
+- [x] Add `FeedbackRating`, `Feedback` types and optional `feedback` field to `Message` in `src/types.ts`
+
+### Task 10.2: Add setFeedback to useMessages hook
+- [x] New `setFeedback(messageId, feedback)` function updates message state
+- [x] Add 2 tests to `src/hooks/useMessages.test.ts` (up rating, down rating with comment)
+
+### Task 10.3: Create MessageFeedback component
+- [x] Create `src/components/MessageFeedback.tsx` — thumbs up/down buttons, textarea on down, mailto send
+- [x] Create `src/components/MessageFeedback.test.tsx` — 8 tests (render, click up, click down, textarea, mailto, disabled, highlight up, highlight down)
+
+### Task 10.4: Wire feedback through component tree
+- [x] Update `MessageBubble` — render `<MessageFeedback>` below assistant messages only
+- [x] Update `MessageBubble.test.tsx` — add 2 tests (feedback shown for assistant, not for user)
+- [x] Update `MessageList` — accept and pass `onFeedback` prop
+- [x] Update `MessageList.test.tsx` — pass `onFeedback` prop
+- [x] Update `Chat` — get `setFeedback` from hook, pass to `MessageList`
+
+### Task 10.5: Verify
+- [x] `npm test` — 90 tests pass
+- [x] `npm run build` — no TypeScript errors
+
+---
+
+## Phase 11: Connect Feedback to API ✅
+
+Replace mailto-based feedback with API calls to the backend feedback endpoint (DynamoDB + SES).
+
+### Task 11.1: Add sendFeedback to API client
+- [x] Edit `src/api/client.ts` — add `sendFeedback(feedback, getToken)` (same pattern as sendMessage)
+- [x] Add `FeedbackRequest` and `FeedbackResponse` types to `src/types.ts`
+- [x] Add 3 tests to `src/api/client.test.ts` (POST request, response parsing, error handling)
+
+### Task 11.2: Update MessageFeedback component
+- [x] Remove `mailto:` logic and `import.meta.env.VITE_FEEDBACK_EMAIL`
+- [x] Call `sendFeedback()` from API client on thumbs up/down
+- [x] Add loading state and inline error handling for the API call
+- [x] Use `useAuth` for token
+
+### Task 11.3: Remove VITE_FEEDBACK_EMAIL
+- [x] Remove from `.env.example`
+- [x] No remaining references in source code
+
+### Task 11.4: Update tests
+- [x] Mock `sendFeedback` and `useAuth` in `MessageFeedback.test.tsx`
+- [x] Add API call assertions for thumbs up and send feedback button
+- [x] Remove mailto assertions (replaced with sendFeedback assertions)
+- [x] Add `useAuth` mock to `MessageBubble.test.tsx` and `MessageList.test.tsx`
+
+### Task 11.5: Verify
+- [x] `npm test` — 94 tests pass
+- [x] `npm run build` — no errors
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -457,7 +516,9 @@ Add login/logout flow using AWS Cognito (deployed in Phase 17 infra).
 - [x] Phase 7 completed (Integration tests with real API)
 - [x] Phase 8 completed (Final build & verify)
 - [x] Phase 9 completed (Auth integration with Cognito)
-- [x] All unit tests passing (68 tests, mocked API)
+- [x] Phase 10 completed (Message feedback — thumbs up/down)
+- [x] Phase 11 completed (Connect feedback to API)
+- [x] All unit tests passing (94 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
 - [x] Ready for S3 + CloudFront deployment
@@ -481,6 +542,8 @@ src/
 │   ├── MessageList.test.tsx       # Unit: render + assert
 │   ├── MessageInput.tsx
 │   ├── MessageInput.test.tsx      # Unit: render + interact + assert
+│   ├── MessageFeedback.tsx
+│   ├── MessageFeedback.test.tsx   # Unit: render + interact + mailto
 │   ├── Chat.tsx
 │   └── Chat.test.tsx              # Unit: mock API, full component
 ├── App.tsx

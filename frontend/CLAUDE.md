@@ -29,7 +29,8 @@ frontend/
 │   │   ├── Chat.tsx      # Chat container (message list + input)
 │   │   ├── MessageList.tsx
 │   │   ├── MessageBubble.tsx
-│   │   └── MessageInput.tsx
+│   │   ├── MessageInput.tsx
+│   │   └── UserMenu.tsx   # Avatar + dropdown (email, theme, sign out)
 │   ├── hooks/
 │   │   └── useMessages.ts  # State + API logic
 │   ├── api/
@@ -48,6 +49,7 @@ frontend/
 
 ```
 App
+├── UserMenu (avatar dropdown)
 └── Chat
     ├── MessageList
     │   └── MessageBubble (repeated)

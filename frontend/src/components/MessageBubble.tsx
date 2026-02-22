@@ -1,20 +1,32 @@
-import type { Message } from '../types';
+import type { Feedback, Message } from '../types';
+import { MessageFeedback } from './MessageFeedback';
 
 interface MessageBubbleProps {
   message: Message;
+  onFeedback?: (feedback: Feedback) => void;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
   const isUser = message.role === 'user';
 
   return (
     <div data-testid="message-bubble" className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg ${
-          isUser ? 'bg-blue-500 dark:bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-        }`}
-      >
-        {message.content}
+      <div>
+        <div
+          className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg ${
+            isUser ? 'bg-blue-500 dark:bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+          }`}
+        >
+          {message.content}
+        </div>
+        {!isUser && onFeedback && (
+          <MessageFeedback
+            feedback={message.feedback}
+            messageContent={message.content}
+            category={message.category}
+            onFeedback={onFeedback}
+          />
+        )}
       </div>
     </div>
   );

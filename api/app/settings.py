@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     agent_lambda_function_name: str = ""
     aws_region: str = "us-east-2"
     allowed_origins: str = "http://localhost:3000,http://localhost:5173"
+    feedback_table_name: str = ""
+    feedback_email: str = ""
 
     @property
     def cors_origins(self) -> list[str]:

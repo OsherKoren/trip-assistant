@@ -32,3 +32,21 @@ variable "ecr_image_uri" {
   description = "ECR image URI for the API Lambda function"
   type        = string
 }
+
+variable "feedback_table_name" {
+  description = "DynamoDB table name for feedback storage"
+  type        = string
+  default     = ""
+}
+
+variable "feedback_table_arn" {
+  description = "DynamoDB table ARN for feedback storage (for IAM permissions)"
+  type        = string
+  default     = ""
+}
+
+variable "feedback_email" {
+  description = "Email address for SES feedback notifications"
+  type        = string
+  default     = ""
+}

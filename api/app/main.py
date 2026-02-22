@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.dependencies import build_graph, get_graph
 from app.logger import logger
 from app.middleware import add_request_id_header
-from app.routers import health, messages
+from app.routers import feedback, health, messages
 from app.settings import get_settings
 
 
@@ -57,3 +57,4 @@ app.middleware("http")(add_request_id_header)
 # Include routers with /api prefix
 app.include_router(messages.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
+app.include_router(feedback.router, prefix="/api")

@@ -58,6 +58,9 @@ module "api_lambda" {
   agent_lambda_arn           = module.agent_lambda.function_arn
   ecr_image_uri              = "${module.ecr.api_repository_url}:initial"
   frontend_url               = module.s3_cloudfront.cloudfront_url
+  feedback_table_name        = module.feedback_dynamodb.table_name
+  feedback_table_arn         = module.feedback_dynamodb.table_arn
+  feedback_email             = var.feedback_email
 }
 
 module "api_gateway" {
@@ -98,6 +101,19 @@ module "cognito" {
     "https://${module.s3_cloudfront.cloudfront_domain_name}/",
     "http://localhost:5173/",
   ]
+}
+
+module "feedback_dynamodb" {
+  source = "./modules/feedback-dynamodb"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+module "ses" {
+  source = "./modules/ses"
+
+  feedback_email = var.feedback_email
 }
 
 module "github_oidc" {
