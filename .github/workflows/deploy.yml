@@ -263,11 +263,16 @@ jobs:
       - name: Get Cognito token (machine-to-machine)
         id: auth
         run: |
-          TOKEN=$(curl -s -X POST \
+          RESPONSE=$(curl -s -X POST \
             "https://${{ secrets.COGNITO_DOMAIN }}.auth.${{ env.AWS_REGION }}.amazoncognito.com/oauth2/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials&client_id=${{ secrets.SMOKE_TEST_CLIENT_ID }}&client_secret=${{ secrets.SMOKE_TEST_CLIENT_SECRET }}&scope=trip-assistant-api/smoke-test" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
+            -d "grant_type=client_credentials&client_id=${{ secrets.SMOKE_TEST_CLIENT_ID }}&client_secret=${{ secrets.SMOKE_TEST_CLIENT_SECRET }}&scope=trip-assistant-api/smoke-test")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('access_token',''))")
+          if [ -z "$TOKEN" ]; then
+            ERROR=$(echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('error','unknown'))" 2>/dev/null || echo "empty response")
+            echo "Failed to get Cognito token: $ERROR"
+            exit 1
+          fi
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
