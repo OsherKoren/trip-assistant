@@ -1,7 +1,7 @@
 """Application settings via pydantic-settings.
 
 Reads from environment variables at startup (no env prefix).
-Validates configuration early — typos in AGENT_MODE fail fast.
+Validates configuration early — invalid AGENT_MODE fails fast.
 """
 
 from functools import lru_cache
