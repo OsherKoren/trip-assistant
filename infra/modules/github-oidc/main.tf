@@ -234,6 +234,33 @@ resource "aws_iam_role_policy" "terraform" {
           "arn:aws:s3:::${var.project_name}-frontend-*",
         ]
       },
+      # DynamoDB — manage feedback table
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:CreateTable",
+          "dynamodb:DeleteTable",
+          "dynamodb:DescribeTable",
+          "dynamodb:DescribeContinuousBackups",
+          "dynamodb:DescribeTimeToLive",
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:TagResource",
+          "dynamodb:UntagResource",
+          "dynamodb:UpdateTable",
+        ]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:*:table/${var.project_name}-*"
+      },
+      # SES — manage email identities
+      {
+        Effect = "Allow"
+        Action = [
+          "ses:VerifyEmailIdentity",
+          "ses:DeleteIdentity",
+          "ses:GetIdentityVerificationAttributes",
+          "ses:GetIdentityNotificationAttributes",
+        ]
+        Resource = "*"
+      },
       # Cognito — manage user pools
       {
         Effect = "Allow"
