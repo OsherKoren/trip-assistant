@@ -504,6 +504,26 @@ Replace mailto-based feedback with API calls to the backend feedback endpoint (D
 
 ---
 
+## Phase 12: Confidence Indicator ✅
+
+Display the LLM confidence score as a color-coded pill on assistant messages.
+
+### Task 12.1: Add confidence to Message type and hook
+- [x] Add `confidence?: number` to `Message` interface in `src/types.ts`
+- [x] Store `response.confidence` in assistant message in `src/hooks/useMessages.ts`
+
+### Task 12.2: Display confidence pill in MessageBubble
+- [x] Render percentage pill below assistant messages alongside feedback icons
+- [x] Convert 0.0–1.0 to percentage: `Math.round(confidence * 100)`
+- [x] Use single-hue blue gradient (accessible, colorblind-safe):
+  - >= 80%: strong blue (`bg-blue-100 text-blue-700`)
+  - 50–79%: medium blue (`bg-blue-50 text-blue-500`)
+  - < 50%: faint blue (`bg-blue-50/50 text-blue-400`)
+- [x] Dark mode variants included
+- [x] `npx tsc --noEmit` passes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -518,6 +538,7 @@ Replace mailto-based feedback with API calls to the backend feedback endpoint (D
 - [x] Phase 9 completed (Auth integration with Cognito)
 - [x] Phase 10 completed (Message feedback — thumbs up/down)
 - [x] Phase 11 completed (Connect feedback to API)
+- [x] Phase 12 completed (Confidence indicator pill)
 - [x] All unit tests passing (94 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
