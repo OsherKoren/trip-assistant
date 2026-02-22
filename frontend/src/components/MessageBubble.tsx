@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import type { Feedback, Message } from '../types';
 import { MessageFeedback } from './MessageFeedback';
 
@@ -17,7 +18,13 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
             isUser ? 'bg-blue-500 dark:bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
           }`}
         >
-          {message.content}
+          {isUser ? (
+            message.content
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          )}
         </div>
         {!isUser && (
           <div className="flex items-center justify-between mt-1">
