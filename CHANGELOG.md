@@ -20,4 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Agent graph dependency wired once at startup via lifespan instead of per-request
 
 ### Fixed
+- Google sign-in race condition on mobile OAuth redirect (wait for Hub event before clearing loading state)
+- Cognito domain config for Amplify v6 (build full domain from prefix automatically)
+- Message bubbles too narrow on mobile (use 85vw instead of fixed max-width)
 - API Lambda using dev mode instead of Lambda proxy when `ENVIRONMENT=dev` was set by Terraform
