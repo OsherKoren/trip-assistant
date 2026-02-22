@@ -59,13 +59,13 @@ export function MessageFeedback({ feedback, messageContent, category, onFeedback
           aria-label="Thumbs up"
           disabled={isSubmitted}
           onClick={() => handleToggle('up')}
-          className={`p-1 rounded transition-colors ${
+          className={`p-1.5 rounded transition-colors ${
             displayRating === 'up'
               ? 'text-green-600 dark:text-green-400'
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           } disabled:cursor-default`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
             <path d="M1 8.998a1 1 0 0 1 1-1h3v8H2a1 1 0 0 1-1-1v-6Zm5-1h3.382a1 1 0 0 0 .894-.553l1.448-2.894A2 2 0 0 1 13.236 3.5h.028a.5.5 0 0 1 .5.5v2.5a.5.5 0 0 0 .5.5h3a1.5 1.5 0 0 1 1.476 1.77l-.87 4.79A2.5 2.5 0 0 1 15.41 15.5H6v-7.502Z" />
           </svg>
         </button>
@@ -74,13 +74,13 @@ export function MessageFeedback({ feedback, messageContent, category, onFeedback
           aria-label="Thumbs down"
           disabled={isSubmitted}
           onClick={() => handleToggle('down')}
-          className={`p-1 rounded transition-colors ${
+          className={`p-1.5 rounded transition-colors ${
             displayRating === 'down'
               ? 'text-red-600 dark:text-red-400'
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           } disabled:cursor-default`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
             <path d="M19 11.002a1 1 0 0 1-1 1h-3v-8h2a1 1 0 0 1 1 1v6Zm-5 1h-3.382a1 1 0 0 0-.894.553l-1.448 2.894A2 2 0 0 1 6.764 16.5h-.028a.5.5 0 0 1-.5-.5V13.5a.5.5 0 0 0-.5-.5h-3a1.5 1.5 0 0 1-1.476-1.77l.87-4.79A2.5 2.5 0 0 1 4.59 4.5H14v7.502Z" />
           </svg>
         </button>

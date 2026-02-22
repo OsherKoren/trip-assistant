@@ -50,9 +50,8 @@ resource "aws_iam_role_policy" "invoke_agent" {
 
 # DynamoDB PutItem permission for feedback
 resource "aws_iam_role_policy" "feedback_dynamodb" {
-  count = var.feedback_table_arn != "" ? 1 : 0
-  name  = "${var.project_name}-api-${var.environment}-feedback-dynamodb"
-  role  = aws_iam_role.lambda.id
+  name = "${var.project_name}-api-${var.environment}-feedback-dynamodb"
+  role = aws_iam_role.lambda.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -68,9 +67,8 @@ resource "aws_iam_role_policy" "feedback_dynamodb" {
 
 # SES SendEmail permission for feedback notifications
 resource "aws_iam_role_policy" "feedback_ses" {
-  count = var.feedback_email != "" ? 1 : 0
-  name  = "${var.project_name}-api-${var.environment}-feedback-ses"
-  role  = aws_iam_role.lambda.id
+  name = "${var.project_name}-api-${var.environment}-feedback-ses"
+  role = aws_iam_role.lambda.id
 
   policy = jsonencode({
     Version = "2012-10-17"
