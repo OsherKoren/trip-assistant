@@ -30,8 +30,16 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
               />
             )}
             {message.confidence != null && (
-              <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
-                Confidence: {Math.round(message.confidence * 100)}%
+              <span
+                className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium ${
+                  message.confidence >= 0.8
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : message.confidence >= 0.5
+                      ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                }`}
+              >
+                {Math.round(message.confidence * 100)}%
               </span>
             )}
           </div>
