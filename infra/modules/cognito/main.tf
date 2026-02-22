@@ -98,3 +98,40 @@ resource "aws_cognito_user_pool_client" "frontend" {
   # Wait for Google provider to be created first
   depends_on = [aws_cognito_identity_provider.google]
 }
+
+# --- Resource Server (defines scopes for machine-to-machine clients) ---
+
+resource "aws_cognito_resource_server" "api" {
+  identifier   = "trip-assistant-api"
+  name         = "${var.project_name}-api-${var.environment}"
+  user_pool_id = aws_cognito_user_pool.main.id
+
+  scope {
+    scope_name        = "smoke-test"
+    scope_description = "CI/CD smoke test access"
+  }
+}
+
+# --- Machine Client (CI/CD smoke tests — client credentials grant) ---
+
+resource "aws_cognito_user_pool_client" "smoke_test" {
+  name         = "${var.project_name}-smoke-test-${var.environment}"
+  user_pool_id = aws_cognito_user_pool.main.id
+
+  # Client credentials flow (machine-to-machine, no user login)
+  allowed_oauth_flows                  = ["client_credentials"]
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_scopes                 = ["trip-assistant-api/smoke-test"]
+
+  # Generate a secret — required for client_credentials grant
+  generate_secret = true
+
+  # Short token validity — smoke tests only need minutes
+  access_token_validity = 1 # 1 hour
+
+  token_validity_units {
+    access_token = "hours"
+  }
+
+  depends_on = [aws_cognito_resource_server.api]
+}

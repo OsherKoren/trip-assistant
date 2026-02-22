@@ -18,6 +18,11 @@ variable "logout_urls" {
   type        = list(string)
 }
 
+variable "aws_region" {
+  description = "AWS region (used for Cognito token endpoint URL)"
+  type        = string
+}
+
 variable "google_client_id" {
   description = "Google OAuth client ID"
   type        = string
