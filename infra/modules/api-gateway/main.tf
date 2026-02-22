@@ -49,14 +49,13 @@ resource "aws_apigatewayv2_route" "health" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
-# --- Catch-all Route (JWT-protected) ---
-# NOTE: CORS preflight (OPTIONS) is handled by the cors_configuration block
-# above. Do NOT add an explicit OPTIONS route — it would override the built-in
-# handler and break preflight.
+# --- Protected Routes (JWT auth) ---
+# Use explicit method routes instead of $default so that OPTIONS preflight
+# requests are handled by the cors_configuration block (no auth required).
 
-resource "aws_apigatewayv2_route" "default" {
+resource "aws_apigatewayv2_route" "post" {
   api_id             = aws_apigatewayv2_api.api.id
-  route_key          = "$default"
+  route_key          = "POST /api/messages"
   target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
