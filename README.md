@@ -35,14 +35,14 @@ Trip Assistant helps families plan trips by answering questions about flights, a
 | Service | Path | Description | Status |
 |---------|------|-------------|--------|
 | **Agent** | [`./agent/`](./agent/README.md) | LangGraph agent with topic routing | ✅ Complete |
-| **API** | [`./api/`](./api/CHANGELOG.md) | FastAPI backend serving the agent | 🚧 In Progress |
-| **Frontend** | [`./frontend/`](./frontend/) | React chat interface | 🚧 Planned |
+| **API** | [`./api/`](./api/CHANGELOG.md) | FastAPI backend serving the agent | ✅ Complete |
+| **Frontend** | [`./frontend/`](./frontend/) | React chat interface | ✅ Complete |
 
 ## Infrastructure
 
 | Component | Path | Description | Status |
 |-----------|------|-------------|--------|
-| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform, Docker, ECR) | 🚧 In Progress |
+| **Infra** | [`./infra/`](./infra/) | AWS Lambda deployment (Terraform, Docker, ECR) | ✅ Complete |
 
 ## Quick Start
 
@@ -93,7 +93,7 @@ uv run pre-commit run --all-files
 
 - **Agent**: LangGraph 1.x, LangChain, OpenAI GPT-4
 - **API**: FastAPI, Python 3.11+
-- **Frontend**: React, TypeScript
+- **Frontend**: React, TypeScript, Tailwind CSS
 - **Infra**: AWS Lambda, Terraform, Docker
 
 ## Development
@@ -118,18 +118,14 @@ This is a monorepo with separate application services and infrastructure:
 
 ## Project Status
 
-**Current Phase:** Infrastructure — container image Lambda deployment via Terraform
+**Current Phase:** Feature refinement and polish
 
 **Completed:**
 - Agent service (LangGraph classifier → router → specialists)
-- API service (FastAPI + Mangum Lambda handler)
-- Terraform modules (ECR, Lambda, API Gateway, SSM, GitHub OIDC)
+- API service (FastAPI + Mangum Lambda handler + feedback endpoint)
+- Frontend (React chat with markdown rendering, confidence scores, user feedback)
+- Terraform modules (ECR, Lambda, API Gateway, Cognito, DynamoDB, SES, S3/CloudFront)
 - CI/CD pipelines (deploy.yml with OIDC auth, smoke tests, auto-rollback)
-
-**Next Steps:**
-1. Deploy infrastructure and verify end-to-end
-2. Frontend development
-3. S3 + CloudFront for frontend hosting
 
 ## Contributing
 
