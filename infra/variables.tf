@@ -39,3 +39,9 @@ variable "google_client_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "feedback_email" {
+  description = "Email address for feedback notifications (verified in SES)"
+  type        = string
+  default     = ""
+}

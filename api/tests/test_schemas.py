@@ -3,7 +3,14 @@
 import pytest
 from pydantic import ValidationError
 
-from app.routers.schemas import ErrorResponse, HealthResponse, MessageRequest, MessageResponse
+from app.routers.schemas import (
+    ErrorResponse,
+    FeedbackRequest,
+    FeedbackResponse,
+    HealthResponse,
+    MessageRequest,
+    MessageResponse,
+)
 
 
 class TestMessageRequest:
@@ -83,6 +90,52 @@ class TestHealthResponse:
         assert response.status == "healthy"
         assert response.service == "trip-assistant-api"
         assert response.version == "0.1.0"
+
+
+class TestFeedbackRequest:
+    """Tests for FeedbackRequest schema."""
+
+    def test_valid_feedback_request(self) -> None:
+        """Test FeedbackRequest with valid fields."""
+        request = FeedbackRequest(
+            message_content="Your flight departs at 3:00 PM",
+            category="flight",
+            rating="up",
+        )
+        assert request.message_content == "Your flight departs at 3:00 PM"
+        assert request.category == "flight"
+        assert request.rating == "up"
+        assert request.comment is None
+
+    def test_feedback_with_comment(self) -> None:
+        """Test FeedbackRequest with optional comment."""
+        request = FeedbackRequest(
+            message_content="Wrong answer",
+            rating="down",
+            comment="The departure time was wrong",
+        )
+        assert request.rating == "down"
+        assert request.comment == "The departure time was wrong"
+
+    def test_empty_message_rejected(self) -> None:
+        """Test that empty message_content is rejected."""
+        with pytest.raises(ValidationError):
+            FeedbackRequest(message_content="", rating="up")
+
+    def test_invalid_rating_rejected(self) -> None:
+        """Test that invalid rating value is rejected."""
+        with pytest.raises(ValidationError):
+            FeedbackRequest(message_content="Test", rating="invalid")  # type: ignore
+
+
+class TestFeedbackResponse:
+    """Tests for FeedbackResponse schema."""
+
+    def test_valid_feedback_response(self) -> None:
+        """Test FeedbackResponse structure."""
+        response = FeedbackResponse(status="received", id="abc-123")
+        assert response.status == "received"
+        assert response.id == "abc-123"
 
 
 class TestErrorResponse:

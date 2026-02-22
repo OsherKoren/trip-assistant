@@ -513,3 +513,41 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 - [ ] Version tagging works (api-v prefix, 3-tag strategy, verified on merge to main)
 - [x] Ready for frontend integration (via direct FastAPI or SAM)
 - [x] Ready for AWS Lambda deployment (via infra/)
+
+---
+
+## Phase 10: Feedback Endpoint ✅
+
+Backend endpoint for storing feedback in DynamoDB and sending email notifications via SES.
+
+### Task 10.1: Add feedback settings
+- [x] Edit `app/settings.py` — add `feedback_table_name: str = ""`, `feedback_email: str = ""`
+
+### Task 10.2: Add feedback schemas
+- [x] Edit `app/routers/schemas.py`
+  - `FeedbackRequest`: message_content (str, min_length=1), category (str|None), rating (Literal["up","down"]), comment (str|None)
+  - `FeedbackResponse`: status (str), id (str)
+- [x] Tests in `tests/test_schemas.py` — 5 new tests (valid, comment, empty, invalid rating, response)
+
+### Task 10.3: Create feedback module (`app/feedback.py`)
+- [x] `store_feedback(table_name, region, item)` — aioboto3 DynamoDB `put_item`
+- [x] `send_feedback_email(email, region, item)` — aioboto3 SES `send_email` (self-notify pattern)
+  - Wrapped in try/except — log error, do NOT raise (non-blocking)
+- [x] Tests in `tests/test_feedback.py` — 4 tests (store success, store error, email success, email error)
+
+### Task 10.4: Create feedback router (`app/routers/feedback.py`)
+- [x] `POST /feedback` — generate UUID, store in DynamoDB (await), fire-and-forget SES via `asyncio.create_task()`
+- [x] Return `FeedbackResponse(status="received", id=...)`
+- [x] Wire in `app/main.py` with `/api` prefix
+
+### Task 10.5: Unit tests (`tests/test_feedback_endpoint.py`)
+- [x] Valid payload → 200
+- [x] Feedback with comment → 200
+- [x] Empty message → 422
+- [x] Invalid rating → 422
+- [x] DynamoDB failure → 500
+- [x] SES failure → still 200
+
+### Task 10.6: Verify
+- [x] `uv run pytest tests/ -v -m "not integration"` — 59 tests pass
+- [x] All new tests pass

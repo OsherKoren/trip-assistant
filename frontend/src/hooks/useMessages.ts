@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Message } from '../types';
+import type { Feedback, Message } from '../types';
 import { sendMessage as sendApiMessage } from '../api/client';
 import { useAuth } from './useAuth';
 
@@ -43,5 +43,13 @@ export function useMessages() {
     }
   };
 
-  return { messages, isLoading, error, sendMessage };
+  const setFeedback = (messageId: string, feedback: Feedback) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, feedback } : msg,
+      ),
+    );
+  };
+
+  return { messages, isLoading, error, sendMessage, setFeedback };
 }

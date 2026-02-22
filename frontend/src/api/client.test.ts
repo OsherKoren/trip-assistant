@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { sendMessage } from './client';
-import type { MessageResponse } from '../types';
+import { sendFeedback, sendMessage } from './client';
+import type { FeedbackResponse, MessageResponse } from '../types';
 
 const mockResponse: MessageResponse = {
   answer: 'You rented a car from Sixt.',
@@ -95,5 +95,65 @@ describe('sendMessage', () => {
     await sendMessage('hello', mockGetToken);
 
     expect(mockGetToken).toHaveBeenCalled();
+  });
+});
+
+const mockFeedbackResponse: FeedbackResponse = {
+  status: 'received',
+  id: 'test-uuid',
+};
+
+describe('sendFeedback', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockGetToken.mockResolvedValue('test-token');
+  });
+
+  it('sends correct POST request to /api/feedback', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockFeedbackResponse),
+    });
+
+    await sendFeedback(
+      { message_content: 'Test message', rating: 'up' },
+      mockGetToken,
+    );
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/feedback'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer test-token',
+        },
+      }),
+    );
+  });
+
+  it('returns parsed FeedbackResponse', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockFeedbackResponse),
+    });
+
+    const result = await sendFeedback(
+      { message_content: 'Test', rating: 'down', comment: 'Wrong' },
+      mockGetToken,
+    );
+
+    expect(result).toEqual(mockFeedbackResponse);
+  });
+
+  it('throws on non-OK response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+
+    await expect(
+      sendFeedback({ message_content: 'Test', rating: 'up' }, mockGetToken),
+    ).rejects.toThrow('Failed to send feedback');
   });
 });

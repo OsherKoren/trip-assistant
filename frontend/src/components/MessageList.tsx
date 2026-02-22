@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
-import type { Message } from '../types';
+import type { Feedback, Message } from '../types';
 import { MessageBubble } from './MessageBubble';
 
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
+  onFeedback: (messageId: string, feedback: Feedback) => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, onFeedback }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,7 +24,11 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
         </div>
       )}
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+        <MessageBubble
+          key={message.id}
+          message={message}
+          onFeedback={(feedback) => onFeedback(message.id, feedback)}
+        />
       ))}
       {isLoading && (
         <div className="flex justify-start">

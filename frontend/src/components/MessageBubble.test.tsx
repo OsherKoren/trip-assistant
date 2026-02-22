@@ -1,6 +1,17 @@
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import { MessageBubble } from './MessageBubble';
 import type { Message } from '../types';
+
+vi.mock('../api/client', () => ({
+  sendFeedback: vi.fn().mockResolvedValue({ status: 'received', id: 'test-id' }),
+}));
+
+vi.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue('mock-token'),
+  }),
+}));
 
 const userMessage: Message = {
   id: 'msg-1',
@@ -38,5 +49,19 @@ describe('MessageBubble', () => {
     const { container } = render(<MessageBubble message={assistantMessage} />);
     const wrapper = container.firstElementChild!;
     expect(wrapper.className).toContain('justify-start');
+  });
+
+  it('shows feedback buttons for assistant messages', () => {
+    const onFeedback = vi.fn();
+    render(<MessageBubble message={assistantMessage} onFeedback={onFeedback} />);
+    expect(screen.getByRole('button', { name: /thumbs up/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /thumbs down/i })).toBeInTheDocument();
+  });
+
+  it('does not show feedback buttons for user messages', () => {
+    const onFeedback = vi.fn();
+    render(<MessageBubble message={userMessage} onFeedback={onFeedback} />);
+    expect(screen.queryByRole('button', { name: /thumbs up/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /thumbs down/i })).not.toBeInTheDocument();
   });
 });

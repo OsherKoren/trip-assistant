@@ -490,6 +490,44 @@ Add login/logout flow to the React frontend using Cognito.
 
 ---
 
+## Phase 19: Feedback Infrastructure ✅
+
+DynamoDB table + SES email identity + API Gateway route for feedback backend.
+
+### Task 19.1: Create DynamoDB feedback module
+- [x] `infra/modules/feedback-dynamodb/main.tf` — `aws_dynamodb_table`
+  - Name: `${project_name}-feedback-${environment}`
+  - Billing: `PAY_PER_REQUEST` (on-demand, free tier)
+  - Hash key: `id` (String, UUID)
+  - Range key: `created_at` (String, ISO 8601)
+- [x] `variables.tf` — project_name, environment
+- [x] `outputs.tf` — table_arn, table_name
+
+### Task 19.2: Create SES module
+- [x] `infra/modules/ses/main.tf` — `aws_ses_email_identity` for feedback recipient
+- [x] `variables.tf` — feedback_email
+- [x] `outputs.tf` — email_identity_arn
+- [ ] **Manual step**: After `terraform apply`, click SES verification link in inbox
+
+### Task 19.3: Update API Lambda IAM
+- [x] Add policy: `dynamodb:PutItem` on feedback table ARN (conditional)
+- [x] Add policy: `ses:SendEmail`, `ses:SendRawEmail` (conditional)
+- [x] Add variables: `feedback_table_name`, `feedback_table_arn`, `feedback_email`
+
+### Task 19.4: Update API Lambda environment variables
+- [x] Add `FEEDBACK_TABLE_NAME` and `FEEDBACK_EMAIL` to Lambda env block
+
+### Task 19.5: Add API Gateway route
+- [x] Add `POST /api/feedback` route with JWT auth (same pattern as POST /api/messages)
+
+### Task 19.6: Wire modules in root main.tf
+- [x] Add `feedback_email` to root variables.tf
+- [x] Add `module "feedback_dynamodb"` and `module "ses"` blocks
+- [x] Pass outputs to `module "api_lambda"`
+- [x] Validate: `terraform validate && terraform fmt -check`
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] Apple Sign-In (requires $99/year Apple Developer Program)
