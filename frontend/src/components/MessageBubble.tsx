@@ -19,13 +19,22 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
         >
           {message.content}
         </div>
-        {!isUser && onFeedback && (
-          <MessageFeedback
-            feedback={message.feedback}
-            messageContent={message.content}
-            category={message.category}
-            onFeedback={onFeedback}
-          />
+        {!isUser && (
+          <div className="flex items-center justify-between mt-1">
+            {onFeedback && (
+              <MessageFeedback
+                feedback={message.feedback}
+                messageContent={message.content}
+                category={message.category}
+                onFeedback={onFeedback}
+              />
+            )}
+            {message.confidence != null && (
+              <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                Confidence: {Math.round(message.confidence * 100)}%
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>

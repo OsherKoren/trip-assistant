@@ -33,6 +33,7 @@ export function useMessages() {
         role: 'assistant',
         content: response.answer,
         category: response.category,
+        confidence: response.confidence,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
