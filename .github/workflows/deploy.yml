@@ -9,6 +9,7 @@ on:
       - '!agent/tests/**'
       - 'api/**'
       - '!api/tests/**'
+      - '.github/workflows/deploy.yml'
 
 permissions:
   id-token: write
