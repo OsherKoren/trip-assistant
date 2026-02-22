@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- User avatar dropdown menu in header (initials circle, email display, theme toggle, sign out)
 - `AGENT_MODE` environment variable to control execution mode (`local` or `lambda`)
 - pydantic-settings for validated configuration at startup (`api/app/settings.py`)
 - FastAPI lifespan to wire agent graph dependency once at startup
