@@ -1,6 +1,5 @@
 """Feedback endpoint for rating assistant responses."""
 
-import asyncio
 import uuid
 from datetime import UTC, datetime
 
@@ -60,8 +59,10 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
         logger.error("Failed to store feedback", error=str(e), feedback_id=feedback_id)
         raise HTTPException(status_code=500, detail="Failed to store feedback") from e
 
-    # Fire-and-forget SES notification — only for negative feedback with a comment
+    # SES notification — only for negative feedback with a comment
+    # Awaited (not fire-and-forget) because Lambda freezes after response,
+    # killing background tasks before they complete.
     if settings.feedback_email and request_body.rating == "down" and request_body.comment:
-        asyncio.create_task(send_feedback_email(settings.feedback_email, settings.aws_region, item))
+        await send_feedback_email(settings.feedback_email, settings.aws_region, item)
 
     return FeedbackResponse(status="received", id=feedback_id)
