@@ -19,13 +19,30 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
         >
           {message.content}
         </div>
-        {!isUser && onFeedback && (
-          <MessageFeedback
-            feedback={message.feedback}
-            messageContent={message.content}
-            category={message.category}
-            onFeedback={onFeedback}
-          />
+        {!isUser && (
+          <div className="flex items-center justify-between mt-1">
+            {onFeedback && (
+              <MessageFeedback
+                feedback={message.feedback}
+                messageContent={message.content}
+                category={message.category}
+                onFeedback={onFeedback}
+              />
+            )}
+            {message.confidence != null && (
+              <span
+                className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium ${
+                  message.confidence >= 0.8
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                    : message.confidence >= 0.5
+                      ? 'bg-blue-50 text-blue-500 dark:bg-blue-900/20 dark:text-blue-400'
+                      : 'bg-blue-50/50 text-blue-400 dark:bg-blue-900/10 dark:text-blue-500'
+                }`}
+              >
+                {Math.round(message.confidence * 100)}%
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>

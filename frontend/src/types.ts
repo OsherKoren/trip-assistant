@@ -10,6 +10,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   category?: string;
+  confidence?: number;
   feedback?: Feedback;
   timestamp: Date;
 }
