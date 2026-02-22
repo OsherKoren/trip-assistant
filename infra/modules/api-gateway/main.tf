@@ -49,15 +49,10 @@ resource "aws_apigatewayv2_route" "health" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
-# --- CORS Preflight Route (no auth — browsers send OPTIONS without tokens) ---
-
-resource "aws_apigatewayv2_route" "options" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "OPTIONS /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
 # --- Catch-all Route (JWT-protected) ---
+# NOTE: CORS preflight (OPTIONS) is handled by the cors_configuration block
+# above. Do NOT add an explicit OPTIONS route — it would override the built-in
+# handler and break preflight.
 
 resource "aws_apigatewayv2_route" "default" {
   api_id             = aws_apigatewayv2_api.api.id
