@@ -1,7 +1,6 @@
 """FastAPI application.
 
-This module initializes the FastAPI app with CORS support, request tracing,
-and routes for the trip assistant agent.
+Initializes the FastAPI app with CORS, request tracing, and routers.
 """
 
 from collections.abc import AsyncGenerator
