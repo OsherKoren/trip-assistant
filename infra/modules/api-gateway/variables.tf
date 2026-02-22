@@ -32,3 +32,8 @@ variable "cognito_user_pool_client_id" {
   description = "Cognito User Pool Client ID (audience for JWT validation)"
   type        = string
 }
+
+variable "frontend_url" {
+  description = "Frontend URL for CORS origin restriction (e.g. CloudFront URL)"
+  type        = string
+}

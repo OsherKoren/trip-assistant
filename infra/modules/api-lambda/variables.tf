@@ -23,6 +23,11 @@ variable "agent_lambda_arn" {
   type        = string
 }
 
+variable "frontend_url" {
+  description = "Frontend URL for CORS origin restriction"
+  type        = string
+}
+
 variable "ecr_image_uri" {
   description = "ECR image URI for the API Lambda function"
   type        = string
