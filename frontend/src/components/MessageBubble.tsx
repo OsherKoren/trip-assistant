@@ -33,10 +33,10 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
               <span
                 className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium ${
                   message.confidence >= 0.8
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                     : message.confidence >= 0.5
-                      ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      ? 'bg-blue-50 text-blue-500 dark:bg-blue-900/20 dark:text-blue-400'
+                      : 'bg-blue-50/50 text-blue-400 dark:bg-blue-900/10 dark:text-blue-500'
                 }`}
               >
                 {Math.round(message.confidence * 100)}%
