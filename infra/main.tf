@@ -63,14 +63,15 @@ module "api_lambda" {
 module "api_gateway" {
   source = "./modules/api-gateway"
 
-  project_name                = var.project_name
-  environment                 = var.environment
-  api_lambda_invoke_arn       = module.api_lambda.alias_invoke_arn
-  api_lambda_function_name    = module.api_lambda.function_name
-  api_lambda_alias_name       = module.api_lambda.alias_name
-  cognito_user_pool_endpoint  = module.cognito.user_pool_endpoint
-  cognito_user_pool_client_id = module.cognito.user_pool_client_id
-  frontend_url                = module.s3_cloudfront.cloudfront_url
+  project_name                 = var.project_name
+  environment                  = var.environment
+  api_lambda_invoke_arn        = module.api_lambda.alias_invoke_arn
+  api_lambda_function_name     = module.api_lambda.function_name
+  api_lambda_alias_name        = module.api_lambda.alias_name
+  cognito_user_pool_endpoint   = module.cognito.user_pool_endpoint
+  cognito_user_pool_client_id  = module.cognito.user_pool_client_id
+  cognito_smoke_test_client_id = module.cognito.smoke_test_client_id
+  frontend_url                 = module.s3_cloudfront.cloudfront_url
 }
 
 module "s3_cloudfront" {
@@ -85,6 +86,7 @@ module "cognito" {
 
   project_name         = var.project_name
   environment          = var.environment
+  aws_region           = var.aws_region
   google_client_id     = var.google_client_id
   google_client_secret = var.google_client_secret
 
