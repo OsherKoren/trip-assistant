@@ -6,7 +6,10 @@ import { Amplify } from 'aws-amplify';
 
 const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 const userPoolClientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+const domainPrefix = import.meta.env.VITE_COGNITO_DOMAIN;
+const region = import.meta.env.VITE_AWS_REGION || 'us-east-2';
+// Amplify v6 requires the full Cognito domain, not just the prefix
+const domain = domainPrefix?.includes('.') ? domainPrefix : domainPrefix ? `${domainPrefix}.auth.${region}.amazoncognito.com` : undefined;
 
 if (!userPoolId || !userPoolClientId) {
   console.warn('Cognito env vars not set — auth disabled');
