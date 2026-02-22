@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = [var.frontend_url]
     allow_methods = ["POST", "GET", "OPTIONS"]
     allow_headers = ["Content-Type", "Authorization"]
     max_age       = 300
@@ -46,6 +46,14 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 resource "aws_apigatewayv2_route" "health" {
   api_id    = aws_apigatewayv2_api.api.id
   route_key = "GET /api/health"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
+# --- CORS Preflight Route (no auth — browsers send OPTIONS without tokens) ---
+
+resource "aws_apigatewayv2_route" "options" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "OPTIONS /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 

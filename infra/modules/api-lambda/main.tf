@@ -66,6 +66,7 @@ resource "aws_lambda_function" "api" {
       AGENT_MODE                     = "lambda"
       AGENT_LAMBDA_FUNCTION_NAME     = var.agent_lambda_function_name
       AWS_LAMBDA_EXEC_WRAPPER_REGION = var.aws_region
+      ALLOWED_ORIGINS                = var.frontend_url
     }
   }
 

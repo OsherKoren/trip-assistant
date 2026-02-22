@@ -57,6 +57,7 @@ module "api_lambda" {
   agent_lambda_function_name = "${module.agent_lambda.function_name}:${module.agent_lambda.alias_name}"
   agent_lambda_arn           = module.agent_lambda.function_arn
   ecr_image_uri              = "${module.ecr.api_repository_url}:initial"
+  frontend_url               = module.s3_cloudfront.cloudfront_url
 }
 
 module "api_gateway" {
@@ -69,6 +70,7 @@ module "api_gateway" {
   api_lambda_alias_name       = module.api_lambda.alias_name
   cognito_user_pool_endpoint  = module.cognito.user_pool_endpoint
   cognito_user_pool_client_id = module.cognito.user_pool_client_id
+  frontend_url                = module.s3_cloudfront.cloudfront_url
 }
 
 module "s3_cloudfront" {
