@@ -17,6 +17,10 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   AWS_REGION: us-east-2
   TF_DIR: ./infra
