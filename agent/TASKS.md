@@ -253,6 +253,21 @@ pytest tests/integration/test_graph_integration.py -v
 
 ---
 
+## Fix: Date/Day Query Returns Wrong Day Info ✅
+
+Fix inconsistent day numbering across data files and add trip timeline to specialist prompt.
+
+- [x] Normalize `aosta_valley.txt` day headings to global numbering (Day 2-4 with July dates)
+- [x] Normalize `chamonix.txt` day headings to global numbering (Day 6-10 with July dates)
+- [x] Add explicit dates to `annecy_geneva.txt` day headings (Day 10-13 with July dates)
+- [x] Add trip timeline reference to `SPECIALIST_PROMPT_TEMPLATE` in `src/prompts.py`
+- [x] Add unit tests for trip timeline in specialist prompt
+- [x] Run `pytest tests/ -v -m "not integration"` (72 passed)
+- [x] Run `pre-commit run --all-files` (all passed)
+- [x] Commit changes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)

@@ -11,6 +11,7 @@ from src.nodes import (
     handle_general,
     handle_routes,
 )
+from src.prompts import SPECIALIST_PROMPT_TEMPLATE
 from src.schemas import TripAssistantState
 
 
@@ -125,6 +126,26 @@ def test_flight_handles_empty_context(
 
     assert "answer" in result
     assert result["source"] == "flight.txt"
+
+
+def test_specialist_prompt_includes_trip_timeline() -> None:
+    """Test that specialist prompt template includes trip timeline reference."""
+    assert "Trip timeline reference:" in SPECIALIST_PROMPT_TEMPLATE
+    assert "Day 1: July 7" in SPECIALIST_PROMPT_TEMPLATE
+    assert "Day 13: July 19" in SPECIALIST_PROMPT_TEMPLATE
+    assert "Day 14: July 20" in SPECIALIST_PROMPT_TEMPLATE
+
+
+def test_specialist_prompt_formats_with_timeline() -> None:
+    """Test that the formatted prompt includes timeline for date-specific queries."""
+    formatted = SPECIALIST_PROMPT_TEMPLATE.format(
+        topic="the Annecy and Geneva itinerary",
+        context="Day 13 (July 19): Annecy -> Geneva",
+        question="What's planned for July 19?",
+    )
+    assert "Day 13: July 19" in formatted
+    assert "What's planned for July 19?" in formatted
+    assert "Day 13 (July 19): Annecy -> Geneva" in formatted
 
 
 def test_general_specialist_uses_all_documents(

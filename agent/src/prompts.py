@@ -4,6 +4,17 @@
 # Used by all topic-specific specialists (flight, car_rental, etc.)
 SPECIALIST_PROMPT_TEMPLATE = """Answer the following question about {topic} using only the provided context.
 
+Trip timeline reference:
+- Day 1: July 7 (arrival/car rental)
+- Days 2-4: July 8-10 (Aosta Valley)
+- Day 5: July 11 (travel day)
+- Days 6-10: July 12-16 (Chamonix)
+- Days 10-12: July 16-18 (Annecy)
+- Day 13: July 19 (Annecy → Geneva)
+- Day 14: July 20 (departure)
+
+Use this mapping when the user asks about a specific day number or date.
+
 Context:
 {context}
 
