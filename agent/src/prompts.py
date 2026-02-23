@@ -9,7 +9,7 @@ Context:
 
 Question: {question}
 
-Provide a clear, concise answer based on the context. If the context doesn't contain the information, say so."""
+Provide a clear, concise answer based on the context. If the context lists multiple options or alternatives, present ALL of them so the user can choose — do not pick one on their behalf. If the context doesn't contain the information, say so."""
 
 # General prompt template
 # Used by the general specialist for unclear/broad questions
