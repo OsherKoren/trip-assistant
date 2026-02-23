@@ -14,6 +14,14 @@ class MessageRequest(BaseModel):
 
     question: str = Field(..., min_length=1, description="User's question about the trip")
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "question": "What time is our flight?",
+            }
+        }
+    }
+
     @field_validator("question")
     @classmethod
     def question_not_empty(cls, v: str) -> str:
@@ -89,6 +97,17 @@ class FeedbackRequest(BaseModel):
     rating: Literal["up", "down"] = Field(..., description="Feedback rating")
     comment: str | None = Field(None, description="Optional comment explaining the rating")
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "message_content": "Your flight departs at 3:00 PM from Terminal 3",
+                "category": "flight",
+                "rating": "up",
+                "comment": "Very helpful!",
+            }
+        }
+    }
+
 
 class FeedbackResponse(BaseModel):
     """Response model for feedback endpoint.
@@ -100,6 +119,15 @@ class FeedbackResponse(BaseModel):
 
     status: str = Field(..., description="Feedback processing status")
     id: str = Field(..., description="Unique feedback ID")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "status": "received",
+                "id": "fb-a1b2c3d4",
+            }
+        }
+    }
 
 
 class ErrorResponse(BaseModel):
