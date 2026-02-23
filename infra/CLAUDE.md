@@ -219,6 +219,12 @@ aws logs tail /aws/lambda/trip-assistant-api --follow
 | Manual CLI | ~10s | `aws lambda update-alias --function-version N` |
 | Git revert + redeploy | ~3min | Revert commit triggers new image build + deploy |
 
+## Architecture Diagram
+
+Auto-generated from Terraform code by [TerraVision](https://github.com/patrickchugh/terravision) on every merge to `main` (see `.github/workflows/architecture-diagram.yml`).
+
+![Architecture Diagram](docs/architecture.png)
+
 ## Future Additions (Not Yet Deployed)
 
 - S3 + CloudFront for frontend hosting

@@ -1,0 +1,37 @@
+name: Update Architecture Diagram
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/**/*.tf'
+
+permissions:
+  contents: write
+
+jobs:
+  generate-diagram:
+    name: Generate Architecture Diagram
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate diagram with TerraVision
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            patrickchugh/terravision:latest \
+            draw --source /project/infra --outfile /project/infra/docs/architecture --format png
+
+      - name: Commit and push diagram
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/docs/architecture.png
+          git diff --staged --quiet && echo "No changes to diagram" && exit 0
+          git commit -m "Update architecture diagram [skip ci]"
+          git push
