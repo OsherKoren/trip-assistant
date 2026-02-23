@@ -2,7 +2,7 @@
 
 A React chat interface for a family travel Q&A assistant. Ask questions about flights, car rentals, routes, and destinations — powered by a LangGraph AI agent.
 
-![Chat conversation](docs/images/chat-conversation.png)
+<img src="docs/images/chat-conversation.png" alt="Chat conversation" width="350">
 
 ## Features
 
@@ -17,21 +17,16 @@ A React chat interface for a family travel Q&A assistant. Ask questions about fl
 
 | Desktop | Mobile |
 |---------|--------|
-| ![Desktop view](docs/images/desktop.png) | ![Mobile view](docs/images/mobile.png) |
-
-<details>
-<summary>More screenshots</summary>
+| <img src="docs/images/desktop.png" alt="Desktop view" width="500"> | <img src="docs/images/mobile.png" alt="Mobile view" width="250"> |
 
 ### Welcome Screen
-![Welcome screen](docs/images/welcome.png)
+<img src="docs/images/welcome.png" alt="Welcome screen" width="350">
 
 ### Login Page
-![Login page](docs/images/login.png)
+<img src="docs/images/login.png" alt="Login page" width="350">
 
 ### User Menu
-![User menu](docs/images/user-menu.png)
-
-</details>
+<img src="docs/images/user-menu.png" alt="User menu" width="350">
 
 ## Tech Stack
 
