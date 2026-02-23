@@ -10,10 +10,10 @@ AWS infrastructure using Terraform. Optimized for FREE tier / minimal cost.
 │    (CDN)     │     │ (frontend)  │
 └──────────────┘     └─────────────┘
 
-┌──────────────┐     ┌─────────────┐     ┌──────────────┐
-│  API Gateway │────▶│ API Lambda  │────▶│ Agent Lambda  │
-│   (HTTP)     │     │ (container) │     │ (container)   │
-└──────────────┘     └──────┬──────┘     └──────┬────────┘
+┌──────────────┐     ┌─────────────┐      ┌──────────────┐
+│  API Gateway │────▶│ API Lambda  │────▶│ Agent Lambda │
+│   (HTTP)     │     │ (container) │      │ (container)  │
+└──────────────┘     └──────┬──────┘      └──────┬───────┘
                             │                    │
                      ┌──────▼──────┐      ┌──────▼───────┐
                      │  ECR Repo   │      │  Parameter   │
