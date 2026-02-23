@@ -45,11 +45,14 @@ jobs:
             patrickchugh/terravision:latest \
             draw --source /project/infra --outfile /project/infra/docs/architecture --format png
 
+      - name: List generated files
+        run: ls -la infra/docs/
+
       - name: Commit and push diagram
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infra/docs/architecture.png
+          git add infra/docs/
           git diff --staged --quiet && echo "No changes to diagram" && exit 0
           git commit -m "Update architecture diagram [skip ci]"
           git push
