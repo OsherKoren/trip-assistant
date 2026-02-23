@@ -9,6 +9,7 @@ on:
       - 'infra/**/*.tf'
 
 permissions:
+  id-token: write
   contents: write
 
 jobs:
@@ -19,6 +20,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-2
 
       - name: Prepare workspace
         run: |
@@ -34,6 +41,7 @@ jobs:
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/project:rw" \
+            -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN -e AWS_REGION \
             patrickchugh/terravision:latest \
             draw --source /project/infra --outfile /project/infra/docs/architecture --format png
 
