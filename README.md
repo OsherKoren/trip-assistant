@@ -1,5 +1,25 @@
 # Trip Assistant
 
+<!-- CI/CD Status -->
+[![Agent Service CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/agent-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/agent-ci.yml)
+[![API Service CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/api-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/api-ci.yml)
+[![Frontend CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-ci.yml)
+[![Infrastructure CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml)
+[![Deploy to AWS Lambda](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml)
+
+<!-- Code Quality -->
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/type%20checker-mypy-blue.svg)](https://mypy-lang.org/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
+<!-- Tech Stack -->
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.x-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraph)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
+[![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900.svg?logo=awslambda&logoColor=white)](https://aws.amazon.com/lambda/)
+[![Terraform](https://img.shields.io/badge/Terraform-1.x-7B42BC.svg?logo=terraform&logoColor=white)](https://www.terraform.io/)
+
 A LangGraph-powered Q&A assistant for family travel planning. Built as a monorepo with 3 application services and cloud infrastructure for flexible deployment.
 
 ## Overview
