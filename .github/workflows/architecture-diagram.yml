@@ -29,8 +29,8 @@ jobs:
 
       - name: Prepare workspace
         run: |
-          chmod -R a+w "${{ github.workspace }}/infra"
           mkdir -p infra/docs
+          chmod -R a+w "${{ github.workspace }}/infra"
           cat > infra/ci.auto.tfvars <<'TFVARS'
           openai_api_key       = "placeholder"
           google_client_id     = "placeholder"
