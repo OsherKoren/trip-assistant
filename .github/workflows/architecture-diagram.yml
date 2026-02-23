@@ -1,6 +1,7 @@
 name: Update Architecture Diagram
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
