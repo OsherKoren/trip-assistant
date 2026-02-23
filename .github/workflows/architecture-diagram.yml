@@ -20,10 +20,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create output directory
+        run: mkdir -p infra/docs
+
       - name: Generate diagram with TerraVision
         run: |
           docker run --rm \
-            -v "${{ github.workspace }}:/project" \
+            -v "${{ github.workspace }}:/project:rw" \
+            --user "$(id -u):$(id -g)" \
             patrickchugh/terravision:latest \
             draw --source /project/infra --outfile /project/infra/docs/architecture --format png
 
