@@ -45,9 +45,6 @@ jobs:
             patrickchugh/terravision:latest \
             draw --source /project/infra --outfile /project/infra/docs/architecture --format png
 
-      - name: List generated files
-        run: ls -la infra/docs/
-
       - name: Commit and push diagram
         run: |
           git config user.name "github-actions[bot]"

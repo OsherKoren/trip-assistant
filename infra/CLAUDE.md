@@ -223,7 +223,7 @@ aws logs tail /aws/lambda/trip-assistant-api --follow
 
 Auto-generated from Terraform code by [TerraVision](https://github.com/patrickchugh/terravision) on every merge to `main` (see `.github/workflows/architecture-diagram.yml`).
 
-![Architecture Diagram](docs/architecture.png)
+![Architecture Diagram](docs/architecture.dot.png)
 
 ## Future Additions (Not Yet Deployed)
 
