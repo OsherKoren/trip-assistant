@@ -20,10 +20,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Make workspace writable and create output directory
+      - name: Prepare workspace
         run: |
           chmod -R a+w "${{ github.workspace }}/infra"
           mkdir -p infra/docs
+          cat > infra/ci.auto.tfvars <<'TFVARS'
+          openai_api_key       = "placeholder"
+          google_client_id     = "placeholder"
+          google_client_secret = "placeholder"
+          TFVARS
 
       - name: Generate diagram with TerraVision
         run: |
