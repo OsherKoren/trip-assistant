@@ -551,3 +551,45 @@ Backend endpoint for storing feedback in DynamoDB and sending email notification
 ### Task 10.6: Verify
 - [x] `uv run pytest tests/ -v -m "not integration"` — 59 tests pass
 - [x] All new tests pass
+
+---
+
+## Phase 11: Message Storage & Feedback Refactor ✅
+
+Store messages server-side in DynamoDB with UUID. Refactor feedback to link by message_id instead of storing full message_content.
+
+### Task 11.1: Create `app/db/` package
+- [x] Move `app/feedback.py` → `app/db/feedback.py`
+- [x] Create `app/db/messages.py` — `store_message()`, `get_message()` (aioboto3)
+- [x] Create `app/db/__init__.py`
+- [x] Update all imports (`app.feedback` → `app.db.feedback`)
+
+### Task 11.2: Add messages_table_name setting
+- [x] Edit `app/settings.py` — add `messages_table_name: str = ""`
+
+### Task 11.3: Update schemas
+- [x] `MessageResponse`: add `id: str` field
+- [x] `FeedbackRequest`: replace `message_content`/`category`/`confidence` with `message_id: str`
+
+### Task 11.4: Update messages router
+- [x] Generate UUID, store message in DynamoDB (best-effort)
+- [x] Return `id` in `MessageResponse`
+
+### Task 11.5: Update feedback router
+- [x] Look up message via `get_message()` to extract `message_preview` (first 100 chars)
+- [x] Feedback item: `{id, created_at, message_id, message_preview, rating, comment}`
+
+### Task 11.6: Update feedback email
+- [x] Replace `category`/`confidence` with `message_id`/`message_preview` in email body
+
+### Task 11.7: Tests
+- [x] Create `tests/helpers.py` — shared `make_mock_boto3_session` + `AsyncContextManagerStub`
+- [x] Create `tests/test_messages_storage.py` — store/get message tests (monkeypatch)
+- [x] Update `tests/test_feedback.py` — monkeypatch, new fixture fields
+- [x] Update `tests/test_feedback_endpoint.py` — `message_id` payloads, `pytest.mark.usefixtures`
+- [x] Update `tests/test_schemas.py` — `id` in MessageResponse, `message_id` in FeedbackRequest
+- [x] Update `tests/test_main.py` and `tests/test_handler.py` — assert `id` in response
+
+### Task 11.8: Verify
+- [x] `uv run pytest tests/ -v -m "not integration"` — 68 tests pass
+- [x] Pre-commit: ruff, ruff-format, mypy all pass

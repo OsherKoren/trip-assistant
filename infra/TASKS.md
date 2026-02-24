@@ -528,6 +528,34 @@ DynamoDB table + SES email identity + API Gateway route for feedback backend.
 
 ---
 
+## Phase 20: Messages DynamoDB Table ✅
+
+DynamoDB table for server-side message storage, enabling feedback to link by message ID.
+
+### Task 20.1: Create messages-dynamodb module
+- [x] `infra/modules/messages-dynamodb/main.tf` — `aws_dynamodb_table`
+  - Name: `${project_name}-messages-${environment}`
+  - Billing: `PAY_PER_REQUEST` (on-demand, free tier)
+  - Hash key: `id` (String, UUID) — no range key
+- [x] `variables.tf` — project_name, environment
+- [x] `outputs.tf` — table_arn, table_name
+
+### Task 20.2: Update API Lambda IAM
+- [x] Add policy: `dynamodb:PutItem` + `dynamodb:GetItem` on messages table ARN
+- [x] Add variables: `messages_table_name`, `messages_table_arn`
+- [x] Add `MESSAGES_TABLE_NAME` to Lambda environment variables
+
+### Task 20.3: Wire module in root main.tf
+- [x] Add `module "messages_dynamodb"` block
+- [x] Pass outputs to `module "api_lambda"`
+
+### Task 20.4: Validate
+- [x] `terraform fmt -recursive`
+- [x] `terraform validate`
+- [x] Commit phase 20 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] Apple Sign-In (requires $99/year Apple Developer Program)
