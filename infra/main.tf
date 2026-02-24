@@ -61,6 +61,8 @@ module "api_lambda" {
   feedback_table_name        = module.feedback_dynamodb.table_name
   feedback_table_arn         = module.feedback_dynamodb.table_arn
   feedback_email             = var.feedback_email
+  messages_table_name        = module.messages_dynamodb.table_name
+  messages_table_arn         = module.messages_dynamodb.table_arn
 }
 
 module "api_gateway" {
@@ -105,6 +107,13 @@ module "cognito" {
 
 module "feedback_dynamodb" {
   source = "./modules/feedback-dynamodb"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+module "messages_dynamodb" {
+  source = "./modules/messages-dynamodb"
 
   project_name = var.project_name
   environment  = var.environment

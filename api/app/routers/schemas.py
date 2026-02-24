@@ -14,6 +14,14 @@ class MessageRequest(BaseModel):
 
     question: str = Field(..., min_length=1, description="User's question about the trip")
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "question": "What time is our flight?",
+            }
+        }
+    }
+
     @field_validator("question")
     @classmethod
     def question_not_empty(cls, v: str) -> str:
@@ -33,6 +41,7 @@ class MessageResponse(BaseModel):
         source: Source document used (optional)
     """
 
+    id: str = Field(..., description="Server-generated message ID")
     answer: str = Field(..., description="Agent's answer to the question")
     category: str = Field(..., description="Topic category")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score (0.0-1.0)")
@@ -41,6 +50,7 @@ class MessageResponse(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
+                "id": "msg-a1b2c3d4",
                 "answer": "Your flight departs at 3:00 PM from Terminal 3",
                 "category": "flight",
                 "confidence": 0.95,
@@ -78,16 +88,24 @@ class FeedbackRequest(BaseModel):
     """Request model for feedback endpoint.
 
     Attributes:
-        message_content: The assistant message being rated
-        category: Topic category of the message (optional)
+        message_id: Server-generated ID of the message being rated
         rating: Thumbs up or down
         comment: Optional user comment explaining the rating
     """
 
-    message_content: str = Field(..., min_length=1, description="Assistant message being rated")
-    category: str | None = Field(None, description="Topic category of the message")
+    message_id: str = Field(..., min_length=1, description="Server-generated message ID")
     rating: Literal["up", "down"] = Field(..., description="Feedback rating")
     comment: str | None = Field(None, description="Optional comment explaining the rating")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "message_id": "msg-a1b2c3d4",
+                "rating": "up",
+                "comment": "Very helpful!",
+            }
+        }
+    }
 
 
 class FeedbackResponse(BaseModel):
@@ -95,11 +113,20 @@ class FeedbackResponse(BaseModel):
 
     Attributes:
         status: Feedback processing status
-        id: Unique feedback ID
+        message_id: The message this feedback is for
     """
 
     status: str = Field(..., description="Feedback processing status")
-    id: str = Field(..., description="Unique feedback ID")
+    message_id: str = Field(..., description="Message ID this feedback is for")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "status": "received",
+                "message_id": "msg-a1b2c3d4",
+            }
+        }
+    }
 
 
 class ErrorResponse(BaseModel):

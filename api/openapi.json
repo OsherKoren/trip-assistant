@@ -1,0 +1,390 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Trip Assistant API",
+    "description": "FastAPI backend for LangGraph travel assistant",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/messages": {
+      "post": {
+        "tags": [
+          "messages"
+        ],
+        "summary": "Create Message",
+        "description": "Send a message to the trip assistant agent.\n\nAccepts a user question, invokes the LangGraph agent, and returns the\nagent's response with category classification and confidence score.\n\nArgs:\n    request_body: Message request containing user question.\n    graph: Agent graph instance (injected dependency).\n\nReturns:\n    MessageResponse with answer, category, confidence, and optional source.\n\nRaises:\n    HTTPException: 500 error if agent invocation fails.",
+        "operationId": "create_message_api_messages_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Health check endpoint for Lambda warm-up and monitoring.\n\nLightweight check that doesn't require agent initialization. Used by\nAPI Gateway health checks and monitoring systems.\n\nReturns:\n    HealthResponse with service status and version.",
+        "operationId": "health_check_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "Create Feedback",
+        "description": "Submit feedback for an assistant response.\n\nStores feedback in DynamoDB and sends a notification email via SES.\nThe email is fire-and-forget \u2014 it does not block the response.\n\nArgs:\n    request_body: Feedback request with rating and optional comment.\n\nReturns:\n    FeedbackResponse with status and feedback ID.\n\nRaises:\n    HTTPException: 500 error if DynamoDB storage fails.",
+        "operationId": "create_feedback_api_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "Error message or description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "description": "Response model for error responses.\n\nAttributes:\n    detail: Error message or description",
+        "example": {
+          "detail": "Internal server error"
+        }
+      },
+      "FeedbackRequest": {
+        "properties": {
+          "message_content": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Message Content",
+            "description": "Assistant message being rated"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Topic category of the message"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ],
+            "title": "Rating",
+            "description": "Feedback rating"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Optional comment explaining the rating"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_content",
+          "rating"
+        ],
+        "title": "FeedbackRequest",
+        "description": "Request model for feedback endpoint.\n\nAttributes:\n    message_content: The assistant message being rated\n    category: Topic category of the message (optional)\n    rating: Thumbs up or down\n    comment: Optional user comment explaining the rating",
+        "example": {
+          "category": "flight",
+          "comment": "Very helpful!",
+          "message_content": "Your flight departs at 3:00 PM from Terminal 3",
+          "rating": "up"
+        }
+      },
+      "FeedbackResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Feedback processing status"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique feedback ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "id"
+        ],
+        "title": "FeedbackResponse",
+        "description": "Response model for feedback endpoint.\n\nAttributes:\n    status: Feedback processing status\n    id: Unique feedback ID",
+        "example": {
+          "id": "fb-a1b2c3d4",
+          "status": "received"
+        }
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Health status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Service name"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Service version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
+        "title": "HealthResponse",
+        "description": "Response model for health check endpoint.\n\nAttributes:\n    status: Health status (e.g., \"healthy\")\n    service: Service name\n    version: Service version",
+        "example": {
+          "service": "trip-assistant-api",
+          "status": "healthy",
+          "version": "0.1.0"
+        }
+      },
+      "MessageRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Question",
+            "description": "User's question about the trip"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "MessageRequest",
+        "description": "Request model for message endpoint.\n\nAttributes:\n    question: User's question about the trip (must not be empty)",
+        "example": {
+          "question": "What time is our flight?"
+        }
+      },
+      "MessageResponse": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "title": "Answer",
+            "description": "Agent's answer to the question"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Topic category"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "Confidence score (0.0-1.0)"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "Source document used (optional)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "category",
+          "confidence"
+        ],
+        "title": "MessageResponse",
+        "description": "Response model for message endpoint.\n\nAttributes:\n    answer: Agent's answer to the question\n    category: Topic category (flight, car_rental, routes, etc.)\n    confidence: Confidence score (0.0 to 1.0)\n    source: Source document used (optional)",
+        "example": {
+          "answer": "Your flight departs at 3:00 PM from Terminal 3",
+          "category": "flight",
+          "confidence": 0.95,
+          "source": "flight.txt"
+        }
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

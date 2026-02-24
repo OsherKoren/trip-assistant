@@ -65,6 +65,26 @@ resource "aws_iam_role_policy" "feedback_dynamodb" {
   })
 }
 
+# DynamoDB PutItem + GetItem permission for messages
+resource "aws_iam_role_policy" "messages_dynamodb" {
+  name = "${var.project_name}-api-${var.environment}-messages-dynamodb"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+        ]
+        Resource = var.messages_table_arn
+      }
+    ]
+  })
+}
+
 # SES SendEmail permission for feedback notifications
 resource "aws_iam_role_policy" "feedback_ses" {
   name = "${var.project_name}-api-${var.environment}-feedback-ses"
@@ -103,6 +123,7 @@ resource "aws_lambda_function" "api" {
       ALLOWED_ORIGINS                = var.frontend_url
       FEEDBACK_TABLE_NAME            = var.feedback_table_name
       FEEDBACK_EMAIL                 = var.feedback_email
+      MESSAGES_TABLE_NAME            = var.messages_table_name
     }
   }
 

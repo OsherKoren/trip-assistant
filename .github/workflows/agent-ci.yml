@@ -71,7 +71,7 @@ jobs:
         run: uv pip install --system -e ".[dev]"
 
       - name: Run unit tests
-        run: pytest tests/ -v -m "not integration" --cov=src --cov-report=xml --cov-report=term
+        run: pytest tests/ -v -m "not integration" --cov=src --cov-report=xml --cov-report=term | tee coverage.txt
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -80,6 +80,23 @@ jobs:
           flags: unittests
           name: agent-unit-tests
         if: always()
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        run: |
+          COV=$(grep '^TOTAL' coverage.txt | awk '{print $NF}' | tr -d '%')
+          if (( $(echo "$COV < 70" | bc -l) )); then COLOR="red"
+          elif (( $(echo "$COV < 80" | bc -l) )); then COLOR="orange"
+          elif (( $(echo "$COV < 90" | bc -l) )); then COLOR="yellow"
+          else COLOR="brightgreen"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"agent coverage\",\"message\":\"${COV}%\",\"color\":\"${COLOR}\"}" > $GITHUB_WORKSPACE/badges/agent-coverage.json
+
+      - name: Commit coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update agent coverage badge [skip ci]"
+          file_pattern: badges/agent-coverage.json
 
   # ========================================
   # JOB 2: Integration Tests (Real API, Main Branch Only)

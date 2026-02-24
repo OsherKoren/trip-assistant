@@ -524,6 +524,50 @@ Display the LLM confidence score as a color-coded pill on assistant messages.
 
 ---
 
+## Phase 13: Use Server Message ID for Feedback ✅
+
+Use server-generated message ID instead of client-generated IDs for assistant messages. Feedback now sends `message_id` instead of full message content.
+
+### Task 13.1: Update types
+- [x] `MessageResponse`: add `id: string`
+- [x] `FeedbackRequest`: replace `message_content`/`category`/`confidence` with `message_id: string`
+
+### Task 13.2: Use server ID in useMessages hook
+- [x] Use `response.id` for assistant message ID instead of client-generated `generateId()`
+
+### Task 13.3: Update MessageFeedback component
+- [x] Props: replace `messageContent`/`category`/`confidence` with `messageId: string`
+- [x] Send `{message_id, rating, comment}` in feedback request
+
+### Task 13.4: Update MessageBubble component
+- [x] Pass `messageId={message.id}` instead of `messageContent`/`category`/`confidence`
+
+### Task 13.5: Update tests
+- [x] `client.test.ts` — mock response includes `id`, feedback uses `message_id`
+- [x] `useMessages.test.ts` — mock response includes `id`, unique IDs test uses different server IDs
+- [x] `MessageFeedback.test.tsx` — props use `messageId`, assert `sendFeedback` with `message_id`
+
+### Task 13.6: Verify
+- [x] `npx vitest run` — 96 tests pass
+
+---
+
+## Phase 14: Simplify FeedbackResponse ✅
+
+Align with backend: `FeedbackResponse` returns `message_id` instead of separate `id`.
+
+### Task 14.1: Update types
+- [x] `FeedbackResponse`: replace `id: string` with `message_id: string`
+
+### Task 14.2: Update tests
+- [x] `client.test.ts` — mock `FeedbackResponse` uses `message_id`
+- [x] `MessageFeedback.test.tsx` — mock `sendFeedback` return uses `message_id`
+
+### Task 14.3: Verify
+- [x] `npx vitest run` — 96 tests pass
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -539,7 +583,9 @@ Display the LLM confidence score as a color-coded pill on assistant messages.
 - [x] Phase 10 completed (Message feedback — thumbs up/down)
 - [x] Phase 11 completed (Connect feedback to API)
 - [x] Phase 12 completed (Confidence indicator pill)
-- [x] All unit tests passing (94 tests, mocked API)
+- [x] Phase 13 completed (Server message ID for feedback)
+- [x] Phase 14 completed (Simplify FeedbackResponse)
+- [x] All unit tests passing (96 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
 - [x] Ready for S3 + CloudFront deployment

@@ -43,6 +43,7 @@ GitHub Actions (OIDC) ──▶ Build ARM64 image ──▶ Push to ECR ──�
 | S3 | Frontend hosting | 5GB storage |
 | CloudFront | CDN | 1TB transfer/month |
 | Parameter Store | Secrets | FREE (standard) |
+| DynamoDB (x2) | Feedback + Messages | 25GB storage |
 | CloudWatch | Logs | 5GB logs |
 
 **Estimated cost: $0-5/month**
@@ -85,6 +86,10 @@ infra/
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
+    ├── messages-dynamodb/ # DynamoDB for server-side message storage
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
     └── s3-cloudfront/    # Static site hosting (planned)
         ├── main.tf
         ├── variables.tf
@@ -103,6 +108,9 @@ infra/
 ### ecr module
 - ECR repository: `trip-assistant-agent` (mutable tags, keep last 2)
 - ECR repository: `trip-assistant-api` (mutable tags, keep last 2)
+
+### messages-dynamodb module
+- DynamoDB table: `${project_name}-messages-${environment}`, PAY_PER_REQUEST, hash key `id` (String)
 
 ### agent-lambda module
 - Lambda function: `trip-assistant-agent` (container image)

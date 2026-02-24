@@ -5,12 +5,11 @@ import { useAuth } from '../hooks/useAuth';
 
 interface MessageFeedbackProps {
   feedback?: Feedback;
-  messageContent: string;
-  category?: string;
+  messageId: string;
   onFeedback: (feedback: Feedback) => void;
 }
 
-export function MessageFeedback({ feedback, messageContent, category, onFeedback }: MessageFeedbackProps) {
+export function MessageFeedback({ feedback, messageId, onFeedback }: MessageFeedbackProps) {
   const { getToken } = useAuth();
   const [selectedRating, setSelectedRating] = useState<FeedbackRating | null>(null);
   const [comment, setComment] = useState('');
@@ -34,8 +33,7 @@ export function MessageFeedback({ feedback, messageContent, category, onFeedback
     try {
       await sendFeedback(
         {
-          message_content: messageContent,
-          category,
+          message_id: messageId,
           rating: selectedRating,
           ...(selectedRating === 'down' && comment.trim() ? { comment: comment.trim() } : {}),
         },

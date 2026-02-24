@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Server-side message storage in DynamoDB (`app/db/messages.py`)
+- `id` field in `MessageResponse` (server-generated UUID)
+- Message lookup in feedback endpoint for `message_preview`
+- Shared test helpers (`tests/helpers.py`) for mocking aioboto3 sessions
 - Dual-mode dependencies: local agent import (dev) and Lambda proxy (prod)
 - `AgentLambdaProxy` class for async Lambda invocation via aioboto3
 - AWS SAM template and configuration for local Lambda testing
@@ -21,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Router package exports (`health_router`, `messages_router`) in `routers/__init__.py`
 
 ### Changed
+- Move storage functions to `app/db/` package (`feedback.py` + `messages.py`)
+- Feedback keyed by `message_id` (no separate feedback UUID — 1:1 with messages)
+- `FeedbackResponse` returns `message_id` instead of separate `id`
+- `FeedbackRequest` uses `message_id` instead of `message_content`/`category`/`confidence`
+- Feedback tests use `monkeypatch.setattr` + `pytest.mark.usefixtures` instead of `@patch`
 - Switched from `graph.invoke()` to `await graph.ainvoke()` for non-blocking I/O
 - `get_graph()` dependency now checks `ENVIRONMENT` variable for mode selection
 - Move schemas into `routers/` package (co-located with route handlers)

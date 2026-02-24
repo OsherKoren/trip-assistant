@@ -69,7 +69,24 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm test
+        run: npx vitest run --coverage
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.node-version == '22'
+        run: |
+          COV=$(node -e "const r=JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json','utf8')); console.log(r.total.lines.pct)")
+          if (( $(echo "$COV < 70" | bc -l) )); then COLOR="red"
+          elif (( $(echo "$COV < 80" | bc -l) )); then COLOR="orange"
+          elif (( $(echo "$COV < 90" | bc -l) )); then COLOR="yellow"
+          else COLOR="brightgreen"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"frontend coverage\",\"message\":\"${COV}%\",\"color\":\"${COLOR}\"}" > $GITHUB_WORKSPACE/badges/frontend-coverage.json
+
+      - name: Commit coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.node-version == '22'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update frontend coverage badge [skip ci]"
+          file_pattern: badges/frontend-coverage.json
 
   # ========================================
   # JOB 2: Build Check

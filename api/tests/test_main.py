@@ -13,6 +13,7 @@ def test_post_messages_success(client: TestClient, mock_graph_result: dict[str, 
 
     assert response.status_code == 200
     data = response.json()
+    assert "id" in data
     assert data["answer"] == mock_graph_result["answer"]
     assert data["category"] == mock_graph_result["category"]
     assert data["confidence"] == mock_graph_result["confidence"]

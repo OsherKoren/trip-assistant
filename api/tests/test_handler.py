@@ -116,6 +116,7 @@ def test_messages_endpoint_via_lambda_event(mock_graph: Any) -> None:
     assert "body" in response
 
     body = json.loads(response["body"])
+    assert "id" in body
     assert body["answer"] == "Your flight departs at 3:00 PM from Terminal 3."
     assert body["category"] == "flight"
     assert body["confidence"] == 0.95

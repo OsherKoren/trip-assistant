@@ -16,6 +16,7 @@ export interface Message {
 }
 
 export interface MessageResponse {
+  id: string;
   answer: string;
   category: string;
   confidence: number;
@@ -23,13 +24,12 @@ export interface MessageResponse {
 }
 
 export interface FeedbackRequest {
-  message_content: string;
-  category?: string;
+  message_id: string;
   rating: FeedbackRating;
   comment?: string;
 }
 
 export interface FeedbackResponse {
   status: string;
-  id: string;
+  message_id: string;
 }

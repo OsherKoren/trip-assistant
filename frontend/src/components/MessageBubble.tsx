@@ -31,8 +31,7 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
             {onFeedback && (
               <MessageFeedback
                 feedback={message.feedback}
-                messageContent={message.content}
-                category={message.category}
+                messageId={message.id}
                 onFeedback={onFeedback}
               />
             )}

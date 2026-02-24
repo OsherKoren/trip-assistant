@@ -3,6 +3,7 @@ import { sendFeedback, sendMessage } from './client';
 import type { FeedbackResponse, MessageResponse } from '../types';
 
 const mockResponse: MessageResponse = {
+  id: 'msg-server-123',
   answer: 'You rented a car from Sixt.',
   category: 'car_rental',
   confidence: 0.95,
@@ -100,7 +101,7 @@ describe('sendMessage', () => {
 
 const mockFeedbackResponse: FeedbackResponse = {
   status: 'received',
-  id: 'test-uuid',
+  message_id: 'msg-123',
 };
 
 describe('sendFeedback', () => {
@@ -116,7 +117,7 @@ describe('sendFeedback', () => {
     });
 
     await sendFeedback(
-      { message_content: 'Test message', rating: 'up' },
+      { message_id: 'msg-123', rating: 'up' },
       mockGetToken,
     );
 
@@ -139,7 +140,7 @@ describe('sendFeedback', () => {
     });
 
     const result = await sendFeedback(
-      { message_content: 'Test', rating: 'down', comment: 'Wrong' },
+      { message_id: 'msg-123', rating: 'down', comment: 'Wrong' },
       mockGetToken,
     );
 
@@ -153,7 +154,7 @@ describe('sendFeedback', () => {
     });
 
     await expect(
-      sendFeedback({ message_content: 'Test', rating: 'up' }, mockGetToken),
+      sendFeedback({ message_id: 'msg-123', rating: 'up' }, mockGetToken),
     ).rejects.toThrow('Failed to send feedback');
   });
 });

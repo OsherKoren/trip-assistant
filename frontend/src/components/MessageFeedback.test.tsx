@@ -6,7 +6,7 @@ import type { Feedback } from '../types';
 import { useState } from 'react';
 
 vi.mock('../api/client', () => ({
-  sendFeedback: vi.fn().mockResolvedValue({ status: 'received', id: 'test-id' }),
+  sendFeedback: vi.fn().mockResolvedValue({ status: 'received', message_id: 'msg-test' }),
 }));
 
 vi.mock('../hooks/useAuth', () => ({
@@ -16,19 +16,17 @@ vi.mock('../hooks/useAuth', () => ({
 }));
 
 const defaultProps = {
-  messageContent: 'You rented a car from Sixt.',
-  category: 'car_rental',
+  messageId: 'msg-server-789',
   onFeedback: vi.fn(),
 };
 
 // Wrapper that mimics how the parent manages feedback state
-function FeedbackWrapper({ messageContent, category }: { messageContent: string; category: string }) {
+function FeedbackWrapper({ messageId }: { messageId: string }) {
   const [feedback, setFeedback] = useState<Feedback | undefined>();
   return (
     <MessageFeedback
       feedback={feedback}
-      messageContent={messageContent}
-      category={category}
+      messageId={messageId}
       onFeedback={setFeedback}
     />
   );
@@ -51,19 +49,19 @@ describe('MessageFeedback', () => {
   });
 
   it('shows submit button after selecting thumbs up', async () => {
-    render(<FeedbackWrapper messageContent="Test" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test" />);
     await userEvent.click(screen.getByRole('button', { name: /thumbs up/i }));
     expect(screen.getByRole('button', { name: /submit feedback/i })).toBeInTheDocument();
   });
 
   it('shows submit button after selecting thumbs down', async () => {
-    render(<FeedbackWrapper messageContent="Test" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test" />);
     await userEvent.click(screen.getByRole('button', { name: /thumbs down/i }));
     expect(screen.getByRole('button', { name: /submit feedback/i })).toBeInTheDocument();
   });
 
   it('allows toggling between thumbs up and down before submit', async () => {
-    render(<FeedbackWrapper messageContent="Test" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test" />);
 
     // Select thumbs down — textarea appears
     await userEvent.click(screen.getByRole('button', { name: /thumbs down/i }));
@@ -79,7 +77,7 @@ describe('MessageFeedback', () => {
   });
 
   it('shows textarea only for thumbs down', async () => {
-    render(<FeedbackWrapper messageContent="Test" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test" />);
 
     await userEvent.click(screen.getByRole('button', { name: /thumbs up/i }));
     expect(screen.queryByRole('textbox', { name: /feedback comment/i })).not.toBeInTheDocument();
@@ -90,20 +88,20 @@ describe('MessageFeedback', () => {
 
   it('calls sendFeedback API with thumbs up on submit', async () => {
     const { sendFeedback } = await import('../api/client');
-    render(<FeedbackWrapper messageContent="Test answer" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test-answer" />);
 
     await userEvent.click(screen.getByRole('button', { name: /thumbs up/i }));
     await userEvent.click(screen.getByRole('button', { name: /submit feedback/i }));
 
     expect(sendFeedback).toHaveBeenCalledWith(
-      expect.objectContaining({ message_content: 'Test answer', rating: 'up' }),
+      expect.objectContaining({ message_id: 'msg-test-answer', rating: 'up' }),
       expect.any(Function),
     );
   });
 
   it('calls sendFeedback API with thumbs down and comment on submit', async () => {
     const { sendFeedback } = await import('../api/client');
-    render(<FeedbackWrapper messageContent="Test answer" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test-answer" />);
 
     await userEvent.click(screen.getByRole('button', { name: /thumbs down/i }));
     await userEvent.type(screen.getByRole('textbox', { name: /feedback comment/i }), 'Wrong time');
@@ -111,7 +109,7 @@ describe('MessageFeedback', () => {
 
     expect(sendFeedback).toHaveBeenCalledWith(
       expect.objectContaining({
-        message_content: 'Test answer',
+        message_id: 'msg-test-answer',
         rating: 'down',
         comment: 'Wrong time',
       }),
@@ -120,7 +118,7 @@ describe('MessageFeedback', () => {
   });
 
   it('disables buttons after submission', async () => {
-    render(<FeedbackWrapper messageContent="Test" category="test" />);
+    render(<FeedbackWrapper messageId="msg-test" />);
 
     await userEvent.click(screen.getByRole('button', { name: /thumbs up/i }));
     await userEvent.click(screen.getByRole('button', { name: /submit feedback/i }));

@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000,http://localhost:5173"
     feedback_table_name: str = ""
     feedback_email: str = ""
+    messages_table_name: str = ""
 
     @property
     def cors_origins(self) -> list[str]:

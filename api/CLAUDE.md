@@ -21,6 +21,9 @@ api/
 │   │   ├── messages.py   # POST /messages endpoint
 │   │   ├── health.py     # GET /health endpoint
 │   │   └── schemas.py    # Pydantic request/response models
+│   ├── db/
+│   │   ├── feedback.py   # DynamoDB feedback storage + SES email
+│   │   └── messages.py   # DynamoDB message storage (store + get)
 │   ├── handler.py        # Lambda handler (Mangum)
 │   ├── settings.py       # pydantic-settings config (env vars, validation)
 │   ├── dependencies.py   # Agent graph factory + dependency stub
@@ -86,6 +89,7 @@ class MessageRequest(BaseModel):
     question: str
 
 class MessageResponse(BaseModel):
+    id: str
     answer: str
     category: str
     confidence: float
