@@ -44,6 +44,8 @@ jobs:
   unit-tests:
     name: Unit Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     strategy:
