@@ -18,7 +18,7 @@ Auto-generated from Terraform code by [TerraVision](https://github.com/patrickch
 | S3 | Frontend hosting |
 | CloudFront | CDN |
 | Cognito | Authentication (Google OAuth) |
-| DynamoDB | User feedback storage |
+| DynamoDB (x2) | Messages + Feedback storage |
 | SES | Feedback email notifications |
 | Parameter Store | Secrets |
 | CloudWatch | Logs |
