@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Server-side message storage in DynamoDB with UUID (messages table)
+- Feedback links to messages by ID with preview (replaces storing full message content)
 - Markdown rendering for assistant messages (react-markdown + Tailwind Typography)
 - User feedback system with thumbs up/down and optional comments (DynamoDB + SES email)
 - Confidence percentage pill on assistant messages (blue gradient, accessible single-hue design)
@@ -19,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python code review skill with testing and logging checklists (`.claude/skills/review-python/`)
 
 ### Changed
+- Move storage functions to `api/app/db/` package (feedback.py + messages.py)
+- Feedback request uses `message_id` instead of `message_content`/`category`/`confidence`
+- Assistant messages use server-generated UUID instead of client-generated IDs
 - Separate execution mode (`AGENT_MODE`) from environment name (`ENVIRONMENT`)
 - Agent graph dependency wired once at startup via lifespan instead of per-request
 
