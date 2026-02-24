@@ -37,6 +37,7 @@ jobs:
           filters: |
             api:
               - 'api/**'
+              - '.github/workflows/api-ci.yml'
 
   # ========================================
   # JOB 1: Unit Tests (Fast, Mocked, Always Run)
