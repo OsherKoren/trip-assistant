@@ -44,6 +44,8 @@ jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: changes
     if: needs.changes.outputs.agent == 'true'
     strategy:
