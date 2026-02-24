@@ -37,6 +37,7 @@ jobs:
           filters: |
             frontend:
               - 'frontend/**'
+              - '.github/workflows/frontend-ci.yml'
 
   # ========================================
   # JOB 1: Unit Tests
@@ -44,6 +45,8 @@ jobs:
   unit-tests:
     name: Unit Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     strategy:
@@ -69,7 +72,32 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm test
+        run: npx vitest run --coverage
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.node-version == '22'
+        run: |
+          COV=$(node -e "const r=JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json','utf8')); console.log(r.total.lines.pct)")
+          if (( $(echo "$COV < 70" | bc -l) )); then COLOR="red"
+          elif (( $(echo "$COV < 80" | bc -l) )); then COLOR="orange"
+          elif (( $(echo "$COV < 90" | bc -l) )); then COLOR="yellow"
+          else COLOR="brightgreen"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"frontend coverage\",\"message\":\"${COV}%\",\"color\":\"${COLOR}\"}" > $GITHUB_WORKSPACE/badges/frontend-coverage.json
+
+      - name: Commit and push coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.node-version == '22'
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add badges/frontend-coverage.json
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update frontend coverage badge [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            sleep $((i * 5))
+          done
+          echo "Failed to push after 3 retries" && exit 1
 
   # ========================================
   # JOB 2: Build Check

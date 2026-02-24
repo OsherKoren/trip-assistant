@@ -37,6 +37,7 @@ jobs:
           filters: |
             agent:
               - 'agent/**'
+              - '.github/workflows/agent-ci.yml'
 
   # ========================================
   # JOB 1: Unit Tests (Fast, Mocked, Always Run)
@@ -44,6 +45,8 @@ jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: changes
     if: needs.changes.outputs.agent == 'true'
     strategy:
@@ -71,7 +74,7 @@ jobs:
         run: uv pip install --system -e ".[dev]"
 
       - name: Run unit tests
-        run: pytest tests/ -v -m "not integration" --cov=src --cov-report=xml --cov-report=term
+        run: pytest tests/ -v -m "not integration" --cov=src --cov-report=xml --cov-report=term | tee coverage.txt
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -80,6 +83,31 @@ jobs:
           flags: unittests
           name: agent-unit-tests
         if: always()
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        run: |
+          COV=$(grep '^TOTAL' coverage.txt | awk '{print $NF}' | tr -d '%')
+          if (( $(echo "$COV < 70" | bc -l) )); then COLOR="red"
+          elif (( $(echo "$COV < 80" | bc -l) )); then COLOR="orange"
+          elif (( $(echo "$COV < 90" | bc -l) )); then COLOR="yellow"
+          else COLOR="brightgreen"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"agent coverage\",\"message\":\"${COV}%\",\"color\":\"${COLOR}\"}" > $GITHUB_WORKSPACE/badges/agent-coverage.json
+
+      - name: Commit and push coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add badges/agent-coverage.json
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update agent coverage badge [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            sleep $((i * 5))
+          done
+          echo "Failed to push after 3 retries" && exit 1
 
   # ========================================
   # JOB 2: Integration Tests (Real API, Main Branch Only)
