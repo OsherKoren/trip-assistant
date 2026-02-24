@@ -134,9 +134,9 @@ class TestFeedbackResponse:
 
     def test_valid_feedback_response(self) -> None:
         """Test FeedbackResponse structure."""
-        response = FeedbackResponse(status="received", id="abc-123")
+        response = FeedbackResponse(status="received", message_id="msg-123")
         assert response.status == "received"
-        assert response.id == "abc-123"
+        assert response.message_id == "msg-123"
 
 
 class TestErrorResponse:

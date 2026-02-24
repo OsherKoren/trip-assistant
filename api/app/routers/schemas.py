@@ -113,17 +113,17 @@ class FeedbackResponse(BaseModel):
 
     Attributes:
         status: Feedback processing status
-        id: Unique feedback ID
+        message_id: The message this feedback is for
     """
 
     status: str = Field(..., description="Feedback processing status")
-    id: str = Field(..., description="Unique feedback ID")
+    message_id: str = Field(..., description="Message ID this feedback is for")
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "status": "received",
-                "id": "fb-a1b2c3d4",
+                "message_id": "msg-a1b2c3d4",
             }
         }
     }

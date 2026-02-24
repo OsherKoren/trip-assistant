@@ -6,7 +6,7 @@ import type { Feedback } from '../types';
 import { useState } from 'react';
 
 vi.mock('../api/client', () => ({
-  sendFeedback: vi.fn().mockResolvedValue({ status: 'received', id: 'test-id' }),
+  sendFeedback: vi.fn().mockResolvedValue({ status: 'received', message_id: 'msg-test' }),
 }));
 
 vi.mock('../hooks/useAuth', () => ({

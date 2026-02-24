@@ -23,7 +23,7 @@ async def store_feedback(table_name: str, region: str, item: dict[str, Any]) -> 
     async with _session.resource("dynamodb", region_name=region) as dynamodb:
         table = await dynamodb.Table(table_name)
         await table.put_item(Item=item)
-    logger.info("Feedback stored", feedback_id=item["id"])
+    logger.info("Feedback stored", message_id=item["message_id"])
 
 
 async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> None:
@@ -49,7 +49,6 @@ async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> 
             f"Message ID: {message_id}\n"
             f"Message Preview: {message_preview}\n"
             f"Comment: {comment}\n"
-            f"Feedback ID: {item.get('id', 'unknown')}\n"
             f"Time: {item.get('created_at', 'unknown')}"
         )
 
@@ -62,6 +61,6 @@ async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> 
                     "Body": {"Text": {"Data": body}},
                 },
             )
-        logger.info("Feedback email sent", feedback_id=item.get("id"))
+        logger.info("Feedback email sent", message_id=item.get("message_id"))
     except Exception:
-        logger.exception("Failed to send feedback email", feedback_id=item.get("id"))
+        logger.exception("Failed to send feedback email", message_id=item.get("message_id"))

@@ -31,5 +31,5 @@ export interface FeedbackRequest {
 
 export interface FeedbackResponse {
   status: string;
-  id: string;
+  message_id: string;
 }

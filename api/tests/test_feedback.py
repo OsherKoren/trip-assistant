@@ -14,9 +14,8 @@ from tests.helpers import make_mock_boto3_session
 def feedback_item() -> dict[str, Any]:
     """Sample feedback item."""
     return {
-        "id": "test-uuid",
-        "created_at": "2026-02-22T14:30:00+00:00",
         "message_id": "msg-abc123",
+        "created_at": "2026-02-22T14:30:00+00:00",
         "message_preview": "Your flight departs at 3:00 PM",
         "rating": "down",
         "comment": "The departure time was wrong",

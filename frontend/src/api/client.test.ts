@@ -101,7 +101,7 @@ describe('sendMessage', () => {
 
 const mockFeedbackResponse: FeedbackResponse = {
   status: 'received',
-  id: 'test-uuid',
+  message_id: 'msg-123',
 };
 
 describe('sendFeedback', () => {

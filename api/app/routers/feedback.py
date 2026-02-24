@@ -1,6 +1,5 @@
 """Feedback endpoint for rating assistant responses."""
 
-import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException
@@ -30,13 +29,12 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
         request_body: Feedback request with message_id, rating, and optional comment.
 
     Returns:
-        FeedbackResponse with status and feedback ID.
+        FeedbackResponse with status and message_id.
 
     Raises:
         HTTPException: 500 error if DynamoDB storage fails.
     """
     settings = get_settings()
-    feedback_id = str(uuid.uuid4())
     created_at = datetime.now(UTC).isoformat()
 
     # Look up message for preview (best-effort)
@@ -52,9 +50,8 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
             logger.exception("Failed to look up message", message_id=request_body.message_id)
 
     item: dict[str, object] = {
-        "id": feedback_id,
-        "created_at": created_at,
         "message_id": request_body.message_id,
+        "created_at": created_at,
         "message_preview": message_preview,
         "rating": request_body.rating,
         "comment": request_body.comment or "",
@@ -62,14 +59,14 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
 
     logger.info(
         "Processing feedback",
-        feedback_id=feedback_id,
+        message_id=request_body.message_id,
         rating=request_body.rating,
     )
 
     try:
         await store_feedback(settings.feedback_table_name, settings.aws_region, item)
     except Exception as e:
-        logger.error("Failed to store feedback", error=str(e), feedback_id=feedback_id)
+        logger.error("Failed to store feedback", error=str(e), message_id=request_body.message_id)
         raise HTTPException(status_code=500, detail="Failed to store feedback") from e
 
     # SES notification — only for negative feedback with a comment
@@ -78,4 +75,4 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
     if settings.feedback_email and request_body.rating == "down" and request_body.comment:
         await send_feedback_email(settings.feedback_email, settings.aws_region, item)
 
-    return FeedbackResponse(status="received", id=feedback_id)
+    return FeedbackResponse(status="received", message_id=request_body.message_id)

@@ -50,7 +50,7 @@ class TestFeedbackEndpoint:
         client: TestClient,
         mock_store: AsyncMock,
     ) -> None:
-        """Test valid feedback payload returns 200 with ID."""
+        """Test valid feedback payload returns 200 with message_id."""
         response = client.post(
             "/api/feedback",
             json={"message_id": "msg-123", "rating": "up"},
@@ -59,7 +59,7 @@ class TestFeedbackEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "received"
-        assert "id" in data
+        assert data["message_id"] == "msg-123"
         mock_store.assert_awaited_once()
 
     def test_feedback_with_comment(
