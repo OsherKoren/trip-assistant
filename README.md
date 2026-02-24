@@ -6,6 +6,7 @@
 [![Frontend CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-ci.yml)
 [![Infrastructure CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml)
 [![Deploy to AWS Lambda](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml)
+[![Deploy Frontend](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-deploy.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-deploy.yml)
 
 <!-- Test Coverage -->
 [![Agent Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/OsherKoren/trip-assistant/main/badges/agent-coverage.json)](https://github.com/OsherKoren/trip-assistant/actions/workflows/agent-ci.yml)
