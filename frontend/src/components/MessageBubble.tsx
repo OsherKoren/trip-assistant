@@ -33,6 +33,7 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
                 feedback={message.feedback}
                 messageContent={message.content}
                 category={message.category}
+                confidence={message.confidence}
                 onFeedback={onFeedback}
               />
             )}

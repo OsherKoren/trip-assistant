@@ -22,6 +22,7 @@ class TestFeedbackEndpoint:
             json={
                 "message_content": "Your flight departs at 3:00 PM",
                 "category": "flight",
+                "confidence": 0.95,
                 "rating": "up",
             },
         )
@@ -55,6 +56,53 @@ class TestFeedbackEndpoint:
         item = store_call[0][2]  # Third positional arg is the item
         assert item["rating"] == "down"
         assert item["comment"] == "The departure time was wrong"
+
+    @patch("app.routers.feedback.send_feedback_email", new_callable=AsyncMock)
+    @patch("app.routers.feedback.store_feedback", new_callable=AsyncMock)
+    def test_confidence_stored_in_item(
+        self,
+        mock_store: AsyncMock,
+        _mock_email: AsyncMock,
+        client: TestClient,
+    ) -> None:
+        """Test that confidence is stored as Decimal in DynamoDB item."""
+        from decimal import Decimal
+
+        response = client.post(
+            "/api/feedback",
+            json={
+                "message_content": "Your flight departs at 3:00 PM",
+                "confidence": 0.85,
+                "rating": "up",
+            },
+        )
+
+        assert response.status_code == 200
+        store_call = mock_store.call_args
+        item = store_call[0][2]
+        assert item["confidence"] == Decimal("0.85")
+
+    @patch("app.routers.feedback.send_feedback_email", new_callable=AsyncMock)
+    @patch("app.routers.feedback.store_feedback", new_callable=AsyncMock)
+    def test_confidence_omitted_when_not_provided(
+        self,
+        mock_store: AsyncMock,
+        _mock_email: AsyncMock,
+        client: TestClient,
+    ) -> None:
+        """Test that confidence is not in item when not provided."""
+        response = client.post(
+            "/api/feedback",
+            json={
+                "message_content": "Your flight departs at 3:00 PM",
+                "rating": "up",
+            },
+        )
+
+        assert response.status_code == 200
+        store_call = mock_store.call_args
+        item = store_call[0][2]
+        assert "confidence" not in item
 
     def test_empty_message_returns_422(self, client: TestClient) -> None:
         """Test empty message_content returns 422 validation error."""

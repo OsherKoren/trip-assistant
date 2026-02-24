@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException
 
@@ -38,7 +39,7 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
     feedback_id = str(uuid.uuid4())
     created_at = datetime.now(UTC).isoformat()
 
-    item = {
+    item: dict[str, object] = {
         "id": feedback_id,
         "created_at": created_at,
         "message_content": request_body.message_content,
@@ -46,6 +47,8 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
         "rating": request_body.rating,
         "comment": request_body.comment or "",
     }
+    if request_body.confidence is not None:
+        item["confidence"] = Decimal(str(request_body.confidence))
 
     logger.info(
         "Processing feedback",

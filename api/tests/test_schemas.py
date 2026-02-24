@@ -100,12 +100,30 @@ class TestFeedbackRequest:
         request = FeedbackRequest(
             message_content="Your flight departs at 3:00 PM",
             category="flight",
+            confidence=0.95,
             rating="up",
         )
         assert request.message_content == "Your flight departs at 3:00 PM"
         assert request.category == "flight"
+        assert request.confidence == 0.95
         assert request.rating == "up"
         assert request.comment is None
+
+    def test_confidence_optional(self) -> None:
+        """Test FeedbackRequest without confidence."""
+        request = FeedbackRequest(
+            message_content="Test",
+            rating="up",
+        )
+        assert request.confidence is None
+
+    def test_confidence_out_of_range_rejected(self) -> None:
+        """Test that confidence > 1.0 is rejected."""
+        with pytest.raises(ValidationError):
+            FeedbackRequest(message_content="Test", rating="up", confidence=1.5)
+
+        with pytest.raises(ValidationError):
+            FeedbackRequest(message_content="Test", rating="up", confidence=-0.1)
 
     def test_feedback_with_comment(self) -> None:
         """Test FeedbackRequest with optional comment."""

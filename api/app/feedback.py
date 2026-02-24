@@ -40,6 +40,7 @@ async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> 
     try:
         rating = item.get("rating", "unknown")
         category = item.get("category", "N/A")
+        confidence = item.get("confidence", "N/A")
         comment = item.get("comment", "")
         message_preview = item.get("message_content", "")[:100]
 
@@ -47,6 +48,7 @@ async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> 
         body = (
             f"Rating: {rating}\n"
             f"Category: {category}\n"
+            f"Confidence: {confidence}\n"
             f"Message: {message_preview}\n"
             f"Comment: {comment}\n"
             f"Feedback ID: {item.get('id', 'unknown')}\n"

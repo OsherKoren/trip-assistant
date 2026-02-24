@@ -25,6 +25,7 @@ export interface MessageResponse {
 export interface FeedbackRequest {
   message_content: string;
   category?: string;
+  confidence?: number;
   rating: FeedbackRating;
   comment?: string;
 }

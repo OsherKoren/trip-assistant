@@ -7,10 +7,11 @@ interface MessageFeedbackProps {
   feedback?: Feedback;
   messageContent: string;
   category?: string;
+  confidence?: number;
   onFeedback: (feedback: Feedback) => void;
 }
 
-export function MessageFeedback({ feedback, messageContent, category, onFeedback }: MessageFeedbackProps) {
+export function MessageFeedback({ feedback, messageContent, category, confidence, onFeedback }: MessageFeedbackProps) {
   const { getToken } = useAuth();
   const [selectedRating, setSelectedRating] = useState<FeedbackRating | null>(null);
   const [comment, setComment] = useState('');
@@ -36,6 +37,7 @@ export function MessageFeedback({ feedback, messageContent, category, onFeedback
         {
           message_content: messageContent,
           category,
+          confidence,
           rating: selectedRating,
           ...(selectedRating === 'down' && comment.trim() ? { comment: comment.trim() } : {}),
         },

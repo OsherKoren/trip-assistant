@@ -15,6 +15,7 @@ def feedback_item() -> dict:
         "created_at": "2026-02-22T14:30:00+00:00",
         "message_content": "Your flight departs at 3:00 PM",
         "category": "flight",
+        "confidence": "0.95",
         "rating": "down",
         "comment": "The departure time was wrong",
     }
