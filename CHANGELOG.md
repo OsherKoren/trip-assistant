@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Move storage functions to `api/app/db/` package (feedback.py + messages.py)
+- Feedback uses `message_id` as DynamoDB partition key (1:1 with messages, no separate feedback UUID)
 - Feedback request uses `message_id` instead of `message_content`/`category`/`confidence`
 - Assistant messages use server-generated UUID instead of client-generated IDs
 - Separate execution mode (`AGENT_MODE`) from environment name (`ENVIRONMENT`)

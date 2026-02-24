@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Move storage functions to `app/db/` package (`feedback.py` + `messages.py`)
+- Feedback keyed by `message_id` (no separate feedback UUID — 1:1 with messages)
+- `FeedbackResponse` returns `message_id` instead of separate `id`
 - `FeedbackRequest` uses `message_id` instead of `message_content`/`category`/`confidence`
 - Feedback tests use `monkeypatch.setattr` + `pytest.mark.usefixtures` instead of `@patch`
 - Switched from `graph.invoke()` to `await graph.ainvoke()` for non-blocking I/O
