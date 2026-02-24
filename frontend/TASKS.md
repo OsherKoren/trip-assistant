@@ -552,6 +552,22 @@ Use server-generated message ID instead of client-generated IDs for assistant me
 
 ---
 
+## Phase 14: Simplify FeedbackResponse ✅
+
+Align with backend: `FeedbackResponse` returns `message_id` instead of separate `id`.
+
+### Task 14.1: Update types
+- [x] `FeedbackResponse`: replace `id: string` with `message_id: string`
+
+### Task 14.2: Update tests
+- [x] `client.test.ts` — mock `FeedbackResponse` uses `message_id`
+- [x] `MessageFeedback.test.tsx` — mock `sendFeedback` return uses `message_id`
+
+### Task 14.3: Verify
+- [x] `npx vitest run` — 96 tests pass
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -568,6 +584,7 @@ Use server-generated message ID instead of client-generated IDs for assistant me
 - [x] Phase 11 completed (Connect feedback to API)
 - [x] Phase 12 completed (Confidence indicator pill)
 - [x] Phase 13 completed (Server message ID for feedback)
+- [x] Phase 14 completed (Simplify FeedbackResponse)
 - [x] All unit tests passing (96 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors

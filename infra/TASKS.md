@@ -556,6 +556,22 @@ DynamoDB table for server-side message storage, enabling feedback to link by mes
 
 ---
 
+## Phase 21: Simplify Feedback Table Key ✅
+
+Change feedback DynamoDB partition key from a separate feedback UUID to `message_id` (1:1 with messages).
+
+### Task 21.1: Update feedback-dynamodb module
+- [x] Change hash key from `id` to `message_id`
+- [x] Remove `created_at` range key (no longer needed)
+- [x] **Note**: Existing dev table must be deleted before `terraform apply` (key schema change)
+
+### Task 21.2: Validate
+- [x] `terraform fmt -recursive`
+- [x] `terraform validate`
+- [x] Commit phase 21 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] Apple Sign-In (requires $99/year Apple Developer Program)

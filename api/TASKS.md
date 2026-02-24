@@ -593,3 +593,30 @@ Store messages server-side in DynamoDB with UUID. Refactor feedback to link by m
 ### Task 11.8: Verify
 - [x] `uv run pytest tests/ -v -m "not integration"` — 68 tests pass
 - [x] Pre-commit: ruff, ruff-format, mypy all pass
+
+---
+
+## Phase 12: Simplify Feedback to Use message_id as Key ✅
+
+Remove redundant feedback UUID — use `message_id` as the natural key (1:1 with messages).
+
+### Task 12.1: Update feedback router
+- [x] Remove `uuid` import and feedback UUID generation
+- [x] Feedback item keyed by `message_id` (no separate `id`)
+- [x] Return `FeedbackResponse(status="received", message_id=...)`
+
+### Task 12.2: Update schemas
+- [x] `FeedbackResponse`: replace `id` with `message_id`
+
+### Task 12.3: Update feedback storage/email
+- [x] Logger uses `message_id` instead of `feedback_id`
+- [x] Remove `Feedback ID` line from email body
+
+### Task 12.4: Tests
+- [x] Update `test_feedback.py` fixture — remove `id` field
+- [x] Update `test_feedback_endpoint.py` — assert `message_id` in response
+- [x] Update `test_schemas.py` — `FeedbackResponse` uses `message_id`
+
+### Task 12.5: Verify
+- [x] `uv run pytest tests/ -v -m "not integration"` — 68 tests pass
+- [x] Pre-commit: ruff, ruff-format, mypy all pass
