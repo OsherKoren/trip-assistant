@@ -1,6 +1,6 @@
 [project]
 name = "trip-assistant-api"
-version = "0.1.0"
+version = "0.1.1"
 description = "FastAPI backend for trip assistant agent"
 requires-python = ">=3.12,<3.14"
 classifiers = [
