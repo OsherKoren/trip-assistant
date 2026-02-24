@@ -37,6 +37,7 @@ jobs:
           filters: |
             agent:
               - 'agent/**'
+              - '.github/workflows/agent-ci.yml'
 
   # ========================================
   # JOB 1: Unit Tests (Fast, Mocked, Always Run)

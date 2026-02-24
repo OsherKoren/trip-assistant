@@ -37,6 +37,7 @@ jobs:
           filters: |
             frontend:
               - 'frontend/**'
+              - '.github/workflows/frontend-ci.yml'
 
   # ========================================
   # JOB 1: Unit Tests
