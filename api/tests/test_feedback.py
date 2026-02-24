@@ -1,21 +1,23 @@
 """Tests for feedback storage and email notification functions."""
 
-from unittest.mock import AsyncMock, patch
+from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 
-from app.feedback import send_feedback_email, store_feedback
+import app.db.feedback as feedback_mod
+from app.db.feedback import send_feedback_email, store_feedback
+from tests.helpers import make_mock_boto3_session
 
 
 @pytest.fixture
-def feedback_item() -> dict:
+def feedback_item() -> dict[str, Any]:
     """Sample feedback item."""
     return {
         "id": "test-uuid",
         "created_at": "2026-02-22T14:30:00+00:00",
-        "message_content": "Your flight departs at 3:00 PM",
-        "category": "flight",
-        "confidence": "0.95",
+        "message_id": "msg-abc123",
+        "message_preview": "Your flight departs at 3:00 PM",
         "rating": "down",
         "comment": "The departure time was wrong",
     }
@@ -25,54 +27,47 @@ class TestStoreFeedback:
     """Tests for store_feedback function."""
 
     @pytest.mark.asyncio
-    async def test_stores_item_in_dynamodb(self, feedback_item: dict) -> None:
+    async def test_stores_item_in_dynamodb(
+        self, monkeypatch: pytest.MonkeyPatch, feedback_item: dict[str, Any]
+    ) -> None:
         """Test that feedback is stored in DynamoDB."""
-        mock_table = AsyncMock()
-        mock_table.put_item = AsyncMock()
+        table = AsyncMock()
+        dynamodb = AsyncMock()
+        dynamodb.Table = AsyncMock(return_value=table)
+        monkeypatch.setattr(feedback_mod, "_session", make_mock_boto3_session(resource=dynamodb))
 
-        mock_dynamodb = AsyncMock()
-        mock_dynamodb.Table = AsyncMock(return_value=mock_table)
+        await store_feedback("test-table", "us-east-2", feedback_item)
 
-        with patch("app.feedback._session") as mock_session:
-            mock_session.resource.return_value.__aenter__ = AsyncMock(return_value=mock_dynamodb)
-            mock_session.resource.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            await store_feedback("test-table", "us-east-2", feedback_item)
-
-        mock_dynamodb.Table.assert_awaited_once_with("test-table")
-        mock_table.put_item.assert_awaited_once_with(Item=feedback_item)
+        dynamodb.Table.assert_awaited_once_with("test-table")
+        table.put_item.assert_awaited_once_with(Item=feedback_item)
 
     @pytest.mark.asyncio
-    async def test_raises_on_dynamodb_error(self, feedback_item: dict) -> None:
+    async def test_raises_on_dynamodb_error(
+        self, monkeypatch: pytest.MonkeyPatch, feedback_item: dict[str, Any]
+    ) -> None:
         """Test that DynamoDB errors propagate."""
-        mock_table = AsyncMock()
-        mock_table.put_item = AsyncMock(side_effect=Exception("DynamoDB error"))
+        table = AsyncMock()
+        table.put_item.side_effect = Exception("DynamoDB error")
+        dynamodb = AsyncMock()
+        dynamodb.Table = AsyncMock(return_value=table)
+        monkeypatch.setattr(feedback_mod, "_session", make_mock_boto3_session(resource=dynamodb))
 
-        mock_dynamodb = AsyncMock()
-        mock_dynamodb.Table = AsyncMock(return_value=mock_table)
-
-        with patch("app.feedback._session") as mock_session:
-            mock_session.resource.return_value.__aenter__ = AsyncMock(return_value=mock_dynamodb)
-            mock_session.resource.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            with pytest.raises(Exception, match="DynamoDB error"):
-                await store_feedback("test-table", "us-east-2", feedback_item)
+        with pytest.raises(Exception, match="DynamoDB error"):
+            await store_feedback("test-table", "us-east-2", feedback_item)
 
 
 class TestSendFeedbackEmail:
     """Tests for send_feedback_email function."""
 
     @pytest.mark.asyncio
-    async def test_sends_email_via_ses(self, feedback_item: dict) -> None:
+    async def test_sends_email_via_ses(
+        self, monkeypatch: pytest.MonkeyPatch, feedback_item: dict[str, Any]
+    ) -> None:
         """Test that email is sent via SES."""
         mock_ses = AsyncMock()
-        mock_ses.send_email = AsyncMock()
+        monkeypatch.setattr(feedback_mod, "_session", make_mock_boto3_session(client=mock_ses))
 
-        with patch("app.feedback._session") as mock_session:
-            mock_session.client.return_value.__aenter__ = AsyncMock(return_value=mock_ses)
-            mock_session.client.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            await send_feedback_email("test@example.com", "us-east-2", feedback_item)
+        await send_feedback_email("test@example.com", "us-east-2", feedback_item)
 
         mock_ses.send_email.assert_awaited_once()
         call_kwargs = mock_ses.send_email.call_args[1]
@@ -80,14 +75,13 @@ class TestSendFeedbackEmail:
         assert call_kwargs["Destination"]["ToAddresses"] == ["test@example.com"]
 
     @pytest.mark.asyncio
-    async def test_does_not_raise_on_ses_error(self, feedback_item: dict) -> None:
+    async def test_does_not_raise_on_ses_error(
+        self, monkeypatch: pytest.MonkeyPatch, feedback_item: dict[str, Any]
+    ) -> None:
         """Test that SES errors are logged but not raised."""
         mock_ses = AsyncMock()
-        mock_ses.send_email = AsyncMock(side_effect=Exception("SES error"))
+        mock_ses.send_email.side_effect = Exception("SES error")
+        monkeypatch.setattr(feedback_mod, "_session", make_mock_boto3_session(client=mock_ses))
 
-        with patch("app.feedback._session") as mock_session:
-            mock_session.client.return_value.__aenter__ = AsyncMock(return_value=mock_ses)
-            mock_session.client.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            # Should not raise
-            await send_feedback_email("test@example.com", "us-east-2", feedback_item)
+        # Should not raise
+        await send_feedback_email("test@example.com", "us-east-2", feedback_item)

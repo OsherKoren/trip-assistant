@@ -41,6 +41,7 @@ class MessageResponse(BaseModel):
         source: Source document used (optional)
     """
 
+    id: str = Field(..., description="Server-generated message ID")
     answer: str = Field(..., description="Agent's answer to the question")
     category: str = Field(..., description="Topic category")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score (0.0-1.0)")
@@ -49,6 +50,7 @@ class MessageResponse(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
+                "id": "msg-a1b2c3d4",
                 "answer": "Your flight departs at 3:00 PM from Terminal 3",
                 "category": "flight",
                 "confidence": 0.95,
@@ -86,27 +88,19 @@ class FeedbackRequest(BaseModel):
     """Request model for feedback endpoint.
 
     Attributes:
-        message_content: The assistant message being rated
-        category: Topic category of the message (optional)
-        confidence: Confidence score of the assistant response (optional)
+        message_id: Server-generated ID of the message being rated
         rating: Thumbs up or down
         comment: Optional user comment explaining the rating
     """
 
-    message_content: str = Field(..., min_length=1, description="Assistant message being rated")
-    category: str | None = Field(None, description="Topic category of the message")
-    confidence: float | None = Field(
-        None, ge=0.0, le=1.0, description="Confidence score of the assistant response"
-    )
+    message_id: str = Field(..., min_length=1, description="Server-generated message ID")
     rating: Literal["up", "down"] = Field(..., description="Feedback rating")
     comment: str | None = Field(None, description="Optional comment explaining the rating")
 
     model_config = {
         "json_schema_extra": {
             "example": {
-                "message_content": "Your flight departs at 3:00 PM from Terminal 3",
-                "category": "flight",
-                "confidence": 0.95,
+                "message_id": "msg-a1b2c3d4",
                 "rating": "up",
                 "comment": "Very helpful!",
             }

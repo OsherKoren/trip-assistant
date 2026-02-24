@@ -39,17 +39,15 @@ async def send_feedback_email(email: str, region: str, item: dict[str, Any]) -> 
     """
     try:
         rating = item.get("rating", "unknown")
-        category = item.get("category", "N/A")
-        confidence = item.get("confidence", "N/A")
+        message_id = item.get("message_id", "N/A")
+        message_preview = item.get("message_preview", "")
         comment = item.get("comment", "")
-        message_preview = item.get("message_content", "")[:100]
 
-        subject = f"Trip Assistant Feedback: {rating} ({category})"
+        subject = f"Trip Assistant Feedback: {rating}"
         body = (
             f"Rating: {rating}\n"
-            f"Category: {category}\n"
-            f"Confidence: {confidence}\n"
-            f"Message: {message_preview}\n"
+            f"Message ID: {message_id}\n"
+            f"Message Preview: {message_preview}\n"
             f"Comment: {comment}\n"
             f"Feedback ID: {item.get('id', 'unknown')}\n"
             f"Time: {item.get('created_at', 'unknown')}"

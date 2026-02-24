@@ -2,11 +2,11 @@
 
 import uuid
 from datetime import UTC, datetime
-from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException
 
-from app.feedback import send_feedback_email, store_feedback
+from app.db.feedback import send_feedback_email, store_feedback
+from app.db.messages import get_message
 from app.logger import logger
 from app.settings import get_settings
 
@@ -23,11 +23,11 @@ router = APIRouter(tags=["feedback"])
 async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
     """Submit feedback for an assistant response.
 
-    Stores feedback in DynamoDB and sends a notification email via SES.
-    The email is fire-and-forget — it does not block the response.
+    Looks up the message by ID to extract a preview, stores feedback in DynamoDB,
+    and sends a notification email via SES.
 
     Args:
-        request_body: Feedback request with rating and optional comment.
+        request_body: Feedback request with message_id, rating, and optional comment.
 
     Returns:
         FeedbackResponse with status and feedback ID.
@@ -39,16 +39,26 @@ async def create_feedback(request_body: FeedbackRequest) -> FeedbackResponse:
     feedback_id = str(uuid.uuid4())
     created_at = datetime.now(UTC).isoformat()
 
+    # Look up message for preview (best-effort)
+    message_preview = ""
+    if settings.messages_table_name:
+        try:
+            message = await get_message(
+                settings.messages_table_name, settings.aws_region, request_body.message_id
+            )
+            if message:
+                message_preview = message.get("answer", "")[:100]
+        except Exception:
+            logger.exception("Failed to look up message", message_id=request_body.message_id)
+
     item: dict[str, object] = {
         "id": feedback_id,
         "created_at": created_at,
-        "message_content": request_body.message_content,
-        "category": request_body.category or "",
+        "message_id": request_body.message_id,
+        "message_preview": message_preview,
         "rating": request_body.rating,
         "comment": request_body.comment or "",
     }
-    if request_body.confidence is not None:
-        item["confidence"] = Decimal(str(request_body.confidence))
 
     logger.info(
         "Processing feedback",

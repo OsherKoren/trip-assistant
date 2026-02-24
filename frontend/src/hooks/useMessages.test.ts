@@ -13,6 +13,7 @@ vi.mock('./useAuth', () => ({
 }));
 
 const mockResponse: MessageResponse = {
+  id: 'msg-server-456',
   answer: 'You rented a car from Sixt.',
   category: 'car_rental',
   confidence: 0.95,
@@ -119,7 +120,9 @@ describe('useMessages', () => {
   });
 
   it('messages have unique IDs', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    vi.mocked(client.sendMessage)
+      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-1' })
+      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-2' });
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {

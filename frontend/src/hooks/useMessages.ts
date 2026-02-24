@@ -29,7 +29,7 @@ export function useMessages() {
     try {
       const response = await sendApiMessage(question, getToken);
       const assistantMessage: Message = {
-        id: generateId(),
+        id: response.id,
         role: 'assistant',
         content: response.answer,
         category: response.category,

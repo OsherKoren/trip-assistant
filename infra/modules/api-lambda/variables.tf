@@ -50,3 +50,15 @@ variable "feedback_email" {
   type        = string
   default     = ""
 }
+
+variable "messages_table_name" {
+  description = "DynamoDB table name for message storage"
+  type        = string
+  default     = ""
+}
+
+variable "messages_table_arn" {
+  description = "DynamoDB table ARN for message storage (for IAM permissions)"
+  type        = string
+  default     = ""
+}

@@ -49,11 +49,13 @@ class TestMessageResponse:
     def test_valid_response(self) -> None:
         """Test MessageResponse with all fields."""
         response = MessageResponse(
+            id="msg-123",
             answer="Your flight departs at 3:00 PM",
             category="flight",
             confidence=0.95,
             source="flight.txt",
         )
+        assert response.id == "msg-123"
         assert response.answer == "Your flight departs at 3:00 PM"
         assert response.category == "flight"
         assert response.confidence == 0.95
@@ -62,6 +64,7 @@ class TestMessageResponse:
     def test_response_with_none_source(self) -> None:
         """Test MessageResponse with source=None."""
         response = MessageResponse(
+            id="msg-456",
             answer="I'm not sure about that.",
             category="general",
             confidence=0.5,
@@ -72,7 +75,7 @@ class TestMessageResponse:
     def test_serialization_round_trip(self) -> None:
         """Test serialization and deserialization."""
         original = MessageResponse(
-            answer="Test answer", category="test", confidence=0.9, source="test.txt"
+            id="msg-789", answer="Test answer", category="test", confidence=0.9, source="test.txt"
         )
         # Serialize to dict
         data = original.model_dump()
@@ -98,52 +101,32 @@ class TestFeedbackRequest:
     def test_valid_feedback_request(self) -> None:
         """Test FeedbackRequest with valid fields."""
         request = FeedbackRequest(
-            message_content="Your flight departs at 3:00 PM",
-            category="flight",
-            confidence=0.95,
+            message_id="msg-123",
             rating="up",
         )
-        assert request.message_content == "Your flight departs at 3:00 PM"
-        assert request.category == "flight"
-        assert request.confidence == 0.95
+        assert request.message_id == "msg-123"
         assert request.rating == "up"
         assert request.comment is None
-
-    def test_confidence_optional(self) -> None:
-        """Test FeedbackRequest without confidence."""
-        request = FeedbackRequest(
-            message_content="Test",
-            rating="up",
-        )
-        assert request.confidence is None
-
-    def test_confidence_out_of_range_rejected(self) -> None:
-        """Test that confidence > 1.0 is rejected."""
-        with pytest.raises(ValidationError):
-            FeedbackRequest(message_content="Test", rating="up", confidence=1.5)
-
-        with pytest.raises(ValidationError):
-            FeedbackRequest(message_content="Test", rating="up", confidence=-0.1)
 
     def test_feedback_with_comment(self) -> None:
         """Test FeedbackRequest with optional comment."""
         request = FeedbackRequest(
-            message_content="Wrong answer",
+            message_id="msg-456",
             rating="down",
             comment="The departure time was wrong",
         )
         assert request.rating == "down"
         assert request.comment == "The departure time was wrong"
 
-    def test_empty_message_rejected(self) -> None:
-        """Test that empty message_content is rejected."""
+    def test_empty_message_id_rejected(self) -> None:
+        """Test that empty message_id is rejected."""
         with pytest.raises(ValidationError):
-            FeedbackRequest(message_content="", rating="up")
+            FeedbackRequest(message_id="", rating="up")
 
     def test_invalid_rating_rejected(self) -> None:
         """Test that invalid rating value is rejected."""
         with pytest.raises(ValidationError):
-            FeedbackRequest(message_content="Test", rating="invalid")  # type: ignore
+            FeedbackRequest(message_id="msg-123", rating="invalid")  # type: ignore
 
 
 class TestFeedbackResponse:
