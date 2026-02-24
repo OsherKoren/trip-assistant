@@ -7,6 +7,11 @@
 [![Infrastructure CI](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/infra-ci.yml)
 [![Deploy to AWS Lambda](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml/badge.svg)](https://github.com/OsherKoren/trip-assistant/actions/workflows/deploy.yml)
 
+<!-- Test Coverage -->
+[![Agent Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/OsherKoren/trip-assistant/main/badges/agent-coverage.json)](https://github.com/OsherKoren/trip-assistant/actions/workflows/agent-ci.yml)
+[![API Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/OsherKoren/trip-assistant/main/badges/api-coverage.json)](https://github.com/OsherKoren/trip-assistant/actions/workflows/api-ci.yml)
+[![Frontend Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/OsherKoren/trip-assistant/main/badges/frontend-coverage.json)](https://github.com/OsherKoren/trip-assistant/actions/workflows/frontend-ci.yml)
+
 <!-- Code Quality -->
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/type%20checker-mypy-blue.svg)](https://mypy-lang.org/)

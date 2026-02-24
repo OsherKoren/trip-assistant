@@ -76,7 +76,7 @@ jobs:
       - name: Run unit tests
         env:
           ENVIRONMENT: dev
-        run: pytest tests/ -v -m "not integration" --cov=app --cov-report=xml --cov-report=term
+        run: pytest tests/ -v -m "not integration" --cov=app --cov-report=xml --cov-report=term | tee coverage.txt
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -85,6 +85,23 @@ jobs:
           flags: unittests
           name: api-unit-tests
         if: always()
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        run: |
+          COV=$(grep '^TOTAL' coverage.txt | awk '{print $NF}' | tr -d '%')
+          if (( $(echo "$COV < 70" | bc -l) )); then COLOR="red"
+          elif (( $(echo "$COV < 80" | bc -l) )); then COLOR="orange"
+          elif (( $(echo "$COV < 90" | bc -l) )); then COLOR="yellow"
+          else COLOR="brightgreen"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"api coverage\",\"message\":\"${COV}%\",\"color\":\"${COLOR}\"}" > $GITHUB_WORKSPACE/badges/api-coverage.json
+
+      - name: Commit coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.python-version == '3.13'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update api coverage badge [skip ci]"
+          file_pattern: badges/api-coverage.json
 
   # ========================================
   # JOB 2: Integration Tests (Real API, Main Branch Only)
