@@ -8,9 +8,47 @@ from app.routers.schemas import (
     FeedbackRequest,
     FeedbackResponse,
     HealthResponse,
+    HistoryEntry,
     MessageRequest,
     MessageResponse,
 )
+
+
+class TestHistoryEntry:
+    """Tests for HistoryEntry schema."""
+
+    def test_valid_history_entry(self) -> None:
+        """Test HistoryEntry with valid fields."""
+        entry = HistoryEntry(role="user", content="What time is my flight?")
+        assert entry.role == "user"
+        assert entry.content == "What time is my flight?"
+
+    @pytest.mark.parametrize(
+        "invalid_role",
+        [
+            "system",
+            "USER",
+            "",
+        ],
+    )
+    def test_invalid_role_rejected(self, invalid_role: str) -> None:
+        """Test that invalid role values are rejected."""
+        with pytest.raises(ValidationError):
+            HistoryEntry(role=invalid_role, content="Test")  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize(
+        "invalid_content",
+        [
+            "",
+            "   ",
+            "\t",
+            "\n",
+        ],
+    )
+    def test_empty_content_rejected(self, invalid_content: str) -> None:
+        """Test that empty or whitespace-only content is rejected."""
+        with pytest.raises(ValidationError):
+            HistoryEntry(role="user", content=invalid_content)
 
 
 class TestMessageRequest:
@@ -20,6 +58,27 @@ class TestMessageRequest:
         """Test MessageRequest with valid question."""
         request = MessageRequest(question="What time is my flight?")
         assert request.question == "What time is my flight?"
+        assert request.history == []
+
+    def test_request_with_history(self) -> None:
+        """Test MessageRequest with conversation history."""
+        request = MessageRequest(
+            question="What time is my flight?",
+            history=[
+                {"role": "user", "content": "What time is my flight?"},
+                {
+                    "role": "assistant",
+                    "content": "Your flight departs at 3:00 PM from Terminal 3.",
+                },
+            ],
+        )
+
+        assert request.question == "What time is my flight?"
+        assert len(request.history) == 2
+        assert request.history[0].role == "user"
+        assert request.history[0].content == "What time is my flight?"
+        assert request.history[1].role == "assistant"
+        assert request.history[1].content == "Your flight departs at 3:00 PM from Terminal 3."
 
     @pytest.mark.parametrize(
         "invalid_question",
