@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import type { Feedback, Message } from '../types';
+import { useCallback, useRef, useState } from 'react';
+import type { Feedback, HistoryEntry, Message } from '../types';
 import { sendMessage as sendApiMessage } from '../api/client';
 import { useAuth } from './useAuth';
+
+export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 let nextId = 0;
 function generateId(): string {
@@ -13,8 +15,26 @@ export function useMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
 
   const sendMessage = async (question: string) => {
+    const now = Date.now();
+    let currentMessages: Message[] = [];
+
+    if (now - lastActivityRef.current > SESSION_TIMEOUT_MS) {
+      setMessages([]);
+      setError(null);
+    } else {
+      currentMessages = messages;
+    }
+
+    lastActivityRef.current = now;
+
     const userMessage: Message = {
       id: generateId(),
       role: 'user',
@@ -22,12 +42,17 @@ export function useMessages() {
       timestamp: new Date(),
     };
 
+    const history: HistoryEntry[] = currentMessages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await sendApiMessage(question, getToken);
+      const response = await sendApiMessage(question, getToken, history);
       const assistantMessage: Message = {
         id: response.id,
         role: 'assistant',
@@ -52,5 +77,5 @@ export function useMessages() {
     );
   };
 
-  return { messages, isLoading, error, sendMessage, setFeedback };
+  return { messages, isLoading, error, sendMessage, setFeedback, clearMessages };
 }

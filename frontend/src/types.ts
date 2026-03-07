@@ -23,6 +23,11 @@ export interface MessageResponse {
   source: string | null;
 }
 
+export interface HistoryEntry {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface FeedbackRequest {
   message_id: string;
   rating: FeedbackRating;

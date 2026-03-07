@@ -34,7 +34,7 @@ describe('sendMessage', () => {
           'Content-Type': 'application/json',
           Authorization: 'Bearer test-token',
         },
-        body: JSON.stringify({ question: 'What car did we rent?' }),
+        body: JSON.stringify({ question: 'What car did we rent?', history: [] }),
       }),
     );
   });
@@ -74,7 +74,7 @@ describe('sendMessage', () => {
     await expect(sendMessage('hello', mockGetToken)).rejects.toThrow('Failed to fetch');
   });
 
-  it('request body contains { question } JSON', async () => {
+  it('request body contains { question } JSON with empty history by default', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockResponse),
@@ -84,7 +84,25 @@ describe('sendMessage', () => {
 
     const callArgs = vi.mocked(fetch).mock.calls[0];
     const body = JSON.parse(callArgs[1]?.body as string);
-    expect(body).toEqual({ question: 'Where is our hotel?' });
+    expect(body).toEqual({ question: 'Where is our hotel?', history: [] });
+  });
+
+  it('sends history in request body when provided', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResponse),
+    });
+
+    const history = [
+      { role: 'user' as const, content: 'What car did we rent?' },
+      { role: 'assistant' as const, content: 'You rented from Sixt.' },
+    ];
+
+    await sendMessage('How much did it cost?', mockGetToken, history);
+
+    const callArgs = vi.mocked(fetch).mock.calls[0];
+    const body = JSON.parse(callArgs[1]?.body as string);
+    expect(body).toEqual({ question: 'How much did it cost?', history });
   });
 
   it('calls getToken before sending request', async () => {

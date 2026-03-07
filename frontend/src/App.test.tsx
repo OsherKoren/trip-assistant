@@ -1,7 +1,21 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import App from './App'
 import { AuthContext } from './auth/AuthContext'
 import type { AuthContextType } from './auth/types'
+
+const mockClearMessages = vi.fn()
+
+vi.mock('./hooks/useMessages', () => ({
+  useMessages: () => ({
+    messages: [],
+    isLoading: false,
+    error: null,
+    sendMessage: vi.fn(),
+    setFeedback: vi.fn(),
+    clearMessages: mockClearMessages,
+  }),
+}))
 
 function mockAuthContext(overrides: Partial<AuthContextType> = {}): AuthContextType {
   return {
@@ -29,6 +43,10 @@ function renderWithAuth(overrides: Partial<AuthContextType> = {}) {
 }
 
 describe('App', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('shows loading spinner when auth is loading', () => {
     renderWithAuth({ isLoading: true })
     expect(screen.getByText('Loading...')).toBeInTheDocument()
@@ -57,7 +75,19 @@ describe('App', () => {
 
   it('does not show raw email in header', () => {
     renderWithAuth({ isAuthenticated: true, user: { email: 'test@example.com' } })
-    // Email should only appear inside the dropdown, not directly in the header
     expect(screen.queryByText('test@example.com')).not.toBeInTheDocument()
+  })
+
+  it('renders New Chat button when authenticated', () => {
+    renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
+    expect(screen.getByRole('button', { name: /new chat/i })).toBeInTheDocument()
+  })
+
+  it('calls clearMessages when New Chat button is clicked', async () => {
+    renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
+
+    await userEvent.click(screen.getByRole('button', { name: /new chat/i }))
+
+    expect(mockClearMessages).toHaveBeenCalled()
   })
 })
