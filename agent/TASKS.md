@@ -268,53 +268,33 @@ Fix inconsistent day numbering across data files and add trip timeline to specia
 
 ---
 
-## Phase 7: Conversation History Support
+## Phase 7: CI/CD Pipeline (agent-ci.yml) ✅
 
-Add conversation history so the agent can understand follow-up questions. History is passed in from the API as a list of `{role, content}` entries.
+Add GitHub Actions workflow for automated testing and quality checks on the agent service.
 
-### Task 7.1: Update state schema
-- [ ] Edit `src/schemas.py`
-  - [ ] Add `HistoryEntry` TypedDict with `role: Literal["user", "assistant"]` and `content: str`
-  - [ ] Add `history: NotRequired[list[HistoryEntry]]` field to `TripAssistantState`
-
-### Task 7.2: Add history formatting utility
-- [ ] Edit `src/prompts.py`
-  - [ ] Add `format_history(history, max_turns=10)` function
-    - Returns empty string when history is empty
-    - Truncates to last `max_turns` entries to avoid token overflow
-    - Format: `"Previous conversation:\nUser: ...\nAssistant: ...\n\n"`
-  - [ ] Add `{history}` placeholder to `SPECIALIST_PROMPT_TEMPLATE` (before "Question:")
-  - [ ] Add `{history}` placeholder to `GENERAL_PROMPT_TEMPLATE` (before "Question:")
-
-### Task 7.3: Default history in inject_documents
-- [ ] Edit `src/graph.py`
-  - [ ] In `inject_documents`, default `history` to `[]` if not provided in input state
-  - [ ] Ensures backward compat: `graph.invoke({"question": "..."})` still works
-
-### Task 7.4: Use history in classifier
-- [ ] Edit `src/nodes/classifier.py`
-  - [ ] Read `state.get("history", [])` and include formatted history in the classification prompt
-  - [ ] Helps resolve follow-up references (e.g., "What about the return?" after a flight question)
-
-### Task 7.5: Pass history to specialists
-- [ ] Edit `src/nodes/specialist_factory.py`
-  - [ ] Read `state.get("history", [])` and pass `format_history(history)` to the template
-- [ ] Edit `src/nodes/general.py`
-  - [ ] Same as above for the general specialist
-
-### Task 7.6: Update Lambda handler
-- [ ] Edit `handler.py`
-  - [ ] Extract `history` from the event body alongside `question`
-  - [ ] Pass `{"question": question, "history": history}` to `graph.invoke()`
-
-### Task 7.7: Tests
-- [ ] Update test fixtures (`tests/conftest.py`, `tests/nodes/conftest.py`) to include `history: []` in sample state
-- [ ] Create `tests/test_prompts.py` — tests for `format_history()` (empty, with entries, truncation)
-- [ ] Update `tests/nodes/test_specialists.py` — fix prompt format test to include `{history}` placeholder
-- [ ] Add handler tests for history passing and backward compat
-- [ ] Run `pytest tests/ -v -m "not integration"` (must pass)
-- [ ] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes
+- [x] Create `.github/workflows/agent-ci.yml`
+  - [x] Trigger on pushes and pull requests that touch `agent/**` or the workflow file
+  - [x] Add change detection job using `dorny/paths-filter` to skip when agent files are untouched
+- [x] Add Unit Tests job
+  - [x] Matrix on Python 3.12 and 3.13
+  - [x] Install dependencies with `uv pip install --system -e ".[dev]"`
+  - [x] Run fast unit tests only: `pytest tests/ -v -m "not integration"`
+  - [x] Generate coverage report and upload via `codecov/codecov-action`
+- [x] Add Integration Tests job
+  - [x] Run only on `push` to `main` when agent files changed
+  - [x] Use Python 3.12 and 3.13 matrix
+  - [x] Read `OPENAI_API_KEY` from GitHub Actions secrets
+  - [x] Run `pytest tests/integration/ -v --tb=short`
+  - [x] Log note about expected OpenAI API costs
+- [x] Add Code Quality job
+  - [x] Run Ruff lint and format checks on `src/` and `tests/`
+  - [x] Run MyPy type checking on `src/`
+- [x] Validate workflow on feature branches
+  - [x] Verify unit tests and quality checks run and pass on PRs touching `agent/**`
+  - [x] Verify Codecov receives coverage reports for unit-tests job
+- [x] Validate workflow on `main`
+  - [x] Verify integration tests run only on `push` to `main` with `OPENAI_API_KEY` configured
+  - [x] Verify expected job matrix and timings in GitHub Actions UI
 
 ---
 
@@ -329,5 +309,5 @@ Add conversation history so the agent can understand follow-up questions. Histor
 - [x] All quality checks passing (ruff, mypy, pytest)
 - [x] Graph can be imported and invoked successfully
 - [ ] Integration tests validated with real API (requires OPENAI_API_KEY)
-- [ ] Ready for CI/CD pipeline setup
-- [ ] Ready for AWS deployment (in infra/)
+- [x] Phase 7 CI/CD workflow validated (agent-ci.yml)
+- [ ] Ready for AWS deployment (Phase 8 in infra/)
