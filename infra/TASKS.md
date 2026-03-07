@@ -574,6 +574,7 @@ Change feedback DynamoDB partition key from a separate feedback UUID to `message
 
 ## Future Tasks (Not in Scope)
 
+- [ ] DB-backed conversation sessions — store messages with `session_id` PK + `created_at` SK, load history from DynamoDB instead of frontend. Enables conversation replay, analytics, and page-refresh resume.
 - [ ] Apple Sign-In (requires $99/year Apple Developer Program)
 - [ ] Custom domain + ACM certificate
 - [ ] Production environment (`environments/prod/`)
