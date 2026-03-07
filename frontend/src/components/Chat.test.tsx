@@ -1,11 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { Chat } from './Chat';
-import * as client from '../api/client';
-import type { MessageResponse } from '../types';
-
-vi.mock('../api/client');
+import type { Message } from '../types';
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({
@@ -13,45 +10,49 @@ vi.mock('../hooks/useAuth', () => ({
   }),
 }));
 
-const mockResponse: MessageResponse = {
-  answer: 'You rented a car from Sixt.',
-  category: 'car_rental',
-  confidence: 0.95,
-  source: null,
+const defaultProps = {
+  messages: [] as Message[],
+  isLoading: false,
+  error: null as string | null,
+  onSend: vi.fn(),
+  onFeedback: vi.fn(),
 };
 
 describe('Chat', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    defaultProps.onSend = vi.fn();
+    defaultProps.onFeedback = vi.fn();
   });
 
   it('renders MessageList and MessageInput', () => {
-    render(<Chat />);
+    render(<Chat {...defaultProps} />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
     expect(screen.getByText(/welcome/i)).toBeInTheDocument();
   });
 
-  it('displays error message when error exists', async () => {
-    vi.mocked(client.sendMessage).mockRejectedValue(new Error('Network error'));
-    render(<Chat />);
-
-    await userEvent.type(screen.getByRole('textbox'), 'hello{Enter}');
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Network error');
-    });
+  it('displays error message when error exists', () => {
+    render(<Chat {...defaultProps} error="Network error" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Network error');
   });
 
-  it('sends message through the full flow', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
-    render(<Chat />);
+  it('calls onSend when submitting a message', async () => {
+    render(<Chat {...defaultProps} />);
 
     await userEvent.type(screen.getByRole('textbox'), 'What car did we rent?{Enter}');
 
-    await waitFor(() => {
-      expect(screen.getByText('What car did we rent?')).toBeInTheDocument();
-      expect(screen.getByText('You rented a car from Sixt.')).toBeInTheDocument();
-    });
+    expect(defaultProps.onSend).toHaveBeenCalledWith('What car did we rent?');
+  });
+
+  it('renders messages passed via props', () => {
+    const messages: Message[] = [
+      { id: '1', role: 'user', content: 'Hello', timestamp: new Date() },
+      { id: '2', role: 'assistant', content: 'Hi there!', timestamp: new Date() },
+    ];
+    render(<Chat {...defaultProps} messages={messages} />);
+
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+    expect(screen.getByText('Hi there!')).toBeInTheDocument();
   });
 });

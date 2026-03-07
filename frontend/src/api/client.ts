@@ -1,10 +1,11 @@
-import type { FeedbackRequest, FeedbackResponse, MessageResponse } from '../types';
+import type { FeedbackRequest, FeedbackResponse, HistoryEntry, MessageResponse } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function sendMessage(
   question: string,
   getToken: () => Promise<string>,
+  history: HistoryEntry[] = [],
 ): Promise<MessageResponse> {
   const token = await getToken();
   const response = await fetch(`${API_URL}/api/messages`, {
@@ -13,7 +14,7 @@ export async function sendMessage(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, history }),
   });
 
   if (!response.ok) {
