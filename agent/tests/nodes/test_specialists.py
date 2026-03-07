@@ -141,6 +141,7 @@ def test_specialist_prompt_formats_with_timeline() -> None:
     formatted = SPECIALIST_PROMPT_TEMPLATE.format(
         topic="the Annecy and Geneva itinerary",
         context="Day 13 (July 19): Annecy -> Geneva",
+        history="",
         question="What's planned for July 19?",
     )
     assert "Day 13: July 19" in formatted

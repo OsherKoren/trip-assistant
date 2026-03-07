@@ -23,20 +23,22 @@ from src.schemas import TripAssistantState
 _documents = load_documents()
 
 
-def inject_documents(_state: TripAssistantState) -> dict[str, dict[str, str]]:
-    """Inject cached documents into state.
+def inject_documents(state: TripAssistantState) -> dict[str, object]:
+    """Inject cached documents and default history into state.
 
     Documents are loaded once at module import and reused for every request.
-    This decouples callers from document loading — they only need to pass
-    {"question": "..."} to invoke the graph.
+    History defaults to empty list for backward compatibility.
 
     Args:
-        _state: Current agent state (unused, documents come from cache)
+        state: Current agent state (history may or may not be set)
 
     Returns:
-        Partial state update with cached documents
+        Partial state update with cached documents and defaulted history
     """
-    return {"documents": _documents}
+    result: dict[str, object] = {"documents": _documents}
+    if "history" not in state:
+        result["history"] = []
+    return result
 
 
 def route_by_category(state: TripAssistantState) -> str:
@@ -72,7 +74,7 @@ def create_graph() -> CompiledStateGraph[
     workflow = StateGraph(TripAssistantState)
 
     # Add entry node to inject cached documents
-    workflow.add_node("inject_documents", inject_documents)  # type: ignore[call-overload]
+    workflow.add_node("inject_documents", inject_documents)
 
     # Add classifier node
     workflow.add_node("classifier", classify_question)

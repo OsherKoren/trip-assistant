@@ -24,6 +24,7 @@ def sample_state(sample_documents: dict[str, str]) -> TripAssistantState:
     """Create a sample state for testing."""
     return {
         "question": "What time is our flight?",
+        "history": [],
         "category": "general",
         "confidence": 0.0,
         "documents": sample_documents,
