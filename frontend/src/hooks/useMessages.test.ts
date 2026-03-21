@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useMessages } from './useMessages';
 import * as client from '../api/client';
-import type { MessageResponse } from '../types';
+import type { StreamDone } from '../types';
 
 vi.mock('../api/client');
 
@@ -12,13 +12,33 @@ vi.mock('./useAuth', () => ({
   }),
 }));
 
-const mockResponse: MessageResponse = {
+const mockDone: StreamDone = {
+  done: true,
   id: 'msg-server-456',
   answer: 'You rented a car from Sixt.',
   category: 'car_rental',
   confidence: 0.95,
   source: null,
 };
+
+/** Helper: mock streamMessage to call onToken(s) then onDone */
+function mockStreamSuccess(tokens = ['You rented a car from Sixt.'], done = mockDone) {
+  vi.mocked(client.streamMessage).mockImplementation(
+    async (_q, _t, _h, callbacks) => {
+      for (const token of tokens) callbacks.onToken(token);
+      callbacks.onDone(done);
+    },
+  );
+}
+
+/** Helper: mock streamMessage to call onError */
+function mockStreamError(message: string) {
+  vi.mocked(client.streamMessage).mockImplementation(
+    async (_q, _t, _h, callbacks) => {
+      callbacks.onError(message);
+    },
+  );
+}
 
 describe('useMessages', () => {
   beforeEach(() => {
@@ -34,7 +54,7 @@ describe('useMessages', () => {
   });
 
   it('adds user message to state', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {
@@ -45,28 +65,24 @@ describe('useMessages', () => {
     expect(result.current.messages[0].content).toBe('What car did we rent?');
   });
 
-  it('sets isLoading while waiting', async () => {
-    let resolveApi!: (value: MessageResponse) => void;
-    vi.mocked(client.sendMessage).mockImplementation(
-      () => new Promise((resolve) => { resolveApi = resolve; }),
+  it('sets isLoading while waiting for first token', async () => {
+    let resolveStream!: () => void;
+    vi.mocked(client.streamMessage).mockReturnValue(
+      new Promise<void>((resolve) => { resolveStream = resolve; }),
     );
     const { result } = renderHook(() => useMessages());
 
-    act(() => {
-      result.current.sendMessage('hello');
-    });
+    act(() => { result.current.sendMessage('hello'); });
 
     expect(result.current.isLoading).toBe(true);
 
-    await act(async () => {
-      resolveApi(mockResponse);
-    });
+    await act(async () => { resolveStream(); });
 
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('adds assistant response after API call', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+  it('adds assistant response after streaming completes', async () => {
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {
@@ -77,45 +93,90 @@ describe('useMessages', () => {
     expect(result.current.messages[1].role).toBe('assistant');
     expect(result.current.messages[1].content).toBe('You rented a car from Sixt.');
     expect(result.current.messages[1].category).toBe('car_rental');
+    expect(result.current.messages[1].isStreaming).toBe(false);
   });
 
-  it('passes getToken and empty history to sendMessage on first call', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+  it('streams tokens into assistant message content', async () => {
+    mockStreamSuccess(['Hello ', 'world', '!']);
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hi');
+    });
+
+    expect(result.current.messages[1].content).toBe('Hello world!');
+  });
+
+  it('uses server ID from done event', async () => {
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {
       await result.current.sendMessage('hello');
     });
 
-    expect(client.sendMessage).toHaveBeenCalledWith('hello', expect.any(Function), []);
+    expect(result.current.messages[1].id).toBe('msg-server-456');
   });
 
-  it('passes conversation history to sendMessage on subsequent calls', async () => {
-    vi.mocked(client.sendMessage)
-      .mockResolvedValueOnce(mockResponse)
-      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-789', answer: 'It cost 200 euros.' });
+  it('passes getToken and empty history to streamMessage on first call', async () => {
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {
-      await result.current.sendMessage('What car did we rent?');
+      await result.current.sendMessage('hello');
     });
 
-    await act(async () => {
-      await result.current.sendMessage('How much did it cost?');
-    });
+    expect(client.streamMessage).toHaveBeenCalledWith(
+      'hello',
+      expect.any(Function),
+      [],
+      expect.any(Object),
+    );
+  });
 
-    expect(client.sendMessage).toHaveBeenLastCalledWith(
+  it('passes conversation history to streamMessage on subsequent calls', async () => {
+    const secondDone = { ...mockDone, id: 'msg-server-789', answer: 'It cost 200 euros.' };
+    vi.mocked(client.streamMessage)
+      .mockImplementationOnce(async (_q, _t, _h, cb) => {
+        cb.onToken('You rented a car from Sixt.');
+        cb.onDone(mockDone);
+      })
+      .mockImplementationOnce(async (_q, _t, _h, cb) => {
+        cb.onToken('It cost 200 euros.');
+        cb.onDone(secondDone);
+      });
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => { await result.current.sendMessage('What car did we rent?'); });
+    await act(async () => { await result.current.sendMessage('How much did it cost?'); });
+
+    expect(client.streamMessage).toHaveBeenLastCalledWith(
       'How much did it cost?',
       expect.any(Function),
       [
         { role: 'user', content: 'What car did we rent?' },
         { role: 'assistant', content: 'You rented a car from Sixt.' },
       ],
+      expect.any(Object),
     );
   });
 
-  it('sets error on API failure', async () => {
-    vi.mocked(client.sendMessage).mockRejectedValue(new Error('Network error'));
+  it('sets error on streaming failure (onError callback)', async () => {
+    mockStreamError('Network error');
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(result.current.error).toBe('Network error');
+    expect(result.current.isLoading).toBe(false);
+    // Placeholder message should be removed
+    expect(result.current.messages).toHaveLength(1); // only user message
+  });
+
+  it('sets error when streamMessage throws', async () => {
+    vi.mocked(client.streamMessage).mockRejectedValue(new Error('Network error'));
     const { result } = renderHook(() => useMessages());
 
     await act(async () => {
@@ -127,47 +188,36 @@ describe('useMessages', () => {
   });
 
   it('clears previous error on new message', async () => {
-    vi.mocked(client.sendMessage)
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce(mockResponse);
+    mockStreamError('Network error');
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('fail');
-    });
+    await act(async () => { await result.current.sendMessage('fail'); });
     expect(result.current.error).toBe('Network error');
 
-    await act(async () => {
-      await result.current.sendMessage('succeed');
-    });
+    mockStreamSuccess();
+    await act(async () => { await result.current.sendMessage('succeed'); });
     expect(result.current.error).toBeNull();
   });
 
   it('messages have unique IDs', async () => {
-    vi.mocked(client.sendMessage)
-      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-1' })
-      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-2' });
+    const done2 = { ...mockDone, id: 'msg-server-789' };
+    vi.mocked(client.streamMessage)
+      .mockImplementationOnce(async (_q, _t, _h, cb) => { cb.onToken('a'); cb.onDone(mockDone); })
+      .mockImplementationOnce(async (_q, _t, _h, cb) => { cb.onToken('b'); cb.onDone(done2); });
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('first');
-    });
-    await act(async () => {
-      await result.current.sendMessage('second');
-    });
+    await act(async () => { await result.current.sendMessage('first'); });
+    await act(async () => { await result.current.sendMessage('second'); });
 
     const ids = result.current.messages.map((m) => m.id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(ids.length);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('messages have timestamps', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    await act(async () => { await result.current.sendMessage('hello'); });
 
     for (const msg of result.current.messages) {
       expect(msg.timestamp).toBeInstanceOf(Date);
@@ -175,12 +225,10 @@ describe('useMessages', () => {
   });
 
   it('setFeedback updates message feedback', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    await act(async () => { await result.current.sendMessage('hello'); });
 
     const assistantMsg = result.current.messages[1];
 
@@ -189,61 +237,66 @@ describe('useMessages', () => {
     });
 
     expect(result.current.messages[1].feedback).toEqual({ rating: 'up' });
-    // User message should be unaffected
     expect(result.current.messages[0].feedback).toBeUndefined();
   });
 
-  it('clearMessages resets messages and error', async () => {
-    vi.mocked(client.sendMessage).mockRejectedValue(new Error('fail'));
+  it('setFeedback with down rating and comment', async () => {
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('hello');
+    await act(async () => { await result.current.sendMessage('hello'); });
+
+    const assistantMsg = result.current.messages[1];
+
+    act(() => {
+      result.current.setFeedback(assistantMsg.id, { rating: 'down', comment: 'Wrong answer' });
     });
+
+    expect(result.current.messages[1].feedback).toEqual({ rating: 'down', comment: 'Wrong answer' });
+  });
+
+  it('clearMessages resets messages and error', async () => {
+    mockStreamError('fail');
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => { await result.current.sendMessage('hello'); });
     expect(result.current.messages.length).toBeGreaterThan(0);
     expect(result.current.error).toBe('fail');
 
-    act(() => {
-      result.current.clearMessages();
-    });
+    act(() => { result.current.clearMessages(); });
 
     expect(result.current.messages).toEqual([]);
     expect(result.current.error).toBeNull();
   });
 
   it('clears messages when session has expired', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    mockStreamSuccess();
     const { result } = renderHook(() => useMessages());
 
-    await act(async () => {
-      await result.current.sendMessage('first');
-    });
+    await act(async () => { await result.current.sendMessage('first'); });
     expect(result.current.messages).toHaveLength(2);
 
-    // Simulate session timeout by advancing Date.now
     const originalNow = Date.now;
     Date.now = () => originalNow() + 31 * 60 * 1000;
 
-    await act(async () => {
-      await result.current.sendMessage('after timeout');
-    });
+    mockStreamSuccess(['after timeout answer'], { ...mockDone, id: 'msg-new', answer: 'after timeout answer' });
+    await act(async () => { await result.current.sendMessage('after timeout'); });
 
-    // Old messages should be cleared; only the new user + assistant messages remain
     expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[0].content).toBe('after timeout');
 
-    // History should be empty (session was reset)
-    expect(client.sendMessage).toHaveBeenLastCalledWith(
+    expect(client.streamMessage).toHaveBeenLastCalledWith(
       'after timeout',
       expect.any(Function),
       [],
+      expect.any(Object),
     );
 
     Date.now = originalNow;
   });
 
   it('loadMessages replaces messages and clears error', async () => {
-    vi.mocked(client.sendMessage).mockRejectedValue(new Error('fail'));
+    mockStreamError('fail');
     const { result } = renderHook(() => useMessages());
 
     await act(async () => { await result.current.sendMessage('hello'); });
@@ -258,22 +311,5 @@ describe('useMessages', () => {
 
     expect(result.current.messages).toEqual(loaded);
     expect(result.current.error).toBeNull();
-  });
-
-  it('setFeedback with down rating and comment', async () => {
-    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
-    const { result } = renderHook(() => useMessages());
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
-
-    const assistantMsg = result.current.messages[1];
-
-    act(() => {
-      result.current.setFeedback(assistantMsg.id, { rating: 'down', comment: 'Wrong answer' });
-    });
-
-    expect(result.current.messages[1].feedback).toEqual({ rating: 'down', comment: 'Wrong answer' });
   });
 });

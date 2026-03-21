@@ -4,17 +4,19 @@ Fetches the OpenAI API key from SSM Parameter Store on first invocation
 (cached per Lambda container), then delegates to the LangGraph graph.
 """
 
+import asyncio
 import json
 import os
 from typing import Any
 
 import boto3
+from langgraph.graph.state import CompiledStateGraph
 
 _graph = None
 PING_SENTINEL = "__ping__"
 
 
-def _get_graph():
+def _get_graph() -> CompiledStateGraph:  # type: ignore[type-arg]
     """Lazily initialize the graph (cold start only).
 
     Fetches the API key from SSM and imports the graph on first call.
@@ -72,7 +74,7 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:  # noqa: ARG
     history = body.get("history", [])
 
     graph = _get_graph()
-    result = graph.invoke({"question": question, "history": history})
+    result = asyncio.run(graph.ainvoke({"question": question, "history": history}))
 
     return {
         "statusCode": 200,

@@ -26,7 +26,10 @@ export function MessageBubble({ message, onFeedback }: MessageBubbleProps) {
             </div>
           )}
         </div>
-        {!isUser && (
+        {!isUser && message.isStreaming && (
+          <span className="inline-block w-0.5 h-4 bg-gray-500 dark:bg-gray-400 animate-pulse ml-0.5 align-middle" />
+        )}
+        {!isUser && !message.isStreaming && (
           <div className="flex items-center justify-between mt-1">
             {onFeedback && (
               <MessageFeedback

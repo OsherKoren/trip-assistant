@@ -58,7 +58,7 @@ def create_specialist(
             assert isinstance(response.content, str), "Expected string response from LLM"
             answer = response.content
         except Exception as e:
-            logger.error(f"{category.title()} specialist failed: {e}")
+            logger.error("Specialist failed", category=category, error=str(e))
             answer = (
                 f"Sorry, I couldn't retrieve {TOPICS[category]} information right now. "
                 "Please try again."

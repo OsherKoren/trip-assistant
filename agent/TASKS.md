@@ -313,13 +313,27 @@ Reduce response latency from ~10s by fixing two inefficiencies in the agent node
 
 ---
 
+---
+
+## Fix: Lambda Handler Sync/Async Mismatch ✅
+
+Handler used `graph.invoke()` (sync) after all nodes were converted to `async def` — caused 500 errors in production and SAM local tests.
+
+- [x] Change `graph.invoke(...)` → `asyncio.run(graph.ainvoke(...))` in `handler.py`
+- [x] Add `import asyncio` to `handler.py`
+- [x] Update `tests/test_handler.py` — `mock_graph.invoke` → `mock_graph.ainvoke` with `AsyncMock`
+- [x] Run `pytest tests/ -v -m "not integration"` (80 tests pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)
 - [x] Phase 6 completed (Integration tests)
 - [x] Date/Day query fix completed
-- [ ] Phase 7 completed (Conversation history support)
-- [x] All unit tests passing (72 tests, mocked)
+- [x] Phase 7 completed (Conversation history support)
+- [x] All unit tests passing (80 tests, mocked)
 - [x] Integration test framework ready (15 tests, skip without API key)
 - [x] All quality checks passing (ruff, mypy, pytest)
 - [x] Graph can be imported and invoked successfully

@@ -68,7 +68,7 @@ Classify this question and provide a confidence score (0.0-1.0)."""
     try:
         classification = cast(TopicClassification, await _structured_llm.ainvoke(prompt))
     except Exception as e:
-        logger.error(f"Classifier failed: {e}")
+        logger.error("Classifier failed", error=str(e))
         # Fallback to general category with zero confidence
         classification = TopicClassification(category="general", confidence=0.0)
 

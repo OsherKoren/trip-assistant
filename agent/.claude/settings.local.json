@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:rosmur.github.io)"
+      "WebFetch(domain:rosmur.github.io)",
+      "Bash(cd C:/Users/oshra/PycharmProjects/trip-assistant/api && uv run pre-commit run --all-files 2>&1)"
     ]
   }
 }
