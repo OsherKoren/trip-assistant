@@ -268,14 +268,46 @@ Fix inconsistent day numbering across data files and add trip timeline to specia
 
 ---
 
+## Phase 7: CI/CD Pipeline (agent-ci.yml) ✅
+
+Add GitHub Actions workflow for automated testing and quality checks on the agent service.
+
+- [x] Create `.github/workflows/agent-ci.yml`
+  - [x] Trigger on pushes and pull requests that touch `agent/**` or the workflow file
+  - [x] Add change detection job using `dorny/paths-filter` to skip when agent files are untouched
+- [x] Add Unit Tests job
+  - [x] Matrix on Python 3.12 and 3.13
+  - [x] Install dependencies with `uv pip install --system -e ".[dev]"`
+  - [x] Run fast unit tests only: `pytest tests/ -v -m "not integration"`
+  - [x] Generate coverage report and upload via `codecov/codecov-action`
+- [x] Add Integration Tests job
+  - [x] Run only on `push` to `main` when agent files changed
+  - [x] Use Python 3.12 and 3.13 matrix
+  - [x] Read `OPENAI_API_KEY` from GitHub Actions secrets
+  - [x] Run `pytest tests/integration/ -v --tb=short`
+  - [x] Log note about expected OpenAI API costs
+- [x] Add Code Quality job
+  - [x] Run Ruff lint and format checks on `src/` and `tests/`
+  - [x] Run MyPy type checking on `src/`
+- [x] Validate workflow on feature branches
+  - [x] Verify unit tests and quality checks run and pass on PRs touching `agent/**`
+  - [x] Verify Codecov receives coverage reports for unit-tests job
+- [x] Validate workflow on `main`
+  - [x] Verify integration tests run only on `push` to `main` with `OPENAI_API_KEY` configured
+  - [x] Verify expected job matrix and timings in GitHub Actions UI
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)
 - [x] Phase 6 completed (Integration tests)
-- [x] All unit tests passing (49 tests, mocked)
+- [x] Date/Day query fix completed
+- [ ] Phase 7 completed (Conversation history support)
+- [x] All unit tests passing (72 tests, mocked)
 - [x] Integration test framework ready (15 tests, skip without API key)
 - [x] All quality checks passing (ruff, mypy, pytest)
 - [x] Graph can be imported and invoked successfully
 - [ ] Integration tests validated with real API (requires OPENAI_API_KEY)
-- [ ] Ready for CI/CD pipeline setup (Phase 7)
+- [x] Phase 7 CI/CD workflow validated (agent-ci.yml)
 - [ ] Ready for AWS deployment (Phase 8 in infra/)

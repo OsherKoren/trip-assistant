@@ -1,5 +1,35 @@
 """Prompt templates for LLM nodes."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.schemas import HistoryEntry
+
+
+def format_history(history: list[HistoryEntry], max_turns: int = 10) -> str:
+    """Format conversation history into a prompt string.
+
+    Args:
+        history: List of history entries with role and content.
+        max_turns: Maximum number of entries to include (most recent).
+
+    Returns:
+        Formatted history string, or empty string if no history.
+    """
+    if not history:
+        return ""
+
+    recent = history[-max_turns:]
+    lines = []
+    for entry in recent:
+        prefix = "User" if entry["role"] == "user" else "Assistant"
+        lines.append(f"{prefix}: {entry['content']}")
+
+    return "Previous conversation:\n" + "\n".join(lines) + "\n\n"
+
+
 # Specialist prompt template
 # Used by all topic-specific specialists (flight, car_rental, etc.)
 SPECIALIST_PROMPT_TEMPLATE = """Answer the following question about {topic} using only the provided context.
@@ -18,7 +48,7 @@ Use this mapping when the user asks about a specific day number or date.
 Context:
 {context}
 
-Question: {question}
+{history}Question: {question}
 
 Provide a clear, concise answer based on the context. If the context lists multiple options or alternatives, present ALL of them so the user can choose — do not pick one on their behalf. If the context doesn't contain the information, say so."""
 
@@ -29,7 +59,7 @@ GENERAL_PROMPT_TEMPLATE = """Answer the following question about a family trip t
 Available information:
 {context}
 
-Question: {question}
+{history}Question: {question}
 
 Provide a helpful answer based on the available information. If the question is unclear or you need more details, ask for clarification."""
 

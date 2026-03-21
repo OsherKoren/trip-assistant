@@ -79,7 +79,7 @@ describe('useMessages', () => {
     expect(result.current.messages[1].category).toBe('car_rental');
   });
 
-  it('passes getToken to sendMessage', async () => {
+  it('passes getToken and empty history to sendMessage on first call', async () => {
     vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
     const { result } = renderHook(() => useMessages());
 
@@ -87,7 +87,31 @@ describe('useMessages', () => {
       await result.current.sendMessage('hello');
     });
 
-    expect(client.sendMessage).toHaveBeenCalledWith('hello', expect.any(Function));
+    expect(client.sendMessage).toHaveBeenCalledWith('hello', expect.any(Function), []);
+  });
+
+  it('passes conversation history to sendMessage on subsequent calls', async () => {
+    vi.mocked(client.sendMessage)
+      .mockResolvedValueOnce(mockResponse)
+      .mockResolvedValueOnce({ ...mockResponse, id: 'msg-server-789', answer: 'It cost 200 euros.' });
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('What car did we rent?');
+    });
+
+    await act(async () => {
+      await result.current.sendMessage('How much did it cost?');
+    });
+
+    expect(client.sendMessage).toHaveBeenLastCalledWith(
+      'How much did it cost?',
+      expect.any(Function),
+      [
+        { role: 'user', content: 'What car did we rent?' },
+        { role: 'assistant', content: 'You rented a car from Sixt.' },
+      ],
+    );
   });
 
   it('sets error on API failure', async () => {
@@ -167,6 +191,55 @@ describe('useMessages', () => {
     expect(result.current.messages[1].feedback).toEqual({ rating: 'up' });
     // User message should be unaffected
     expect(result.current.messages[0].feedback).toBeUndefined();
+  });
+
+  it('clearMessages resets messages and error', async () => {
+    vi.mocked(client.sendMessage).mockRejectedValue(new Error('fail'));
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+    expect(result.current.messages.length).toBeGreaterThan(0);
+    expect(result.current.error).toBe('fail');
+
+    act(() => {
+      result.current.clearMessages();
+    });
+
+    expect(result.current.messages).toEqual([]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('clears messages when session has expired', async () => {
+    vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => {
+      await result.current.sendMessage('first');
+    });
+    expect(result.current.messages).toHaveLength(2);
+
+    // Simulate session timeout by advancing Date.now
+    const originalNow = Date.now;
+    Date.now = () => originalNow() + 31 * 60 * 1000;
+
+    await act(async () => {
+      await result.current.sendMessage('after timeout');
+    });
+
+    // Old messages should be cleared; only the new user + assistant messages remain
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[0].content).toBe('after timeout');
+
+    // History should be empty (session was reset)
+    expect(client.sendMessage).toHaveBeenLastCalledWith(
+      'after timeout',
+      expect.any(Function),
+      [],
+    );
+
+    Date.now = originalNow;
   });
 
   it('setFeedback with down rating and comment', async () => {

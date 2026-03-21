@@ -5,6 +5,33 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 
+class HistoryEntry(BaseModel):
+    """A single conversation history entry.
+
+    Attributes:
+        role: Speaker role in the conversation ("user" or "assistant").
+        content: Message content for this turn.
+    """
+
+    role: Literal["user", "assistant"] = Field(
+        ...,
+        description='Speaker role in the conversation (either "user" or "assistant")',
+    )
+    content: str = Field(
+        ...,
+        min_length=1,
+        description="Message content for this turn",
+    )
+
+    @field_validator("content")
+    @classmethod
+    def content_not_empty(cls, value: str) -> str:
+        """Validate that content is not empty or whitespace only."""
+        if not value.strip():
+            raise ValueError("Content cannot be empty or whitespace only")
+        return value.strip()
+
+
 class MessageRequest(BaseModel):
     """Request model for message endpoint.
 
@@ -13,11 +40,25 @@ class MessageRequest(BaseModel):
     """
 
     question: str = Field(..., min_length=1, description="User's question about the trip")
+    history: list[HistoryEntry] = Field(
+        default_factory=list,
+        description="Optional conversation history between user and assistant",
+    )
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "question": "What time is our flight?",
+                "history": [
+                    {
+                        "role": "user",
+                        "content": "What time is our flight?",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Your flight departs at 3:00 PM from Terminal 3.",
+                    },
+                ],
             }
         }
     }

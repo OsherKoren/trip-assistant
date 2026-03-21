@@ -3,7 +3,7 @@
 from langchain_openai import ChatOpenAI
 
 from src.logger import logger
-from src.prompts import GENERAL_PROMPT_TEMPLATE
+from src.prompts import GENERAL_PROMPT_TEMPLATE, format_history
 from src.schemas import SpecialistOutput, TripAssistantState
 
 
@@ -21,6 +21,7 @@ def handle_general(state: TripAssistantState) -> SpecialistOutput:
     """
     question = state["question"]
     documents = state["documents"]
+    history = state.get("history", [])
 
     # Combine all documents for context
     all_context = "\n\n".join([f"=== {name} ===\n{content}" for name, content in documents.items()])
@@ -31,6 +32,7 @@ def handle_general(state: TripAssistantState) -> SpecialistOutput:
     # Create prompt from template
     prompt = GENERAL_PROMPT_TEMPLATE.format(
         context=all_context,
+        history=format_history(history),
         question=question,
     )
 

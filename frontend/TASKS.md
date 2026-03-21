@@ -568,6 +568,47 @@ Align with backend: `FeedbackResponse` returns `message_id` instead of separate 
 
 ---
 
+## Phase 15: Conversation History with 30-Minute Sessions
+
+Send conversation history with each API request and auto-clear after 30 minutes of inactivity.
+
+### Task 15.1: Add HistoryEntry type
+- [x] Edit `src/types.ts`
+  - [x] Add `HistoryEntry` interface: `{ role: 'user' | 'assistant'; content: string }`
+
+### Task 15.2: Update API client
+- [x] Edit `src/api/client.ts`
+  - [x] Add `history` parameter to `sendMessage()` (default `[]`)
+  - [x] Include `history` in the JSON body
+
+### Task 15.3: Add session management to useMessages
+- [x] Edit `src/hooks/useMessages.ts`
+  - [x] Add `lastActivityRef = useRef<number>(Date.now())` for tracking inactivity
+  - [x] Add `SESSION_TIMEOUT_MS = 30 * 60 * 1000` constant
+  - [x] On each `sendMessage`: check if session expired → if yes, clear messages before proceeding
+  - [x] Build history from current messages (map to `{role, content}`) and pass to API client
+  - [x] Update `lastActivityRef` on each send
+  - [x] Add `clearMessages` callback for the "New Chat" button
+
+### Task 15.4: Lift useMessages to App + add "New Chat" button
+- [x] Edit `src/App.tsx`
+  - [x] Move `useMessages()` call from `Chat` to `App`
+  - [x] Pass messages, handlers as props to `Chat`
+  - [x] Replace `<div className="w-10" />` placeholder with a "New Chat" button calling `clearMessages`
+- [x] Edit `src/components/Chat.tsx`
+  - [x] Convert from using `useMessages()` hook internally to accepting props
+
+### Task 15.5: Tests
+- [x] Update `src/api/client.test.ts` — test `sendMessage` sends history in body
+- [x] Update `src/hooks/useMessages.test.ts` — test session expiry, history building, clearMessages
+- [x] Update `src/components/Chat.test.tsx` — adapt to props-based interface
+- [x] Update `src/App.test.tsx` — test "New Chat" button
+- [x] Run `npm test` — 99 tests pass
+- [x] Run `npm run build` — no errors
+- [ ] Commit changes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -585,7 +626,8 @@ Align with backend: `FeedbackResponse` returns `message_id` instead of separate 
 - [x] Phase 12 completed (Confidence indicator pill)
 - [x] Phase 13 completed (Server message ID for feedback)
 - [x] Phase 14 completed (Simplify FeedbackResponse)
-- [x] All unit tests passing (96 tests, mocked API)
+- [x] Phase 15 completed (Conversation history with 30-minute sessions)
+- [x] All unit tests passing (99 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
 - [x] Ready for S3 + CloudFront deployment

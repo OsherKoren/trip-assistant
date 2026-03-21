@@ -41,11 +41,16 @@ async def create_message(
     logger.info(
         "Processing message request",
         question_preview=request_body.question[:50],
+        history_length=len(request_body.history),
     )
 
     try:
-        # Invoke agent with user question (async for better I/O performance)
-        result = await graph.ainvoke({"question": request_body.question})
+        # Invoke agent with user question and optional history (async for better I/O performance)
+        state = {
+            "question": request_body.question,
+            "history": [entry.model_dump() for entry in request_body.history],
+        }
+        result = await graph.ainvoke(state)
 
         message_id = str(uuid.uuid4())
         response = MessageResponse(

@@ -69,8 +69,10 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:  # noqa: ARG
             ),
         }
 
+    history = body.get("history", [])
+
     graph = _get_graph()
-    result = graph.invoke({"question": question})
+    result = graph.invoke({"question": question, "history": history})
 
     return {
         "statusCode": 200,

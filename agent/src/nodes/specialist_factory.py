@@ -6,7 +6,7 @@ from typing import Any
 from langchain_openai import ChatOpenAI
 
 from src.logger import logger
-from src.prompts import SPECIALIST_PROMPT_TEMPLATE, TOPICS
+from src.prompts import SPECIALIST_PROMPT_TEMPLATE, TOPICS, format_history
 from src.schemas import TopicCategory, TripAssistantState
 
 
@@ -43,12 +43,14 @@ def create_specialist(
         """
         question = state["question"]
         context = state["current_context"]
+        history = state.get("history", [])
 
         llm = ChatOpenAI(model=model, temperature=0)
 
         prompt = SPECIALIST_PROMPT_TEMPLATE.format(
             topic=TOPICS[category],
             context=context,
+            history=format_history(history),
             question=question,
         )
 

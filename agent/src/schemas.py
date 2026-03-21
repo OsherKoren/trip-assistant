@@ -6,7 +6,7 @@ This module contains all data structure definitions including:
 - TypedDicts (State and partial state updates)
 """
 
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +39,13 @@ class TopicClassification(BaseModel):
     )
 
 
+class HistoryEntry(TypedDict):
+    """A single conversation history entry."""
+
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class ClassifierOutput(TypedDict):
     """Return type for classifier node (partial state update)."""
 
@@ -68,6 +75,7 @@ class TripAssistantState(TypedDict):
     """
 
     question: str
+    history: NotRequired[list[HistoryEntry]]
     category: TopicCategory
     confidence: float
     documents: dict[str, str]

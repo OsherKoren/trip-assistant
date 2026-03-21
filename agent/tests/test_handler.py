@@ -46,7 +46,9 @@ class TestHandler:
         assert body["category"] == "flight"
         assert body["confidence"] == 0.95
         assert body["source"] == "flight.txt"
-        mock_graph.invoke.assert_called_once_with({"question": "How do I get to Geneva?"})
+        mock_graph.invoke.assert_called_once_with(
+            {"question": "How do I get to Geneva?", "history": []}
+        )
 
     def test_api_gateway_proxy_event(self, mock_graph):
         """Handler processes API Gateway proxy event with JSON body."""
@@ -56,7 +58,9 @@ class TestHandler:
         result = handler(event, None)
 
         assert result["statusCode"] == 200
-        mock_graph.invoke.assert_called_once_with({"question": "What about car rental?"})
+        mock_graph.invoke.assert_called_once_with(
+            {"question": "What about car rental?", "history": []}
+        )
 
     def test_missing_question_returns_400(self, mock_graph):
         """Handler returns 400 when question is missing."""
@@ -93,6 +97,33 @@ class TestHandler:
         assert body["confidence"] == 1.0
         assert body["source"] is None
         mock_graph.invoke.assert_not_called()
+
+    def test_passes_history_to_graph(self, mock_graph):
+        """Handler passes history from event body to graph.invoke()."""
+        from handler import handler
+
+        history = [
+            {"role": "user", "content": "What time is the flight?"},
+            {"role": "assistant", "content": "10:00 AM"},
+        ]
+        event = {"question": "What about the return?", "history": history}
+        result = handler(event, None)
+
+        assert result["statusCode"] == 200
+        mock_graph.invoke.assert_called_once_with(
+            {"question": "What about the return?", "history": history}
+        )
+
+    def test_defaults_history_to_empty_list(self, mock_graph):
+        """Handler defaults history to [] when not provided."""
+        from handler import handler
+
+        event = {"question": "What time is the flight?"}
+        handler(event, None)
+
+        mock_graph.invoke.assert_called_once_with(
+            {"question": "What time is the flight?", "history": []}
+        )
 
     def test_ping_initializes_graph(self, mocker):
         """Ping sentinel calls _get_graph() for cold start validation."""

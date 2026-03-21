@@ -47,3 +47,6 @@ htmlcov/
 .env
 .env.local
 env.json
+
+# Claude Code local settings
+settings.local.json

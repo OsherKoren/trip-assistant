@@ -5,6 +5,7 @@ from typing import cast
 from langchain_openai import ChatOpenAI
 
 from src.logger import logger
+from src.prompts import format_history
 from src.schemas import (
     ClassifierOutput,
     TopicCategory,
@@ -38,10 +39,14 @@ def classify_question(state: TripAssistantState) -> ClassifierOutput:
     """
     question = state["question"]
     documents = state["documents"]
+    history = state.get("history", [])
 
     # Initialize LLM with structured output
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     structured_llm = llm.with_structured_output(TopicClassification)
+
+    # Build history context for classification
+    history_text = format_history(history)
 
     # Classification prompt
     prompt = f"""Classify the following question about a family trip to the French/Italian Alps.
@@ -55,7 +60,7 @@ Available categories:
 - annecy_geneva: Questions about Annecy/Geneva itinerary (July 16-20)
 - general: Unclear questions or general trip questions
 
-Question: {question}
+{history_text}Question: {question}
 
 Classify this question and provide a confidence score (0.0-1.0)."""
 

@@ -6,6 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
+from tests.conftest import MockGraph
+
 
 def test_post_messages_success(client: TestClient, mock_graph_result: dict[str, Any]) -> None:
     """Test POST /api/messages returns successful response."""
@@ -18,6 +20,58 @@ def test_post_messages_success(client: TestClient, mock_graph_result: dict[str, 
     assert data["category"] == mock_graph_result["category"]
     assert data["confidence"] == mock_graph_result["confidence"]
     assert data["source"] == mock_graph_result["source"]
+
+
+def test_post_messages_forwards_history(
+    client: TestClient,
+    mock_graph: MockGraph,
+) -> None:
+    """Test POST /api/messages forwards history to the agent graph."""
+    history = [
+        {"role": "user", "content": "What time is our flight?"},
+        {
+            "role": "assistant",
+            "content": "Your flight departs at 3:00 PM from Terminal 3.",
+        },
+    ]
+
+    response = client.post(
+        "/api/messages",
+        json={
+            "question": "Is there a meal on that flight?",
+            "history": history,
+        },
+    )
+
+    assert response.status_code == 200
+
+    # History should be forwarded to the graph state
+    assert isinstance(mock_graph, MockGraph)
+    assert len(mock_graph.invoke_calls) == 1
+    state = mock_graph.invoke_calls[0]
+    assert state["question"] == "Is there a meal on that flight?"
+    assert "history" in state
+    assert state["history"] == history
+
+
+def test_post_messages_without_history_uses_empty_list(
+    client: TestClient,
+    mock_graph: MockGraph,
+) -> None:
+    """Test POST /api/messages without history still works and passes empty list."""
+    response = client.post(
+        "/api/messages",
+        json={"question": "What time is our flight?"},
+    )
+
+    assert response.status_code == 200
+
+    assert isinstance(mock_graph, MockGraph)
+    assert len(mock_graph.invoke_calls) == 1
+    state = mock_graph.invoke_calls[0]
+    assert state["question"] == "What time is our flight?"
+    assert "history" in state
+    assert state["history"] == []
 
 
 def test_post_messages_validation_empty_question(client: TestClient) -> None:

@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Chat } from '../../components/Chat';
+import { useMessages } from '../../hooks/useMessages';
 import { API_URL } from './setup';
 
 vi.mock('../../hooks/useAuth', () => ({
@@ -8,6 +9,19 @@ vi.mock('../../hooks/useAuth', () => ({
     getToken: vi.fn().mockResolvedValue('mock-token'),
   }),
 }));
+
+function ChatWithHook() {
+  const { messages, isLoading, error, sendMessage, setFeedback } = useMessages();
+  return (
+    <Chat
+      messages={messages}
+      isLoading={isLoading}
+      error={error}
+      onSend={sendMessage}
+      onFeedback={setFeedback}
+    />
+  );
+}
 
 const canReachApi = async (): Promise<boolean> => {
   if (!API_URL) return false;
@@ -32,7 +46,7 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
   it('sends a real question and gets an answer', async () => {
     if (!apiReachable) return;
 
-    render(<Chat />);
+    render(<ChatWithHook />);
     const user = userEvent.setup();
 
     await user.type(screen.getByRole('textbox'), 'What car did we rent?');
@@ -55,7 +69,7 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
   it('sends a flight question and gets a flight-related answer', async () => {
     if (!apiReachable) return;
 
-    render(<Chat />);
+    render(<ChatWithHook />);
     const user = userEvent.setup();
 
     await user.type(screen.getByRole('textbox'), 'What are our flight details?');
@@ -73,7 +87,7 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
   it('handles multiple messages in sequence', async () => {
     if (!apiReachable) return;
 
-    render(<Chat />);
+    render(<ChatWithHook />);
     const user = userEvent.setup();
 
     // First message
@@ -107,7 +121,7 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    render(<Chat />);
+    render(<ChatWithHook />);
     const user = userEvent.setup();
 
     await user.type(screen.getByRole('textbox'), 'test');

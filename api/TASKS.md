@@ -490,32 +490,6 @@ Add GitHub Actions workflow for automated testing, building, and deployment.
 
 ---
 
-## Completion Criteria
-
-- [x] Phase 1 completed (Project setup & schemas)
-- [x] Phase 2 completed (Dependencies & agent initialization)
-- [x] Phase 3 completed (API routes)
-- [x] Phase 4 completed (FastAPI app & middleware)
-- [x] Phase 5 completed (Lambda handler)
-- [x] Phase 6 completed (Docker & deployment configuration)
-- [x] Phase 7 completed (Local development & SAM configuration)
-- [x] Phase 8 completed (Integration tests)
-- [x] Phase 9 completed (CI/CD pipeline)
-- [x] All unit tests passing (44 tests, mocked agent)
-- [x] Integration tests ready (11 tests, skip without API key)
-- [x] All quality checks passing (ruff, mypy, pre-commit)
-- [x] Dual-mode dependencies work (dev imports local, prod calls Lambda)
-- [x] Production Dockerfile builds successfully
-- [x] Direct FastAPI development works (`fastapi dev app/main.py`)
-- [x] SAM template valid for deployment (Docker optional for local testing)
-- [x] Integration tests validated with real OpenAI API
-- [ ] CI/CD pipeline runs all jobs successfully (pending GitHub Actions verification)
-- [ ] Version tagging works (api-v prefix, 3-tag strategy, verified on merge to main)
-- [x] Ready for frontend integration (via direct FastAPI or SAM)
-- [x] Ready for AWS Lambda deployment (via infra/)
-
----
-
 ## Phase 10: Feedback Endpoint ✅
 
 Backend endpoint for storing feedback in DynamoDB and sending email notifications via SES.
@@ -620,3 +594,55 @@ Remove redundant feedback UUID — use `message_id` as the natural key (1:1 with
 ### Task 12.5: Verify
 - [x] `uv run pytest tests/ -v -m "not integration"` — 68 tests pass
 - [x] Pre-commit: ruff, ruff-format, mypy all pass
+
+---
+
+## Phase 13: Conversation History Support
+
+Forward conversation history from the frontend to the agent for follow-up question context.
+
+### Task 13.1: Update API schemas
+- [x] Edit `app/routers/schemas.py`
+  - [x] Add `HistoryEntry` Pydantic model with `role: Literal["user", "assistant"]` and `content: str`
+  - [x] Add `history: list[HistoryEntry] = Field(default_factory=list)` to `MessageRequest`
+
+### Task 13.2: Forward history to agent
+- [x] Edit `app/routers/messages.py`
+  - [x] Include history in `graph.ainvoke()`: `{"question": ..., "history": [h.model_dump() for h in request_body.history]}`
+
+### Task 13.3: Tests
+- [x] Update `tests/test_schemas.py` — schema validation for `HistoryEntry` and `MessageRequest` with history
+- [x] Update `tests/test_main.py` — test endpoint passes history to graph, test backward compat (request without history)
+- [x] Run `uv run pytest tests/ -v -m "not integration"` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+- [ ] Commit changes
+
+---
+
+## Completion Criteria
+
+- [x] Phase 1 completed (Project setup & schemas)
+- [x] Phase 2 completed (Dependencies & agent initialization)
+- [x] Phase 3 completed (API routes)
+- [x] Phase 4 completed (FastAPI app & middleware)
+- [x] Phase 5 completed (Lambda handler)
+- [x] Phase 6 completed (Docker & deployment configuration)
+- [x] Phase 7 completed (Local development & SAM configuration)
+- [x] Phase 8 completed (Integration tests)
+- [x] Phase 9 completed (CI/CD pipeline)
+- [x] Phase 10 completed (Feedback endpoint)
+- [x] Phase 11 completed (Message storage & feedback refactor)
+- [x] Phase 12 completed (Simplify feedback to use message_id as key)
+- [x] Phase 13 completed (Conversation history support)
+- [x] All unit tests passing (68 tests, mocked agent)
+- [x] Integration tests ready (11 tests, skip without API key)
+- [x] All quality checks passing (ruff, mypy, pre-commit)
+- [x] Dual-mode dependencies work (dev imports local, prod calls Lambda)
+- [x] Production Dockerfile builds successfully
+- [x] Direct FastAPI development works (`fastapi dev app/main.py`)
+- [x] SAM template valid for deployment (Docker optional for local testing)
+- [x] Integration tests validated with real OpenAI API
+- [ ] CI/CD pipeline runs all jobs successfully (pending GitHub Actions verification)
+- [ ] Version tagging works (api-v prefix, 3-tag strategy, verified on merge to main)
+- [x] Ready for frontend integration (via direct FastAPI or SAM)
+- [x] Ready for AWS Lambda deployment (via infra/)
