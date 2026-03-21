@@ -2,6 +2,9 @@
 WORKSAPCE
 WORKSPACE
 
+# Claude Code temporary files
+.claude/.reviews-done
+
 # Python
 __pycache__/
 *.py[cod]

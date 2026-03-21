@@ -42,7 +42,7 @@ async def handle_general(state: TripAssistantState) -> SpecialistOutput:
         assert isinstance(response.content, str), "Expected string response from LLM"
         answer = response.content
     except Exception as e:
-        logger.error(f"General specialist failed: {e}")
+        logger.error("General specialist failed", error=str(e))
         answer = (
             "Sorry, I couldn't process your question right now. "
             "Please try rephrasing or asking something more specific."

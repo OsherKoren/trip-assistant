@@ -10,12 +10,13 @@ import os
 from typing import Any
 
 import boto3
+from langgraph.graph.state import CompiledStateGraph
 
 _graph = None
 PING_SENTINEL = "__ping__"
 
 
-def _get_graph():
+def _get_graph() -> CompiledStateGraph:  # type: ignore[type-arg]
     """Lazily initialize the graph (cold start only).
 
     Fetches the API key from SSM and imports the graph on first call.

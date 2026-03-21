@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -10,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.db.messages import store_message
-from app.dependencies import get_graph
+from app.dependencies import AgentGraphProtocol, get_graph
 from app.logger import logger
 from app.settings import get_settings
 
@@ -26,7 +27,7 @@ _SPECIALIST_NODES = frozenset(
 
 @router.post("/messages", response_model=MessageResponse, responses={500: {"model": ErrorResponse}})
 async def create_message(
-    request_body: MessageRequest, graph: Any = Depends(get_graph)
+    request_body: MessageRequest, graph: AgentGraphProtocol = Depends(get_graph)
 ) -> MessageResponse:
     """Send a message to the trip assistant agent.
 
@@ -101,7 +102,7 @@ async def create_message(
 
 @router.post("/messages/stream")
 async def stream_message(
-    request_body: MessageRequest, graph: Any = Depends(get_graph)
+    request_body: MessageRequest, graph: AgentGraphProtocol = Depends(get_graph)
 ) -> StreamingResponse:
     """Stream the agent response token-by-token using Server-Sent Events.
 
@@ -123,7 +124,7 @@ async def stream_message(
         "history": [entry.model_dump() for entry in request_body.history],
     }
 
-    async def event_stream() -> Any:
+    async def event_stream() -> AsyncGenerator[str, None]:
         message_id = str(uuid.uuid4())
         accumulated_answer = ""
         final_result: dict[str, Any] = {}
