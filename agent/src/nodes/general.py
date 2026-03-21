@@ -6,8 +6,11 @@ from src.logger import logger
 from src.prompts import GENERAL_PROMPT_TEMPLATE, format_history
 from src.schemas import SpecialistOutput, TripAssistantState
 
+# Module-level LLM instance (created once per process/Lambda container)
+_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-def handle_general(state: TripAssistantState) -> SpecialistOutput:
+
+async def handle_general(state: TripAssistantState) -> SpecialistOutput:
     """Answer general questions or ask for clarification.
 
     For general questions, uses all available documents or asks for clarification
@@ -26,9 +29,6 @@ def handle_general(state: TripAssistantState) -> SpecialistOutput:
     # Combine all documents for context
     all_context = "\n\n".join([f"=== {name} ===\n{content}" for name, content in documents.items()])
 
-    # Initialize LLM
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
     # Create prompt from template
     prompt = GENERAL_PROMPT_TEMPLATE.format(
         context=all_context,
@@ -38,7 +38,7 @@ def handle_general(state: TripAssistantState) -> SpecialistOutput:
 
     # Generate answer with error handling
     try:
-        response = llm.invoke(prompt)
+        response = await _llm.ainvoke(prompt)
         assert isinstance(response.content, str), "Expected string response from LLM"
         answer = response.content
     except Exception as e:

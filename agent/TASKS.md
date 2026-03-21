@@ -298,6 +298,21 @@ Add GitHub Actions workflow for automated testing and quality checks on the agen
 
 ---
 
+## Performance: Async LLM Calls + Module-Level Instantiation
+
+Reduce response latency from ~10s by fixing two inefficiencies in the agent nodes.
+
+- [x] Move LLM client instantiation to module level in `classifier.py` and `specialist_factory.py`
+  - [x] Define `_llm` at module level (created once per Lambda container)
+  - [x] Remove `ChatOpenAI(...)` call from inside node functions
+- [x] Switch LLM calls from sync `.invoke()` to async `.ainvoke()` in both files
+  - [x] Update `classify_question` to `async def` using `await structured_llm.ainvoke()`
+  - [x] Update `specialist_node` to `async def` using `await llm.ainvoke()`
+- [x] Run `pytest tests/ -v -m "not integration"` (must pass)
+- [x] Run `pre-commit run --all-files` (must pass)
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)

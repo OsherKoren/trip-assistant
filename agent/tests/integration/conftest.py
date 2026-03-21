@@ -17,7 +17,8 @@ def pytest_collection_modifyitems(config, items):  # noqa: ARG001
     )
 
     for item in items:
-        if "integration" in item.keywords and not os.getenv("OPENAI_API_KEY"):
+        api_key = os.getenv("OPENAI_API_KEY", "")
+        if "integration" in item.keywords and not api_key.startswith("sk-"):
             item.add_marker(skip_integration)
 
 

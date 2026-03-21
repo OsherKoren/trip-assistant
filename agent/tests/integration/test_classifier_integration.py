@@ -42,7 +42,7 @@ from src.schemas import TripAssistantState
         ),
     ],
 )
-def test_classifier_real_api(
+async def test_classifier_real_api(
     integration_state: TripAssistantState,
     question: str,
     expected_category: str,
@@ -50,7 +50,7 @@ def test_classifier_real_api(
     """Test classifier with real OpenAI API calls."""
     integration_state["question"] = question
 
-    result = classify_question(integration_state)
+    result = await classify_question(integration_state)
 
     # Verify category is correctly classified
     assert result["category"] == expected_category, (
@@ -68,11 +68,11 @@ def test_classifier_real_api(
 
 
 @pytest.mark.integration
-def test_classifier_general_category(integration_state: TripAssistantState):
+async def test_classifier_general_category(integration_state: TripAssistantState):
     """Test that unclear questions are classified as general."""
     integration_state["question"] = "What should I pack for the trip?"
 
-    result = classify_question(integration_state)
+    result = await classify_question(integration_state)
 
     # General category might be assigned for unclear questions
     # We just verify the classifier returns valid results
@@ -87,7 +87,7 @@ def test_classifier_general_category(integration_state: TripAssistantState):
 
 
 @pytest.mark.integration
-def test_classifier_confidence_scores(integration_state: TripAssistantState):
+async def test_classifier_confidence_scores(integration_state: TripAssistantState):
     """Test that classifier returns reasonable confidence scores."""
     test_cases = [
         ("What time does our flight depart?", "flight"),
@@ -96,7 +96,7 @@ def test_classifier_confidence_scores(integration_state: TripAssistantState):
 
     for question, expected_category in test_cases:
         integration_state["question"] = question
-        result = classify_question(integration_state)
+        result = await classify_question(integration_state)
 
         assert result["category"] == expected_category
         # For clear questions, confidence should be high

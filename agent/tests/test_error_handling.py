@@ -1,5 +1,7 @@
 """Tests for error handling across all nodes."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from src.nodes import (
@@ -60,7 +62,7 @@ from src.schemas import TripAssistantState
         ),
     ],
 )
-def test_all_nodes_handle_llm_failures_gracefully(
+async def test_all_nodes_handle_llm_failures_gracefully(
     mocker,
     sample_state: TripAssistantState,
     node_function,
@@ -83,22 +85,23 @@ def test_all_nodes_handle_llm_failures_gracefully(
     # Simulate LLM failure for all modules
     mock_llm_error = Exception("Simulated OpenAI API failure")
 
-    # Mock classifier LLM to raise exception
-    mock_classifier = mocker.patch("src.nodes.classifier.ChatOpenAI")
-    mock_classifier.return_value.with_structured_output.return_value.invoke.side_effect = (
-        mock_llm_error
-    )
+    # Mock classifier module-level _structured_llm to raise exception
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(side_effect=mock_llm_error)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
-    # Mock specialist factory LLM to raise exception
-    mock_specialist = mocker.patch("src.nodes.specialist_factory.ChatOpenAI")
-    mock_specialist.return_value.invoke.side_effect = mock_llm_error
+    # Mock specialist factory module-level _llm to raise exception
+    mock_specialist_llm = MagicMock()
+    mock_specialist_llm.ainvoke = AsyncMock(side_effect=mock_llm_error)
+    mocker.patch("src.nodes.specialist_factory._llm", mock_specialist_llm)
 
-    # Mock general specialist LLM to raise exception
-    mock_general = mocker.patch("src.nodes.general.ChatOpenAI")
-    mock_general.return_value.invoke.side_effect = mock_llm_error
+    # Mock general specialist module-level _llm to raise exception
+    mock_general_llm = MagicMock()
+    mock_general_llm.ainvoke = AsyncMock(side_effect=mock_llm_error)
+    mocker.patch("src.nodes.general._llm", mock_general_llm)
 
     # Execute the node function
-    result = node_function(sample_state)
+    result = await node_function(sample_state)
 
     # Verify result structure is valid
     assert isinstance(result, dict)
@@ -207,7 +210,7 @@ def test_error_messages_are_user_friendly():
     assert "API" not in general_content.split("answer =")[1].split("return")[0]
 
 
-def test_graph_end_to_end_with_classifier_error(mocker, sample_state: TripAssistantState):
+async def test_graph_end_to_end_with_classifier_error(mocker, sample_state: TripAssistantState):
     """Test complete graph execution when classifier fails.
 
     Verifies that:
@@ -223,17 +226,19 @@ def test_graph_end_to_end_with_classifier_error(mocker, sample_state: TripAssist
     mocker.patch("src.nodes.general.logger", mock_logger)
 
     # Simulate classifier failure
-    mock_classifier = mocker.patch("src.nodes.classifier.ChatOpenAI")
-    mock_classifier.return_value.with_structured_output.return_value.invoke.side_effect = Exception(
-        "Simulated classifier failure"
-    )
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(side_effect=Exception("Simulated classifier failure"))
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Mock general specialist to succeed
-    mock_general = mocker.patch("src.nodes.general.ChatOpenAI")
-    mock_general.return_value.invoke.return_value.content = "I can help with general questions"
+    mock_general_llm = MagicMock()
+    mock_general_llm.ainvoke = AsyncMock(
+        return_value=MagicMock(content="I can help with general questions")
+    )
+    mocker.patch("src.nodes.general._llm", mock_general_llm)
 
     # Execute graph
-    result = graph.invoke(sample_state)
+    result = await graph.ainvoke(sample_state)
 
     # Should route to general due to classifier failure
     assert result["category"] == "general"
@@ -247,7 +252,7 @@ def test_graph_end_to_end_with_classifier_error(mocker, sample_state: TripAssist
     assert mock_logger.error.called
 
 
-def test_graph_end_to_end_with_specialist_error(mocker, sample_state: TripAssistantState):
+async def test_graph_end_to_end_with_specialist_error(mocker, sample_state: TripAssistantState):
     """Test complete graph execution when specialist fails.
 
     Verifies that:
@@ -264,17 +269,17 @@ def test_graph_end_to_end_with_specialist_error(mocker, sample_state: TripAssist
 
     # Mock classifier to succeed
     mock_classification = TopicClassification(category="flight", confidence=0.95)
-    mock_classifier = mocker.patch("src.nodes.classifier.ChatOpenAI")
-    mock_classifier.return_value.with_structured_output.return_value.invoke.return_value = (
-        mock_classification
-    )
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(return_value=mock_classification)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Simulate specialist failure
-    mock_specialist = mocker.patch("src.nodes.specialist_factory.ChatOpenAI")
-    mock_specialist.return_value.invoke.side_effect = Exception("Simulated specialist failure")
+    mock_specialist_llm = MagicMock()
+    mock_specialist_llm.ainvoke = AsyncMock(side_effect=Exception("Simulated specialist failure"))
+    mocker.patch("src.nodes.specialist_factory._llm", mock_specialist_llm)
 
     # Execute graph
-    result = graph.invoke(sample_state)
+    result = await graph.ainvoke(sample_state)
 
     # Should have correct category from classifier
     assert result["category"] == "flight"

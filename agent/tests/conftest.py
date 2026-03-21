@@ -1,6 +1,12 @@
 """Root conftest.py with shared fixtures for all tests."""
 
+import os
+
 import pytest
+
+# Set dummy API key so module-level ChatOpenAI instances can be created without a real key.
+# Unit tests mock the LLM, so this value is never used for actual API calls.
+os.environ.setdefault("OPENAI_API_KEY", "test-dummy-key")
 
 from src.schemas import TripAssistantState
 

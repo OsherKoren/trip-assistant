@@ -47,7 +47,7 @@ from src.schemas import TripAssistantState
         ),
     ],
 )
-def test_classify_question_categories(
+async def test_classify_question_categories(
     mock_classifier_llm,
     sample_state: TripAssistantState,
     question: str,
@@ -58,41 +58,41 @@ def test_classify_question_categories(
     sample_state["question"] = question
     mock_classifier_llm(expected_category, 0.95)
 
-    result = classify_question(sample_state)
+    result = await classify_question(sample_state)
 
     assert result["category"] == expected_category
     assert result["confidence"] == 0.95
     assert result["current_context"] == sample_state["documents"][expected_doc_key]
 
 
-def test_classify_question_returns_confidence(
+async def test_classify_question_returns_confidence(
     mock_classifier_llm,
     sample_state: TripAssistantState,
 ):
     """Test that classifier returns a confidence score between 0 and 1."""
     mock_classifier_llm("flight", 0.87)
 
-    result = classify_question(sample_state)
+    result = await classify_question(sample_state)
 
     assert 0.0 <= result["confidence"] <= 1.0
     assert result["confidence"] == 0.87
 
 
-def test_classify_question_sets_current_context(
+async def test_classify_question_sets_current_context(
     mock_classifier_llm,
     sample_state: TripAssistantState,
 ):
     """Test that classifier sets current_context from the correct document."""
     mock_classifier_llm("flight", 0.95)
 
-    result = classify_question(sample_state)
+    result = await classify_question(sample_state)
 
     expected_content = sample_state["documents"]["flight"]
     assert result["current_context"] == expected_content
     assert "El Al LY345" in result["current_context"]
 
 
-def test_classify_question_general_category(
+async def test_classify_question_general_category(
     mock_classifier_llm,
     sample_state: TripAssistantState,
 ):
@@ -100,7 +100,7 @@ def test_classify_question_general_category(
     sample_state["question"] = "What should I bring?"
     mock_classifier_llm("general", 0.6)
 
-    result = classify_question(sample_state)
+    result = await classify_question(sample_state)
 
     assert result["category"] == "general"
     assert result["confidence"] == 0.6

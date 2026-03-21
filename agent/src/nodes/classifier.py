@@ -13,6 +13,10 @@ from src.schemas import (
     TripAssistantState,
 )
 
+# Module-level LLM instances (created once per process/Lambda container)
+_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+_structured_llm = _llm.with_structured_output(TopicClassification)
+
 # Document key mapping for categories
 CATEGORY_TO_DOCUMENT_KEY: dict[TopicCategory, str] = {
     "flight": "flight",
@@ -25,7 +29,7 @@ CATEGORY_TO_DOCUMENT_KEY: dict[TopicCategory, str] = {
 }
 
 
-def classify_question(state: TripAssistantState) -> ClassifierOutput:
+async def classify_question(state: TripAssistantState) -> ClassifierOutput:
     """Classify question and set category + current_context.
 
     Uses GPT-4o-mini with structured output to classify the question
@@ -40,10 +44,6 @@ def classify_question(state: TripAssistantState) -> ClassifierOutput:
     question = state["question"]
     documents = state["documents"]
     history = state.get("history", [])
-
-    # Initialize LLM with structured output
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    structured_llm = llm.with_structured_output(TopicClassification)
 
     # Build history context for classification
     history_text = format_history(history)
@@ -66,7 +66,7 @@ Classify this question and provide a confidence score (0.0-1.0)."""
 
     # Get classification from LLM with error handling
     try:
-        classification = cast(TopicClassification, structured_llm.invoke(prompt))
+        classification = cast(TopicClassification, await _structured_llm.ainvoke(prompt))
     except Exception as e:
         logger.error(f"Classifier failed: {e}")
         # Fallback to general category with zero confidence

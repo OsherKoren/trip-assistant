@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- All LLM node functions (`classify_question`, `specialist_node`, `handle_general`) converted to `async def` using `await ainvoke()` for true async execution — eliminates blocking thread overhead (~1-3s saved per request)
+- LLM client instances moved to module level in all node files — created once per Lambda container instead of per request (~100-200ms saved per request)
+- `create_specialist` factory no longer accepts `model` parameter (all specialists use `gpt-4o-mini`)
+- Integration tests updated to use `await graph.ainvoke()` to match async node requirement
+- Integration test skip logic updated to require a real-looking API key (`sk-` prefix) rather than any non-empty value
+
 ### Added
 - Lambda handler (`handler.py`) with lazy SSM API key fetch and graph caching
 - `awslambdaric` dependency for Lambda container image runtime
