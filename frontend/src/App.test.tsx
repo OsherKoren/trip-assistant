@@ -4,8 +4,6 @@ import App from './App'
 import { AuthContext } from './auth/AuthContext'
 import type { AuthContextType } from './auth/types'
 
-const mockClearMessages = vi.fn()
-
 vi.mock('./hooks/useMessages', () => ({
   useMessages: () => ({
     messages: [],
@@ -13,7 +11,20 @@ vi.mock('./hooks/useMessages', () => ({
     error: null,
     sendMessage: vi.fn(),
     setFeedback: vi.fn(),
-    clearMessages: mockClearMessages,
+    clearMessages: vi.fn(),
+    loadMessages: vi.fn(),
+  }),
+}))
+
+vi.mock('./hooks/useSessions', () => ({
+  useSessions: () => ({
+    sessions: [],
+    activeSession: null,
+    activeSessionId: null,
+    createSession: vi.fn(),
+    selectSession: vi.fn(),
+    updateSession: vi.fn(),
+    deleteSession: vi.fn(),
   }),
 }))
 
@@ -78,16 +89,21 @@ describe('App', () => {
     expect(screen.queryByText('test@example.com')).not.toBeInTheDocument()
   })
 
-  it('renders New Chat button when authenticated', () => {
+  it('renders sidebar with New Chat button when authenticated', () => {
     renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
     expect(screen.getByRole('button', { name: /new chat/i })).toBeInTheDocument()
   })
 
-  it('calls clearMessages when New Chat button is clicked', async () => {
+  it('renders sidebar toggle button (hamburger) when authenticated', () => {
     renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
+    expect(screen.getByRole('button', { name: /toggle sidebar/i })).toBeInTheDocument()
+  })
 
-    await userEvent.click(screen.getByRole('button', { name: /new chat/i }))
-
-    expect(mockClearMessages).toHaveBeenCalled()
+  it('toggles sidebar open when hamburger is clicked', async () => {
+    renderWithAuth({ isAuthenticated: true, user: { email: 'a@b.com' } })
+    const toggle = screen.getByRole('button', { name: /toggle sidebar/i })
+    await userEvent.click(toggle)
+    // Sidebar close button becomes visible (it exists but may be visually hidden on desktop)
+    expect(screen.getByRole('button', { name: /close sidebar/i })).toBeInTheDocument()
   })
 })

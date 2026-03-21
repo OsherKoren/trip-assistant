@@ -242,6 +242,24 @@ describe('useMessages', () => {
     Date.now = originalNow;
   });
 
+  it('loadMessages replaces messages and clears error', async () => {
+    vi.mocked(client.sendMessage).mockRejectedValue(new Error('fail'));
+    const { result } = renderHook(() => useMessages());
+
+    await act(async () => { await result.current.sendMessage('hello'); });
+    expect(result.current.error).toBe('fail');
+
+    const loaded = [
+      { id: 'loaded-1', role: 'user' as const, content: 'Old question', timestamp: new Date() },
+      { id: 'loaded-2', role: 'assistant' as const, content: 'Old answer', timestamp: new Date() },
+    ];
+
+    act(() => { result.current.loadMessages(loaded); });
+
+    expect(result.current.messages).toEqual(loaded);
+    expect(result.current.error).toBeNull();
+  });
+
   it('setFeedback with down rating and comment', async () => {
     vi.mocked(client.sendMessage).mockResolvedValue(mockResponse);
     const { result } = renderHook(() => useMessages());

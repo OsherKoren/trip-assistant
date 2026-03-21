@@ -23,6 +23,14 @@ export interface MessageResponse {
   source: string | null;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface HistoryEntry {
   role: 'user' | 'assistant';
   content: string;

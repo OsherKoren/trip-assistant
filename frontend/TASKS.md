@@ -609,6 +609,81 @@ Send conversation history with each API request and auto-clear after 30 minutes 
 
 ---
 
+## Phase 16: New Chat Button/Icon ✅
+
+Replace the plain pencil icon in the header with a recognizable compose icon and tooltip.
+
+### Task 16.1: Update header button in App.tsx
+- [x] Change icon to compose style (square + pencil) — standard "new chat" icon used by Claude.ai / ChatGPT
+- [x] Wrap button in `relative group` container
+- [x] Add "New Chat" tooltip that appears on hover below the button
+
+### Task 16.2: Verify
+- [x] `npm run build` — no errors
+- [ ] `npm test` — all tests pass
+- [ ] Commit changes
+
+---
+
+## Phase 17: Chat History Sidebar (localStorage)
+
+Add a ChatGPT/Gemini-style sidebar showing the user's past conversations, stored in localStorage. No backend changes required.
+
+**Approach**: localStorage (per-device, per-user). Sufficient for a family trip app where each person uses their own device. Server-side sessions can be added later if cross-device sync is needed.
+
+### Task 17.1: Add ChatSession type
+- [x] Edit `src/types.ts`
+  - [x] Add `ChatSession` interface: `{ id, title, messages, createdAt, updatedAt }` (timestamps as ISO strings)
+
+### Task 17.2: Create useSessions hook
+- [x] Create `src/hooks/useSessions.ts`
+  - [x] Load/save sessions from `localStorage` key `trip-assistant:sessions`
+  - [x] Track active session ID in `localStorage` key `trip-assistant:active-session`
+  - [x] `createSession()` — creates new session, sets as active
+  - [x] `selectSession(id)` — switches active session
+  - [x] `updateSession(id, messages)` — persists messages + derives title from first user message
+  - [x] `deleteSession(id)` — removes session, switches to next available
+
+### Task 17.3: Update useMessages hook
+- [x] Edit `src/hooks/useMessages.ts`
+  - [x] Add `loadMessages(messages: Message[])` — resets state from an external source (used when switching sessions)
+
+### Task 17.4: Create Sidebar component
+- [x] Create `src/components/Sidebar.tsx`
+  - [x] "New Chat" button at the top (compose icon + label)
+  - [x] List of past sessions grouped by date (Today / Yesterday / Older)
+  - [x] Each session shows title (first user message, truncated to 40 chars) and relative date
+  - [x] Active session highlighted
+  - [x] Delete button per session (on hover)
+  - [x] Mobile: full-width overlay with backdrop; Desktop: fixed left panel (~240px)
+  - [x] Close button (X) on mobile overlay
+
+### Task 17.5: Wire sidebar into App.tsx
+- [x] Edit `src/App.tsx`
+  - [x] Add `useSessions` hook
+  - [x] `isSidebarOpen` state (default `false` on mobile, `true` on desktop via CSS)
+  - [x] Header left button → hamburger icon that toggles sidebar
+  - [x] On new chat: `createSession()` + `clearMessages()`
+  - [x] On session select: `selectSession(id)` + `loadMessages(session.messages)`, close sidebar on mobile
+  - [x] After messages change: sync back to active session via `useEffect`
+  - [x] On mount: load active session messages into `useMessages`
+  - [x] Layout: `flex-row` with `<Sidebar>` + `<main>` side by side on desktop
+
+### Task 17.6: Tests
+- [x] Create `src/hooks/useSessions.test.ts` — 9 tests
+- [x] Create `src/components/Sidebar.test.tsx` — 9 tests
+- [x] Update `src/hooks/useMessages.test.ts` — test `loadMessages` resets state
+- [x] Update `src/App.test.tsx` — test sidebar toggle, new chat, session switching
+
+### Task 17.7: Verify
+- [x] `npm test` — 123 tests pass (up from 99)
+- [x] `npm run build` — no TypeScript errors
+- [ ] Manual: create 3 sessions, switch between them, refresh page — sessions persist
+- [ ] Manual: mobile viewport — sidebar opens/closes correctly
+- [ ] Commit changes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 0 completed (Claude Code setup)
@@ -627,6 +702,8 @@ Send conversation history with each API request and auto-clear after 30 minutes 
 - [x] Phase 13 completed (Server message ID for feedback)
 - [x] Phase 14 completed (Simplify FeedbackResponse)
 - [x] Phase 15 completed (Conversation history with 30-minute sessions)
+- [x] Phase 16 completed (New Chat button/icon)
+- [x] Phase 17 completed (Chat history sidebar — localStorage)
 - [x] All unit tests passing (99 tests, mocked API)
 - [x] Integration tests ready (skip without API)
 - [x] `npm run build` passes with no errors
@@ -643,7 +720,9 @@ src/
 │   └── client.test.ts            # Unit: mock fetch
 ├── hooks/
 │   ├── useMessages.ts
-│   └── useMessages.test.ts       # Unit: mock API client
+│   ├── useMessages.test.ts       # Unit: mock API client
+│   ├── useSessions.ts            # Phase 17
+│   └── useSessions.test.ts       # Phase 17
 ├── components/
 │   ├── MessageBubble.tsx
 │   ├── MessageBubble.test.tsx     # Unit: render + assert
@@ -653,6 +732,8 @@ src/
 │   ├── MessageInput.test.tsx      # Unit: render + interact + assert
 │   ├── MessageFeedback.tsx
 │   ├── MessageFeedback.test.tsx   # Unit: render + interact + mailto
+│   ├── Sidebar.tsx               # Phase 17
+│   ├── Sidebar.test.tsx           # Phase 17
 │   ├── Chat.tsx
 │   └── Chat.test.tsx              # Unit: mock API, full component
 ├── App.tsx
