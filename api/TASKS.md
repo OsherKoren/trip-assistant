@@ -615,7 +615,52 @@ Forward conversation history from the frontend to the agent for follow-up questi
 - [x] Update `tests/test_main.py` — test endpoint passes history to graph, test backward compat (request without history)
 - [x] Run `uv run pytest tests/ -v -m "not integration"` (must pass)
 - [x] Run `pre-commit run --all-files` (must pass)
-- [ ] Commit changes
+- [x] Commit changes
+
+---
+
+## Phase 14: SSE Streaming Endpoint
+
+Add `POST /api/messages/stream` that returns a Server-Sent Events stream so the frontend can display the answer token-by-token instead of waiting 10+ seconds.
+
+**SSE event format**:
+```
+data: {"token": "..."}\n\n      ← repeated per token (specialist node only)
+data: {"done": true, "id": "...", "category": "...", "confidence": 0.95, "source": "..."}\n\n
+data: {"error": "..."}\n\n      ← on failure
+```
+
+**Design**: Keep existing `POST /api/messages` unchanged. Add new `/stream` endpoint alongside it. Frontend switches to `/stream`.
+
+### Task 14.1: Update AgentGraphProtocol
+- [x] Edit `app/dependencies.py`
+  - [x] Add `astream_events(state, version)` method to `AgentGraphProtocol`
+  - [x] Add `astream_events` stub to `AgentLambdaProxy` — calls `ainvoke` then emits a single `done` event (Lambda can't stream)
+
+### Task 14.2: Add streaming schemas
+- [x] SSE events are plain JSON strings — no Pydantic models needed for the stream itself
+
+### Task 14.3: Create streaming endpoint
+- [x] Edit `app/routers/messages.py`
+  - [x] Add `POST /messages/stream` returning `StreamingResponse(media_type="text/event-stream")`
+  - [x] Use `graph.astream_events(state, version="v2")`
+  - [x] Filter `on_chat_model_stream` events where `metadata["langgraph_node"] != "classifier"`
+  - [x] Yield `data: {"token": chunk.content}\n\n` per token
+  - [x] After stream ends, yield `data: {"done": true, "id": ..., "answer": ..., "category": ..., ...}\n\n`
+  - [x] On exception, yield `data: {"error": "Processing failed"}\n\n`
+  - [x] Store message in DynamoDB (best-effort, same as `/messages`)
+
+### Task 14.4: Tests
+- [x] Add streaming endpoint tests to `tests/test_main.py`
+  - [x] Test `/messages/stream` returns `text/event-stream` content type
+  - [x] Test token events are emitted
+  - [x] Test done event contains id, category, confidence, source
+  - [x] Test error event emitted on agent failure
+  - [x] Test classifier tokens are NOT streamed (only specialist)
+
+### Task 14.5: Verify
+- [x] `uv run pytest tests/ -v -m "not integration"` — 84 tests pass
+- [x] `uv run pre-commit run --all-files` (must pass)
 
 ---
 

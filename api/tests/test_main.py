@@ -223,3 +223,87 @@ def test_request_id_header_present(client: TestClient) -> None:
     assert "x-request-id" in response.headers
     # In test environment, should return "local"
     assert response.headers["x-request-id"] == "local"
+
+
+# ---------------------------------------------------------------------------
+# Streaming endpoint tests
+# ---------------------------------------------------------------------------
+
+
+def _parse_sse(body: bytes) -> list[dict[str, Any]]:
+    """Parse SSE body into a list of event data dicts."""
+    import json
+
+    events = []
+    for line in body.decode().splitlines():
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+    return events
+
+
+def test_stream_message_content_type(client: TestClient) -> None:
+    """Streaming endpoint returns text/event-stream content type."""
+    with client.stream(
+        "POST", "/api/messages/stream", json={"question": "What time is our flight?"}
+    ) as response:
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers["content-type"]
+
+
+def test_stream_message_emits_token_events(client: TestClient) -> None:
+    """Streaming endpoint emits token events from specialist node."""
+    with client.stream(
+        "POST", "/api/messages/stream", json={"question": "What time is our flight?"}
+    ) as response:
+        events = _parse_sse(response.read())
+
+    token_events = [e for e in events if "token" in e]
+    assert len(token_events) > 0
+    assert all(isinstance(e["token"], str) for e in token_events)
+
+
+def test_stream_message_classifier_tokens_excluded(client: TestClient) -> None:
+    """Classifier node tokens must NOT appear in the stream."""
+    with client.stream(
+        "POST", "/api/messages/stream", json={"question": "What time is our flight?"}
+    ) as response:
+        events = _parse_sse(response.read())
+
+    token_events = [e for e in events if "token" in e]
+    # MockGraph emits "ignored" from the classifier — must be filtered
+    assert not any(e["token"] == "ignored" for e in token_events)
+
+
+def test_stream_message_done_event(client: TestClient, mock_graph_result: dict[str, Any]) -> None:
+    """Streaming endpoint emits a done event with id, category, confidence, source."""
+    with client.stream(
+        "POST", "/api/messages/stream", json={"question": "What time is our flight?"}
+    ) as response:
+        events = _parse_sse(response.read())
+
+    done_events = [e for e in events if e.get("done") is True]
+    assert len(done_events) == 1
+    done = done_events[0]
+    assert "id" in done
+    assert done["category"] == mock_graph_result["category"]
+    assert done["confidence"] == mock_graph_result["confidence"]
+    assert done["source"] == mock_graph_result["source"]
+    assert "answer" in done
+
+
+def test_stream_message_error_event(client: TestClient, mock_graph: MockGraph) -> None:
+    """Streaming endpoint emits an error event when the graph raises."""
+
+    async def _failing_stream(*_args: Any, **_kwargs: Any) -> Any:
+        raise RuntimeError("boom")
+        yield  # noqa: RET505
+
+    mock_graph.astream_events = _failing_stream  # type: ignore[method-assign]
+
+    with client.stream(
+        "POST", "/api/messages/stream", json={"question": "bad question"}
+    ) as response:
+        events = _parse_sse(response.read())
+
+    error_events = [e for e in events if "error" in e]
+    assert len(error_events) == 1

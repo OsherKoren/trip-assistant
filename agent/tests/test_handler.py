@@ -2,6 +2,7 @@
 
 import json
 import sys
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -20,12 +21,14 @@ def _reset_graph_cache():
 def mock_graph(mocker):
     """Mock _get_graph to return a mock graph object."""
     mock = mocker.MagicMock()
-    mock.invoke.return_value = {
-        "answer": "Take a flight from TLV to GVA.",
-        "category": "flight",
-        "confidence": 0.95,
-        "source": "flight.txt",
-    }
+    mock.ainvoke = AsyncMock(
+        return_value={
+            "answer": "Take a flight from TLV to GVA.",
+            "category": "flight",
+            "confidence": 0.95,
+            "source": "flight.txt",
+        }
+    )
     mocker.patch("handler._get_graph", return_value=mock)
     return mock
 
@@ -46,7 +49,7 @@ class TestHandler:
         assert body["category"] == "flight"
         assert body["confidence"] == 0.95
         assert body["source"] == "flight.txt"
-        mock_graph.invoke.assert_called_once_with(
+        mock_graph.ainvoke.assert_called_once_with(
             {"question": "How do I get to Geneva?", "history": []}
         )
 
@@ -58,7 +61,7 @@ class TestHandler:
         result = handler(event, None)
 
         assert result["statusCode"] == 200
-        mock_graph.invoke.assert_called_once_with(
+        mock_graph.ainvoke.assert_called_once_with(
             {"question": "What about car rental?", "history": []}
         )
 
@@ -72,7 +75,7 @@ class TestHandler:
         assert result["statusCode"] == 400
         body = json.loads(result["body"])
         assert "error" in body
-        mock_graph.invoke.assert_not_called()
+        mock_graph.ainvoke.assert_not_called()
 
     def test_empty_question_returns_400(self, mock_graph):  # noqa: ARG002
         """Handler returns 400 when question is empty string."""
@@ -96,7 +99,7 @@ class TestHandler:
         assert body["category"] == "ping"
         assert body["confidence"] == 1.0
         assert body["source"] is None
-        mock_graph.invoke.assert_not_called()
+        mock_graph.ainvoke.assert_not_called()
 
     def test_passes_history_to_graph(self, mock_graph):
         """Handler passes history from event body to graph.invoke()."""
@@ -110,7 +113,7 @@ class TestHandler:
         result = handler(event, None)
 
         assert result["statusCode"] == 200
-        mock_graph.invoke.assert_called_once_with(
+        mock_graph.ainvoke.assert_called_once_with(
             {"question": "What about the return?", "history": history}
         )
 
@@ -121,7 +124,7 @@ class TestHandler:
         event = {"question": "What time is the flight?"}
         handler(event, None)
 
-        mock_graph.invoke.assert_called_once_with(
+        mock_graph.ainvoke.assert_called_once_with(
             {"question": "What time is the flight?", "history": []}
         )
 

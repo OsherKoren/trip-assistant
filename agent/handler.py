@@ -4,6 +4,7 @@ Fetches the OpenAI API key from SSM Parameter Store on first invocation
 (cached per Lambda container), then delegates to the LangGraph graph.
 """
 
+import asyncio
 import json
 import os
 from typing import Any
@@ -72,7 +73,7 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:  # noqa: ARG
     history = body.get("history", [])
 
     graph = _get_graph()
-    result = graph.invoke({"question": question, "history": history})
+    result = asyncio.run(graph.ainvoke({"question": question, "history": history}))
 
     return {
         "statusCode": 200,

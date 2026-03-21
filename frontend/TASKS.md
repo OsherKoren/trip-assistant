@@ -605,7 +605,7 @@ Send conversation history with each API request and auto-clear after 30 minutes 
 - [x] Update `src/App.test.tsx` — test "New Chat" button
 - [x] Run `npm test` — 99 tests pass
 - [x] Run `npm run build` — no errors
-- [ ] Commit changes
+- [x] Commit changes
 
 ---
 
@@ -620,8 +620,8 @@ Replace the plain pencil icon in the header with a recognizable compose icon and
 
 ### Task 16.2: Verify
 - [x] `npm run build` — no errors
-- [ ] `npm test` — all tests pass
-- [ ] Commit changes
+- [x] `npm test` — all tests pass
+- [x] Commit changes
 
 ---
 
@@ -678,9 +678,55 @@ Add a ChatGPT/Gemini-style sidebar showing the user's past conversations, stored
 ### Task 17.7: Verify
 - [x] `npm test` — 123 tests pass (up from 99)
 - [x] `npm run build` — no TypeScript errors
-- [ ] Manual: create 3 sessions, switch between them, refresh page — sessions persist
-- [ ] Manual: mobile viewport — sidebar opens/closes correctly
-- [ ] Commit changes
+- [x] Manual: create 3 sessions, switch between them, refresh page — sessions persist
+- [x] Manual: mobile viewport — sidebar opens/closes correctly
+- [x] Commit changes
+
+---
+
+## Phase 18: Streaming UX
+
+Switch from waiting 10+ seconds for a full response to showing the assistant's answer word-by-word as it arrives, using the new `/api/messages/stream` SSE endpoint.
+
+**UX flow**:
+1. User sends question
+2. Loading indicator shown while classifier runs (~2s)
+3. Empty assistant bubble appears as soon as first token arrives
+4. Text fills in token by token
+5. Loading indicator hides, confidence pill + feedback buttons appear when `done` event received
+
+### Task 18.1: Update API client
+- [x] Edit `src/api/client.ts`
+  - [x] Add `streamMessage(question, getToken, history, callbacks)` function
+  - [x] Use `fetch` with streaming body reader (`response.body.getReader()`)
+  - [x] Parse SSE lines: `data: {...}` → call appropriate callback
+  - [x] Add `StreamDone` type to `src/types.ts`
+
+### Task 18.2: Update useMessages hook
+- [x] Edit `src/hooks/useMessages.ts`
+  - [x] Add placeholder assistant message on first token (not before — avoids double loading indicator)
+  - [x] `onToken` → set `isLoading: false`, append token to placeholder content
+  - [x] `onDone` → set server `id`, `category`, `confidence`, `isStreaming: false`
+  - [x] `onError` → set error state, remove placeholder message
+  - [x] `finally` → always set `isLoading: false`
+
+### Task 18.3: Update Message type
+- [x] Edit `src/types.ts`
+  - [x] Add `isStreaming?: boolean` to `Message` interface
+  - [x] Add `StreamDone` interface
+
+### Task 18.4: Update MessageBubble component
+- [x] Edit `src/components/MessageBubble.tsx`
+  - [x] Hide confidence pill and feedback buttons while `message.isStreaming === true`
+  - [x] Show blinking cursor while streaming
+
+### Task 18.5: Tests
+- [x] Updated `src/hooks/useMessages.test.ts` — rewrote for streaming callbacks (26 tests)
+
+### Task 18.6: Verify
+- [x] `npm test` — 126 tests pass
+- [ ] `npm run build` — no TypeScript errors
+- [ ] Manual: send a question, watch text stream in
 
 ---
 
