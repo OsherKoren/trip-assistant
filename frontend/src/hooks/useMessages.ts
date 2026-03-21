@@ -22,6 +22,12 @@ export function useMessages() {
     setError(null);
   }, []);
 
+  const loadMessages = useCallback((msgs: Message[]) => {
+    setMessages(msgs);
+    setError(null);
+    lastActivityRef.current = Date.now();
+  }, []);
+
   const sendMessage = async (question: string) => {
     const now = Date.now();
     let currentMessages: Message[] = [];
@@ -77,5 +83,5 @@ export function useMessages() {
     );
   };
 
-  return { messages, isLoading, error, sendMessage, setFeedback, clearMessages };
+  return { messages, isLoading, error, sendMessage, setFeedback, clearMessages, loadMessages };
 }
