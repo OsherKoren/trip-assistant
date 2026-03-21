@@ -6,3 +6,14 @@ Route: Tel Aviv -> Geneva International Airport
 
 Departure: 06:10
 Arrival: 09:40
+
+---
+
+Return Flight
+
+Date: July 20, 2026
+Flight: El Al LY346
+Route: Geneva International Airport -> Tel Aviv
+
+Departure: 11:00
+Arrival: 15:55
