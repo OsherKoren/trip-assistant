@@ -50,9 +50,9 @@ Context:
 
 {history}Question: {question}
 
-Provide a clear, concise answer based on the context. If the context lists multiple options or alternatives, present ALL of them so the user can choose — do not pick one on their behalf.
+Provide a clear, concise answer based on the context. Answer only what was asked — do not add extra information the user did not request. If the context lists multiple options or alternatives for the specific question, present ALL of them so the user can choose — do not pick one on their behalf.
 
-Always include at the end of your response any relevant links (Google Maps, booking URLs, voucher links, etc.) that appear in the context and are related to the answer. If the user asks for information that is not in the context (e.g. specific booking details), include the most relevant reference link from the context (e.g. voucher URL) so they can look it up directly."""
+If there is a link in the context that directly corresponds to the specific thing mentioned in your answer (e.g. a Google Maps link for an address, a voucher URL for a booking), include it at the end. Do not include links for unrelated items. If the user asks for information that is not in the context (e.g. specific booking details), include only the single most relevant reference link (e.g. voucher URL) so they can look it up directly."""
 
 # General prompt template
 # Used by the general specialist for unclear/broad questions
@@ -63,9 +63,9 @@ Available information:
 
 {history}Question: {question}
 
-Provide a helpful answer based on the available information. If the question is unclear or you need more details, ask for clarification.
+Provide a helpful answer based on the available information. Answer only what was asked — do not add extra information the user did not request. If the question is unclear or you need more details, ask for clarification.
 
-Always include at the end of your response any relevant links (Google Maps, booking URLs, etc.) that appear in the context and are related to the answer."""
+If there is a link in the context that directly corresponds to the specific thing mentioned in your answer, include it at the end. Do not include links for unrelated items."""
 
 # Topic names for formatting specialist prompts
 TOPICS = {
