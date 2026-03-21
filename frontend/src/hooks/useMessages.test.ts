@@ -67,10 +67,8 @@ describe('useMessages', () => {
 
   it('sets isLoading while waiting for first token', async () => {
     let resolveStream!: () => void;
-    vi.mocked(client.streamMessage).mockImplementation(
-      async (_q, _t, _h, _callbacks) => {
-        await new Promise<void>((resolve) => { resolveStream = resolve; });
-      },
+    vi.mocked(client.streamMessage).mockReturnValue(
+      new Promise<void>((resolve) => { resolveStream = resolve; }),
     );
     const { result } = renderHook(() => useMessages());
 
