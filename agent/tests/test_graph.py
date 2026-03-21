@@ -1,5 +1,7 @@
 """Tests for graph assembly."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from src.documents import load_documents
@@ -54,7 +56,7 @@ def initial_state():
         ),
     ],
 )
-def test_graph_routes_to_correct_specialist(
+async def test_graph_routes_to_correct_specialist(
     mocker,
     initial_state,
     question,
@@ -67,41 +69,45 @@ def test_graph_routes_to_correct_specialist(
 
     # Mock classifier
     mock_classification = TopicClassification(category=expected_category, confidence=0.95)
-    mocker.patch(
-        "src.nodes.classifier.ChatOpenAI"
-    ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(return_value=mock_classification)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Mock specialist LLM responses
-    # Factory-generated specialists use specialist_factory.ChatOpenAI
-    mock_llm = mocker.patch("src.nodes.specialist_factory.ChatOpenAI")
-    mock_llm.return_value.invoke.return_value.content = expected_answer
+    mock_response = MagicMock()
+    mock_response.content = expected_answer
+    mock_specialist_llm = MagicMock()
+    mock_specialist_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mocker.patch("src.nodes.specialist_factory._llm", mock_specialist_llm)
 
-    # General specialist uses its own module
-    mock_general = mocker.patch("src.nodes.general.ChatOpenAI")
-    mock_general.return_value.invoke.return_value.content = expected_answer
+    mock_general_llm = MagicMock()
+    mock_general_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mocker.patch("src.nodes.general._llm", mock_general_llm)
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     assert result["category"] == expected_category
     assert result["answer"] == expected_answer
     assert result["source"] == expected_source
 
 
-def test_graph_end_to_end_with_answer(mocker, initial_state):
+async def test_graph_end_to_end_with_answer(mocker, initial_state):
     """Test end-to-end graph execution returns complete answer."""
     # Mock classifier
     mock_classification = TopicClassification(category="flight", confidence=0.95)
-    mocker.patch(
-        "src.nodes.classifier.ChatOpenAI"
-    ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(return_value=mock_classification)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Mock specialist (factory-generated)
     expected_answer = "Your flight departs at 10:00 AM on July 7, 2026"
-    mocker.patch(
-        "src.nodes.specialist_factory.ChatOpenAI"
-    ).return_value.invoke.return_value.content = expected_answer
+    mock_response = MagicMock()
+    mock_response.content = expected_answer
+    mock_specialist_llm = MagicMock()
+    mock_specialist_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mocker.patch("src.nodes.specialist_factory._llm", mock_specialist_llm)
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     assert "answer" in result
     assert result["answer"] == expected_answer
@@ -109,43 +115,47 @@ def test_graph_end_to_end_with_answer(mocker, initial_state):
     assert result["confidence"] == 0.95
 
 
-def test_graph_routes_unclear_question_to_general(mocker, initial_state):
+async def test_graph_routes_unclear_question_to_general(mocker, initial_state):
     """Test that unclear questions route to general specialist."""
     initial_state["question"] = "What should I pack?"
 
     # Mock classifier to return general
     mock_classification = TopicClassification(category="general", confidence=0.6)
-    mocker.patch(
-        "src.nodes.classifier.ChatOpenAI"
-    ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(return_value=mock_classification)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Mock general specialist
     expected_answer = "Pack hiking boots, warm clothes, and sunscreen"
-    mocker.patch(
-        "src.nodes.general.ChatOpenAI"
-    ).return_value.invoke.return_value.content = expected_answer
+    mock_response = MagicMock()
+    mock_response.content = expected_answer
+    mock_general_llm = MagicMock()
+    mock_general_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mocker.patch("src.nodes.general._llm", mock_general_llm)
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     assert result["category"] == "general"
     assert result["answer"] == expected_answer
     assert result["source"] is None
 
 
-def test_graph_preserves_documents_through_flow(mocker, initial_state):
+async def test_graph_preserves_documents_through_flow(mocker, initial_state):
     """Test that documents are preserved throughout the graph execution."""
     # Mock classifier
     mock_classification = TopicClassification(category="flight", confidence=0.95)
-    mocker.patch(
-        "src.nodes.classifier.ChatOpenAI"
-    ).return_value.with_structured_output.return_value.invoke.return_value = mock_classification
+    mock_structured = MagicMock()
+    mock_structured.ainvoke = AsyncMock(return_value=mock_classification)
+    mocker.patch("src.nodes.classifier._structured_llm", mock_structured)
 
     # Mock specialist (factory-generated)
-    mocker.patch(
-        "src.nodes.specialist_factory.ChatOpenAI"
-    ).return_value.invoke.return_value.content = "Test answer"
+    mock_response = MagicMock()
+    mock_response.content = "Test answer"
+    mock_specialist_llm = MagicMock()
+    mock_specialist_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mocker.patch("src.nodes.specialist_factory._llm", mock_specialist_llm)
 
-    result = graph.invoke(initial_state)
+    result = await graph.ainvoke(initial_state)
 
     assert "documents" in result
     assert len(result["documents"]) == 6

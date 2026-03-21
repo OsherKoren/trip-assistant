@@ -4,7 +4,7 @@ Departure: July 7, 2026 at 12:00 from Geneva Airport
 Destination: Bhotanica - Ospitalita e natura (first accommodation)
 Goal: Arrive by 17:00
 
-Google Maps: https://maps.app.goo.gl/T3e7LQX4bqcC5ZWZ6
+Google Maps - Bhotanica accommodation (destination): https://maps.app.goo.gl/T3e7LQX4bqcC5ZWZ6
 
 ---
 
@@ -20,9 +20,9 @@ Schedule:
   - Super casual bar/grill, sandwiches/paninis 10-15 EUR, right on the route
 2:00-2:15 PM - Stop 1: Servant Bridge Overlook (15 min)
   - Quick photos from bridge parking (Mont Blanc over Arve Valley)
-  - https://maps.app.goo.gl/hD59RUkRAtQVpaTc6
+  - Google Maps - Servant Bridge Overlook: https://maps.app.goo.gl/hD59RUkRAtQVpaTc6
   - Or: Saint Martin Place, Anc. Rte Imperiale, 74700 Sallanches, France
-  - https://maps.app.goo.gl/t6nXEGKZBjDQEZKGA
+  - Google Maps - Saint Martin Place, Sallanches: https://maps.app.goo.gl/t6nXEGKZBjDQEZKGA
 2:30 PM - N205 to Tunnel (~30 min, 15 km)
 3:30 PM - Stop 2: Cascata del Lenteney (25 min)
   - SS26 near La Salle, park opposite waterfall, 2-min walk to bridge

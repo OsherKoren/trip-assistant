@@ -68,7 +68,7 @@ from src.schemas import TripAssistantState
         ),
     ],
 )
-def test_specialist_generates_answer(
+async def test_specialist_generates_answer(
     mock_specialist_llm,
     sample_state: TripAssistantState,
     handler,
@@ -82,7 +82,7 @@ def test_specialist_generates_answer(
     sample_state["current_context"] = context
     mock_specialist_llm(expected_answer)
 
-    result = handler(sample_state)
+    result = await handler(sample_state)
 
     assert result["answer"] == expected_answer
     assert result["source"] == source
@@ -100,7 +100,7 @@ def test_specialist_generates_answer(
         pytest.param(handle_general, None, id="general_source"),
     ],
 )
-def test_specialist_returns_correct_source(
+async def test_specialist_returns_correct_source(
     mock_specialist_llm,
     sample_state: TripAssistantState,
     handler,
@@ -109,12 +109,12 @@ def test_specialist_returns_correct_source(
     """Test that each specialist returns the correct source."""
     mock_specialist_llm("Test answer")
 
-    result = handler(sample_state)
+    result = await handler(sample_state)
 
     assert result["source"] == expected_source
 
 
-def test_flight_handles_empty_context(
+async def test_flight_handles_empty_context(
     mock_specialist_llm,
     sample_state: TripAssistantState,
 ):
@@ -122,7 +122,7 @@ def test_flight_handles_empty_context(
     sample_state["current_context"] = ""
     mock_specialist_llm("I don't have information about that")
 
-    result = handle_flight(sample_state)
+    result = await handle_flight(sample_state)
 
     assert "answer" in result
     assert result["source"] == "flight.txt"
@@ -149,7 +149,7 @@ def test_specialist_prompt_formats_with_timeline() -> None:
     assert "Day 13 (July 19): Annecy -> Geneva" in formatted
 
 
-def test_general_specialist_uses_all_documents(
+async def test_general_specialist_uses_all_documents(
     mock_specialist_llm,
     sample_state: TripAssistantState,
 ):
@@ -157,7 +157,7 @@ def test_general_specialist_uses_all_documents(
     sample_state["question"] = "What should I bring?"
     mock_specialist_llm("Bring hiking boots and warm clothes")
 
-    result = handle_general(sample_state)
+    result = await handle_general(sample_state)
 
     assert result["answer"] == "Bring hiking boots and warm clothes"
     assert result["source"] is None

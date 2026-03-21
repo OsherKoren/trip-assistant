@@ -9,12 +9,14 @@ from src.logger import logger
 from src.prompts import SPECIALIST_PROMPT_TEMPLATE, TOPICS, format_history
 from src.schemas import TopicCategory, TripAssistantState
 
+# Module-level LLM instance (created once per process/Lambda container)
+_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
 
 def create_specialist(
     category: TopicCategory,
     source_file: str,
-    model: str = "gpt-4o-mini",
-) -> Callable[[TripAssistantState], dict[str, Any]]:
+) -> Callable[[TripAssistantState], Any]:
     """Factory function to create specialist nodes with consistent behavior.
 
     All specialists follow the same pattern:
@@ -26,13 +28,12 @@ def create_specialist(
     Args:
         category: Topic category for this specialist (e.g., "flight", "car_rental")
         source_file: Source document filename (e.g., "flight.txt")
-        model: OpenAI model to use (default: gpt-4o-mini)
 
     Returns:
         Specialist node function with proper error handling
     """
 
-    def specialist_node(state: TripAssistantState) -> dict[str, Any]:
+    async def specialist_node(state: TripAssistantState) -> dict[str, Any]:
         """Answer questions using current_context.
 
         Args:
@@ -45,8 +46,6 @@ def create_specialist(
         context = state["current_context"]
         history = state.get("history", [])
 
-        llm = ChatOpenAI(model=model, temperature=0)
-
         prompt = SPECIALIST_PROMPT_TEMPLATE.format(
             topic=TOPICS[category],
             context=context,
@@ -55,7 +54,7 @@ def create_specialist(
         )
 
         try:
-            response = llm.invoke(prompt)
+            response = await _llm.ainvoke(prompt)
             assert isinstance(response.content, str), "Expected string response from LLM"
             answer = response.content
         except Exception as e:
