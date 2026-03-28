@@ -5,7 +5,6 @@ stub that lifespan overrides via app.dependency_overrides.
 """
 
 import json
-from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Any, Protocol, cast
 
 import aioboto3
@@ -18,10 +17,6 @@ class AgentGraphProtocol(Protocol):
     """Protocol defining the agent graph interface."""
 
     async def ainvoke(self, state: dict[str, Any]) -> dict[str, Any]: ...
-
-    def astream_events(
-        self, state: dict[str, Any], **kwargs: Any
-    ) -> AsyncIterator[dict[str, Any]]: ...
 
 
 class AgentLambdaProxy:
@@ -68,13 +63,6 @@ class AgentLambdaProxy:
                 status_code=500,
                 detail="Agent processing failed. Please try again later.",
             ) from e
-
-    async def astream_events(
-        self, state: dict[str, Any], **_kwargs: Any
-    ) -> AsyncGenerator[dict[str, Any], None]:
-        """Fall back to ainvoke and emit a single chain_end event (Lambda can't stream)."""
-        result = await self.ainvoke(state)
-        yield {"event": "on_chain_end", "name": "LangGraph", "data": {"output": result}}
 
 
 def build_graph(

@@ -16,15 +16,6 @@ export interface Message {
   isStreaming?: boolean;
 }
 
-export interface StreamDone {
-  done: true;
-  id: string;
-  answer: string;
-  category: string;
-  confidence: number;
-  source: string | null;
-}
-
 export interface MessageResponse {
   id: string;
   answer: string;
