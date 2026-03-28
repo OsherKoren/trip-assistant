@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Feedback, HistoryEntry, Message } from '../types';
-import { sendMessage as callSendMessage, streamMessage } from '../api/client';
+import { sendMessage as callSendMessage } from '../api/client';
 import { useAuth } from './useAuth';
 
 export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
@@ -57,69 +57,11 @@ export function useMessages() {
     setIsLoading(true);
     setError(null);
 
-    // Stable placeholder ID for the streaming assistant message
-    const placeholderId = generateId();
-    let placeholderAdded = false;
-    let doneReceived = false;
-
     try {
-      await streamMessage(question, getToken, history, {
-        onToken: (token) => {
-          if (!placeholderAdded) {
-            placeholderAdded = true;
-            setIsLoading(false);
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: placeholderId,
-                role: 'assistant',
-                content: token,
-                isStreaming: true,
-                timestamp: new Date(),
-              },
-            ]);
-          } else {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === placeholderId ? { ...m, content: m.content + token } : m,
-              ),
-            );
-          }
-        },
-        onDone: (meta) => {
-          doneReceived = true;
-          setIsLoading(false);
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === placeholderId
-                ? {
-                    ...m,
-                    id: meta.id,
-                    // Use streamed content if available, fall back to full answer (Lambda proxy)
-                    content: m.content || meta.answer,
-                    category: meta.category,
-                    confidence: meta.confidence,
-                    isStreaming: false,
-                  }
-                : m,
-            ),
-          );
-        },
-        onError: (message) => {
-          doneReceived = true; // treat error as terminal — skip fallback
-          setIsLoading(false);
-          setError(message);
-          if (placeholderAdded) {
-            setMessages((prev) => prev.filter((m) => m.id !== placeholderId));
-          }
-        },
-      });
-
-      // Fallback: streaming completed but never received a done/error event
-      if (!doneReceived) {
-        const result = await callSendMessage(question, getToken, history);
-        setIsLoading(false);
-        const assistantMessage: Message = {
+      const result = await callSendMessage(question, getToken, history);
+      setMessages((prev) => [
+        ...prev,
+        {
           id: result.id,
           role: 'assistant',
           content: result.answer,
@@ -127,20 +69,10 @@ export function useMessages() {
           confidence: result.confidence,
           isStreaming: false,
           timestamp: new Date(),
-        };
-        if (placeholderAdded) {
-          setMessages((prev) =>
-            prev.map((m) => (m.id === placeholderId ? assistantMessage : m)),
-          );
-        } else {
-          setMessages((prev) => [...prev, assistantMessage]);
-        }
-      }
+        },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
-      if (placeholderAdded) {
-        setMessages((prev) => prev.filter((m) => m.id !== placeholderId));
-      }
     } finally {
       setIsLoading(false);
     }

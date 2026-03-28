@@ -6,7 +6,7 @@ import os
 # Integration tests that need a real key check for the "sk-" prefix and skip otherwise.
 os.environ.setdefault("OPENAI_API_KEY", "test-dummy-key")
 
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import Generator
 from typing import Any
 
 import pytest
@@ -14,13 +14,6 @@ from fastapi.testclient import TestClient
 
 from app.dependencies import get_graph
 from app.main import app
-
-
-class _MockChunk:
-    """Minimal AIMessageChunk stand-in for streaming tests."""
-
-    def __init__(self, content: str) -> None:
-        self.content = content
 
 
 class MockGraph:
@@ -49,34 +42,6 @@ class MockGraph:
         """Mock async invoke method that records calls and returns preset value."""
         self.invoke_calls.append(state)
         return self.return_value
-
-    async def astream_events(
-        self, state: dict[str, Any], **_kwargs: Any
-    ) -> AsyncGenerator[dict[str, Any], None]:
-        """Mock streaming: emit classifier token (filtered), specialist token, then done."""
-        self.invoke_calls.append(state)
-        answer = self.return_value.get("answer", "test answer")
-
-        # Classifier token — must be filtered out by the streaming endpoint
-        yield {
-            "event": "on_chat_model_stream",
-            "metadata": {"langgraph_node": "classifier"},
-            "data": {"chunk": _MockChunk("ignored")},
-        }
-
-        # Specialist token
-        yield {
-            "event": "on_chat_model_stream",
-            "metadata": {"langgraph_node": self.return_value.get("category", "flight")},
-            "data": {"chunk": _MockChunk(answer)},
-        }
-
-        # Final graph result
-        yield {
-            "event": "on_chain_end",
-            "name": "LangGraph",
-            "data": {"output": self.return_value},
-        }
 
 
 @pytest.fixture
