@@ -135,4 +135,24 @@ describe('useSessions', () => {
     // timestamps are parsed back to Date objects
     expect(result.current.sessions[0].messages[0].timestamp).toBeInstanceOf(Date);
   });
+
+  it('migrates stale "New Chat" title to first user message on load', () => {
+    const raw = [
+      {
+        id: 'session-stale',
+        title: 'New Chat',
+        messages: [
+          { id: 'msg-1', role: 'user', content: 'Where should we stay in Chamonix?', timestamp: '2026-03-20T10:00:00.000Z' },
+          { id: 'msg-2', role: 'assistant', content: 'I recommend Les Houches.', timestamp: '2026-03-20T10:00:01.000Z' },
+        ],
+        createdAt: '2026-03-20T10:00:00.000Z',
+        updatedAt: '2026-03-20T10:00:01.000Z',
+      },
+    ];
+    localStorage.setItem('trip-assistant:sessions', JSON.stringify(raw));
+
+    const { result } = renderHook(() => useSessions());
+
+    expect(result.current.sessions[0].title).toBe('Where should we stay in Chamonix?');
+  });
 });

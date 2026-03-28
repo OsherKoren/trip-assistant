@@ -23,10 +23,13 @@ interface RawSession {
 }
 
 function parseSession(raw: RawSession): ChatSession {
-  return {
-    ...raw,
-    messages: raw.messages.map((m) => ({ ...m, timestamp: new Date(m.timestamp) })),
-  };
+  const messages = raw.messages.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }));
+  // Migrate: re-derive title from messages if it was saved as 'New Chat' but messages exist
+  const title =
+    raw.title === 'New Chat' && messages.some((m) => m.role === 'user')
+      ? deriveTitle(messages)
+      : raw.title;
+  return { ...raw, title, messages };
 }
 
 function loadSessions(): ChatSession[] {
