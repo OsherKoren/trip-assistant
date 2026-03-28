@@ -62,3 +62,15 @@ variable "messages_table_arn" {
   type        = string
   default     = ""
 }
+
+variable "cache_table_name" {
+  description = "DynamoDB table name for question cache"
+  type        = string
+  default     = ""
+}
+
+variable "cache_table_arn" {
+  description = "DynamoDB table ARN for question cache (for IAM permissions)"
+  type        = string
+  default     = ""
+}
