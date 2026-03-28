@@ -12,7 +12,7 @@ from app.db.cache import get_cached_response, store_cached_response
 from app.db.messages import store_message
 from app.dependencies import AgentGraphProtocol, get_graph
 from app.logger import logger
-from app.settings import get_settings
+from app.settings import Settings, get_settings
 
 from .schemas import ErrorResponse, MessageRequest, MessageResponse
 
@@ -21,7 +21,9 @@ router = APIRouter(tags=["messages"])
 
 @router.post("/messages", response_model=MessageResponse, responses={500: {"model": ErrorResponse}})
 async def create_message(
-    request_body: MessageRequest, graph: AgentGraphProtocol = Depends(get_graph)
+    request_body: MessageRequest,
+    graph: AgentGraphProtocol = Depends(get_graph),
+    settings: Settings = Depends(get_settings),
 ) -> MessageResponse:
     """Send a message to the trip assistant agent.
 
@@ -45,8 +47,6 @@ async def create_message(
         question_preview=request_body.question[:50],
         history_length=len(request_body.history),
     )
-
-    settings = get_settings()
 
     try:
         # Check question cache before calling LLM

@@ -43,8 +43,8 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
     }
   });
 
-  it('sends a real question and gets an answer', async () => {
-    if (!apiReachable) return;
+  it('sends a real question and gets an answer', async (ctx) => {
+    if (!apiReachable) ctx.skip();
 
     render(<ChatWithHook />);
     const user = userEvent.setup();
@@ -66,8 +66,8 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
     );
   });
 
-  it('sends a flight question and gets a flight-related answer', async () => {
-    if (!apiReachable) return;
+  it('sends a flight question and gets a flight-related answer', async (ctx) => {
+    if (!apiReachable) ctx.skip();
 
     render(<ChatWithHook />);
     const user = userEvent.setup();
@@ -84,8 +84,8 @@ describe.skipIf(!API_URL)('Integration: Chat with real API', () => {
     );
   });
 
-  it('handles multiple messages in sequence', async () => {
-    if (!apiReachable) return;
+  it('handles multiple messages in sequence', async (ctx) => {
+    if (!apiReachable) ctx.skip();
 
     render(<ChatWithHook />);
     const user = userEvent.setup();

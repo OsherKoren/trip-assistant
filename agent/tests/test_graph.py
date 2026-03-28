@@ -63,7 +63,7 @@ async def test_graph_routes_to_correct_specialist(
     expected_category,
     expected_answer,
     expected_source,
-):
+) -> None:
     """Test that graph routes questions to correct specialist nodes."""
     initial_state["question"] = question
 
@@ -91,7 +91,7 @@ async def test_graph_routes_to_correct_specialist(
     assert result["source"] == expected_source
 
 
-async def test_graph_end_to_end_with_answer(mocker, initial_state):
+async def test_graph_end_to_end_with_answer(mocker, initial_state) -> None:
     """Test end-to-end graph execution returns complete answer."""
     # Mock classifier
     mock_classification = TopicClassification(category="flight", confidence=0.95)
@@ -115,7 +115,7 @@ async def test_graph_end_to_end_with_answer(mocker, initial_state):
     assert result["confidence"] == 0.95
 
 
-async def test_graph_routes_unclear_question_to_general(mocker, initial_state):
+async def test_graph_routes_unclear_question_to_general(mocker, initial_state) -> None:
     """Test that unclear questions route to general specialist."""
     initial_state["question"] = "What should I pack?"
 
@@ -140,7 +140,7 @@ async def test_graph_routes_unclear_question_to_general(mocker, initial_state):
     assert result["source"] is None
 
 
-async def test_graph_preserves_documents_through_flow(mocker, initial_state):
+async def test_graph_preserves_documents_through_flow(mocker, initial_state) -> None:
     """Test that documents are preserved throughout the graph execution."""
     # Mock classifier
     mock_classification = TopicClassification(category="flight", confidence=0.95)

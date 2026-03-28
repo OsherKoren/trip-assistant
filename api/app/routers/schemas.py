@@ -20,6 +20,7 @@ class HistoryEntry(BaseModel):
     content: str = Field(
         ...,
         min_length=1,
+        max_length=2000,
         description="Message content for this turn",
     )
 
@@ -39,9 +40,12 @@ class MessageRequest(BaseModel):
         question: User's question about the trip (must not be empty)
     """
 
-    question: str = Field(..., min_length=1, description="User's question about the trip")
+    question: str = Field(
+        ..., min_length=1, max_length=2000, description="User's question about the trip"
+    )
     history: list[HistoryEntry] = Field(
         default_factory=list,
+        max_length=20,
         description="Optional conversation history between user and assistant",
     )
 
@@ -138,7 +142,9 @@ class FeedbackRequest(BaseModel):
 
     message_id: str = Field(..., min_length=1, description="Server-generated message ID")
     rating: Literal["up", "down"] = Field(..., description="Feedback rating")
-    comment: str | None = Field(None, description="Optional comment explaining the rating")
+    comment: str | None = Field(
+        None, max_length=500, description="Optional comment explaining the rating"
+    )
 
     model_config = {
         "json_schema_extra": {

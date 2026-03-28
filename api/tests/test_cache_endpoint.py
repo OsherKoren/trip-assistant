@@ -150,7 +150,7 @@ class TestCacheMiss:
             client_with_cache.post("/api/messages", json={"question": "What time is our flight?"})
 
         mock_store.assert_awaited_once()
-        stored_item = mock_store.call_args[0][2]  # third positional arg
+        stored_item = mock_store.call_args.args[2]  # third positional arg
         assert "question_hash" in stored_item
         assert stored_item["answer"] == "Your flight departs at 3:00 PM from Terminal 3."
         assert stored_item["category"] == "flight"
