@@ -86,6 +86,7 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSelect, onDele
               {group.items.map((session) => (
                 <div
                   key={session.id}
+                  aria-current={session.id === activeSessionId ? 'true' : undefined}
                   className={`group relative flex items-center gap-1 mx-1 rounded-lg transition-colors ${
                     session.id === activeSessionId
                       ? 'bg-gray-100 dark:bg-gray-700'
@@ -95,7 +96,6 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSelect, onDele
                   <button
                     onClick={() => onSelect(session.id)}
                     className="flex-1 flex items-center px-3 py-2 text-left min-w-0"
-                    aria-current={session.id === activeSessionId ? 'true' : undefined}
                   >
                     <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
                       {session.title}
