@@ -63,6 +63,8 @@ module "api_lambda" {
   feedback_email             = var.feedback_email
   messages_table_name        = module.messages_dynamodb.table_name
   messages_table_arn         = module.messages_dynamodb.table_arn
+  cache_table_name           = module.cache_dynamodb.table_name
+  cache_table_arn            = module.cache_dynamodb.table_arn
 }
 
 module "api_gateway" {
@@ -114,6 +116,13 @@ module "feedback_dynamodb" {
 
 module "messages_dynamodb" {
   source = "./modules/messages-dynamodb"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+module "cache_dynamodb" {
+  source = "./modules/cache-dynamodb"
 
   project_name = var.project_name
   environment  = var.environment

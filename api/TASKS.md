@@ -619,48 +619,46 @@ Forward conversation history from the frontend to the agent for follow-up questi
 
 ---
 
-## Phase 14: SSE Streaming Endpoint
+## Phase 15: Question Cache ✅
 
-Add `POST /api/messages/stream` that returns a Server-Sent Events stream so the frontend can display the answer token-by-token instead of waiting 10+ seconds.
+Add DynamoDB-backed question cache to avoid redundant LLM calls. Normalizes questions (lowercase, strip punctuation, collapse whitespace), hashes with SHA-256, and checks cache before invoking the agent. Cache hits return instantly (~5ms vs ~2-5s LLM call).
 
-**SSE event format**:
-```
-data: {"token": "..."}\n\n      ← repeated per token (specialist node only)
-data: {"done": true, "id": "...", "category": "...", "confidence": 0.95, "source": "..."}\n\n
-data: {"error": "..."}\n\n      ← on failure
-```
+### Task 15.1: Settings
+- [x] `api/app/settings.py` — add `cache_table_name: str = ""` (maps to `CACHE_TABLE_NAME` env var)
 
-**Design**: Keep existing `POST /api/messages` unchanged. Add new `/stream` endpoint alongside it. Frontend switches to `/stream`.
+### Task 15.2: Normalization utility + tests
+- [x] Create `api/app/cache.py`
+  - [x] `normalize_question()` — lowercase, strip, remove punctuation (keep ?), collapse whitespace
+  - [x] `hash_question()` — SHA-256 hex digest
+- [x] Create `api/tests/test_cache.py` — 12 tests for normalization edge cases and hash properties
 
-### Task 14.1: Update AgentGraphProtocol
-- [x] Edit `app/dependencies.py`
-  - [x] Add `astream_events(state, version)` method to `AgentGraphProtocol`
-  - [x] Add `astream_events` stub to `AgentLambdaProxy` — calls `ainvoke` then emits a single `done` event (Lambda can't stream)
+### Task 15.3: Cache DB functions + tests
+- [x] Create `api/app/db/cache.py` — `get_cached_response()`, `store_cached_response()` (aioboto3 pattern)
+- [x] Create `api/tests/test_cache_storage.py` — 4 tests (hit, miss, store, error propagation)
 
-### Task 14.2: Add streaming schemas
-- [x] SSE events are plain JSON strings — no Pydantic models needed for the stream itself
+### Task 15.4: Schema change
+- [x] `api/app/routers/schemas.py` — add `cached: bool = Field(False)` to `MessageResponse`
 
-### Task 14.3: Create streaming endpoint
-- [x] Edit `app/routers/messages.py`
-  - [x] Add `POST /messages/stream` returning `StreamingResponse(media_type="text/event-stream")`
-  - [x] Use `graph.astream_events(state, version="v2")`
-  - [x] Filter `on_chat_model_stream` events where `metadata["langgraph_node"] != "classifier"`
-  - [x] Yield `data: {"token": chunk.content}\n\n` per token
-  - [x] After stream ends, yield `data: {"done": true, "id": ..., "answer": ..., "category": ..., ...}\n\n`
-  - [x] On exception, yield `data: {"error": "Processing failed"}\n\n`
-  - [x] Store message in DynamoDB (best-effort, same as `/messages`)
+### Task 15.5: Handler integration
+- [x] `api/app/routers/messages.py` — cache check before `graph.ainvoke()`, cache store after
+  - [x] Cache hit: return cached answer with `cached=True`, new UUID, store in messages table
+  - [x] Cache miss: existing LLM flow, then `store_cached_response()` (best-effort)
+  - [x] All cache errors caught + logged, never block response
 
-### Task 14.4: Tests
-- [x] Add streaming endpoint tests to `tests/test_main.py`
-  - [x] Test `/messages/stream` returns `text/event-stream` content type
-  - [x] Test token events are emitted
-  - [x] Test done event contains id, category, confidence, source
-  - [x] Test error event emitted on agent failure
-  - [x] Test classifier tokens are NOT streamed (only specialist)
+### Task 15.6: Endpoint tests
+- [x] Create `api/tests/test_cache_endpoint.py` — 7 tests
+  - [x] Cache hit returns cached response, LLM not called
+  - [x] Cache hit generates fresh UUID each time
+  - [x] Cache miss calls LLM, stores in cache
+  - [x] Cache miss stores result in cache table
+  - [x] Cache lookup failure falls through to LLM
+  - [x] Cache store failure still returns response
+  - [x] Cache disabled when table name empty
 
-### Task 14.5: Verify
-- [x] `uv run pytest tests/ -v -m "not integration"` — 84 tests pass
-- [x] `uv run pre-commit run --all-files` (must pass)
+### Task 15.7: Verify
+- [x] `uv run pytest tests/ -v -m "not integration"` — 102 tests pass
+- [x] `uv run pre-commit run --all-files` — passes
+- [x] Commit phase 15 changes
 
 ---
 
@@ -679,7 +677,8 @@ data: {"error": "..."}\n\n      ← on failure
 - [x] Phase 11 completed (Message storage & feedback refactor)
 - [x] Phase 12 completed (Simplify feedback to use message_id as key)
 - [x] Phase 13 completed (Conversation history support)
-- [x] All unit tests passing (68 tests, mocked agent)
+- [x] Phase 15 completed (Question cache)
+- [x] All unit tests passing (102 tests, mocked agent)
 - [x] Integration tests ready (11 tests, skip without API key)
 - [x] All quality checks passing (ruff, mypy, pre-commit)
 - [x] Dual-mode dependencies work (dev imports local, prod calls Lambda)

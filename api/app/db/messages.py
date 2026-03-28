@@ -12,14 +12,18 @@ _session = aioboto3.Session()
 async def store_message(table_name: str, region: str, item: dict[str, Any]) -> None:
     """Store message item in DynamoDB.
 
+    No-op when table_name is empty (local dev / tests without DynamoDB).
+
     Args:
-        table_name: DynamoDB table name.
+        table_name: DynamoDB table name (empty string to skip).
         region: AWS region.
         item: Message item to store.
 
     Raises:
         Exception: If DynamoDB put_item fails.
     """
+    if not table_name:
+        return
     async with _session.resource("dynamodb", region_name=region) as dynamodb:
         table = await dynamodb.Table(table_name)
         await table.put_item(Item=item)

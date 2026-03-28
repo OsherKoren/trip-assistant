@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     feedback_table_name: str = ""
     feedback_email: str = ""
     messages_table_name: str = ""
+    cache_table_name: str = ""
 
     @property
     def cors_origins(self) -> list[str]:

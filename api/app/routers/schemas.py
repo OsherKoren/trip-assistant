@@ -87,6 +87,7 @@ class MessageResponse(BaseModel):
     category: str = Field(..., description="Topic category")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score (0.0-1.0)")
     source: str | None = Field(None, description="Source document used (optional)")
+    cached: bool = Field(False, description="Whether this response was served from cache")
 
     model_config = {
         "json_schema_extra": {
@@ -96,6 +97,7 @@ class MessageResponse(BaseModel):
                 "category": "flight",
                 "confidence": 0.95,
                 "source": "flight.txt",
+                "cached": False,
             }
         }
     }

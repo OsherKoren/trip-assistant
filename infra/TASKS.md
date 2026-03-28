@@ -572,6 +572,22 @@ Change feedback DynamoDB partition key from a separate feedback UUID to `message
 
 ---
 
+## Phase 22: Cache DynamoDB Table ✅
+
+Add a DynamoDB table for question caching. When a family member asks a question that was already asked, the cached answer is returned instead of calling the LLM — reducing latency and token cost.
+
+- [x] Create `infra/modules/cache-dynamodb/` module
+  - [x] `main.tf` — `aws_dynamodb_table` named `${project_name}-cache-${environment}`, PAY_PER_REQUEST, hash_key `question_hash` (S)
+  - [x] `variables.tf` — `project_name`, `environment`
+  - [x] `outputs.tf` — `table_arn`, `table_name`
+- [x] Update `infra/modules/api-lambda/variables.tf` — add `cache_table_name` + `cache_table_arn`
+- [x] Update `infra/modules/api-lambda/main.tf` — add IAM policy (`dynamodb:PutItem` + `dynamodb:GetItem`) + `CACHE_TABLE_NAME` env var
+- [x] Wire in `infra/main.tf` — add `module "cache_dynamodb"` + pass to `module "api_lambda"`
+- [x] `terraform fmt -recursive && terraform validate` — passes
+- [x] Commit phase 22 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] DB-backed conversation sessions — store messages with `session_id` PK + `created_at` SK, load history from DynamoDB instead of frontend. Enables conversation replay, analytics, and page-refresh resume.
