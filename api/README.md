@@ -103,6 +103,8 @@ Health check for Lambda warm-up.
 - **Swagger UI**: http://localhost:8000/docs
 - **OpenAPI spec**: [`openapi.json`](openapi.json)
 
+![OpenAPI](docs/images/openapi.png)
+
 ## Architecture
 
 ```
