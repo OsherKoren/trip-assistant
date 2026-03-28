@@ -86,23 +86,24 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSelect, onDele
               {group.items.map((session) => (
                 <div
                   key={session.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onSelect(session.id)}
-                  onKeyDown={(e) => e.key === 'Enter' && onSelect(session.id)}
-                  className={`group relative flex items-center gap-1 mx-1 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                  aria-current={session.id === activeSessionId ? 'true' : undefined}
+                  className={`group relative flex items-center gap-1 mx-1 rounded-lg transition-colors ${
                     session.id === activeSessionId
                       ? 'bg-gray-100 dark:bg-gray-700'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
-                  aria-current={session.id === activeSessionId ? 'true' : undefined}
                 >
-                  <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">
-                    {session.title}
-                  </span>
                   <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}
-                    className="opacity-0 group-hover:opacity-100 shrink-0 w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-opacity"
+                    onClick={() => onSelect(session.id)}
+                    className="flex-1 flex items-center px-3 py-2 text-left min-w-0"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                      {session.title}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => onDelete(session.id)}
+                    className="opacity-0 group-hover:opacity-100 shrink-0 w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-opacity mr-1"
                     aria-label={`Delete chat "${session.title}"`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">

@@ -53,7 +53,7 @@ async def test_classify_question_categories(
     question: str,
     expected_category: str,
     expected_doc_key: str,
-):
+) -> None:
     """Test that classifier correctly classifies different question types."""
     sample_state["question"] = question
     mock_classifier_llm(expected_category, 0.95)
@@ -68,7 +68,7 @@ async def test_classify_question_categories(
 async def test_classify_question_returns_confidence(
     mock_classifier_llm,
     sample_state: TripAssistantState,
-):
+) -> None:
     """Test that classifier returns a confidence score between 0 and 1."""
     mock_classifier_llm("flight", 0.87)
 
@@ -81,7 +81,7 @@ async def test_classify_question_returns_confidence(
 async def test_classify_question_sets_current_context(
     mock_classifier_llm,
     sample_state: TripAssistantState,
-):
+) -> None:
     """Test that classifier sets current_context from the correct document."""
     mock_classifier_llm("flight", 0.95)
 
@@ -95,7 +95,7 @@ async def test_classify_question_sets_current_context(
 async def test_classify_question_general_category(
     mock_classifier_llm,
     sample_state: TripAssistantState,
-):
+) -> None:
     """Test that unclear questions are classified as general."""
     sample_state["question"] = "What should I bring?"
     mock_classifier_llm("general", 0.6)

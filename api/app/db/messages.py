@@ -33,14 +33,18 @@ async def store_message(table_name: str, region: str, item: dict[str, Any]) -> N
 async def get_message(table_name: str, region: str, message_id: str) -> dict[str, Any] | None:
     """Get message item from DynamoDB.
 
+    No-op when table_name is empty (local dev / tests without DynamoDB).
+
     Args:
-        table_name: DynamoDB table name.
+        table_name: DynamoDB table name (empty string to skip).
         region: AWS region.
         message_id: Message ID to look up.
 
     Returns:
         Message item dict, or None if not found.
     """
+    if not table_name:
+        return None
     async with _session.resource("dynamodb", region_name=region) as dynamodb:
         table = await dynamodb.Table(table_name)
         response = await table.get_item(Key={"id": message_id})

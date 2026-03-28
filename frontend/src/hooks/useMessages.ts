@@ -28,7 +28,7 @@ export function useMessages() {
     lastActivityRef.current = Date.now();
   }, []);
 
-  const sendMessage = async (question: string) => {
+  const sendMessage = useCallback(async (question: string) => {
     const now = Date.now();
     let currentMessages: Message[] = [];
 
@@ -76,15 +76,15 @@ export function useMessages() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [messages, getToken]);
 
-  const setFeedback = (messageId: string, feedback: Feedback) => {
+  const setFeedback = useCallback((messageId: string, feedback: Feedback) => {
     setMessages((prev) =>
       prev.map((msg) =>
         msg.id === messageId ? { ...msg, feedback } : msg,
       ),
     );
-  };
+  }, []);
 
   return { messages, isLoading, error, sendMessage, setFeedback, clearMessages, loadMessages };
 }

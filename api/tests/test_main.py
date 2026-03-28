@@ -46,7 +46,6 @@ def test_post_messages_forwards_history(
     assert response.status_code == 200
 
     # History should be forwarded to the graph state
-    assert isinstance(mock_graph, MockGraph)
     assert len(mock_graph.invoke_calls) == 1
     state = mock_graph.invoke_calls[0]
     assert state["question"] == "Is there a meal on that flight?"
@@ -66,7 +65,6 @@ def test_post_messages_without_history_uses_empty_list(
 
     assert response.status_code == 200
 
-    assert isinstance(mock_graph, MockGraph)
     assert len(mock_graph.invoke_calls) == 1
     state = mock_graph.invoke_calls[0]
     assert state["question"] == "What time is our flight?"

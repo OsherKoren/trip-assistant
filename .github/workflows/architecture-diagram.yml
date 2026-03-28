@@ -52,4 +52,5 @@ jobs:
           git add infra/docs/
           git diff --staged --quiet && echo "No changes to diagram" && exit 0
           git commit -m "Update architecture diagram [skip ci]"
+          git pull --rebase
           git push

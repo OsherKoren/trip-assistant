@@ -35,7 +35,7 @@ async def test_graph_end_to_end_real_api(
     question: str,
     expected_category: str,
     expected_source: str,
-):
+) -> None:
     """Test complete graph flow with real API calls."""
     integration_state["question"] = question
 
@@ -61,7 +61,7 @@ async def test_graph_end_to_end_real_api(
 
 
 @pytest.mark.integration
-async def test_graph_answer_quality(integration_state: TripAssistantState):
+async def test_graph_answer_quality(integration_state: TripAssistantState) -> None:
     """Test that graph generates relevant, quality answers."""
     integration_state["question"] = "What time does our flight depart?"
 
@@ -84,7 +84,7 @@ async def test_graph_answer_quality(integration_state: TripAssistantState):
 
 
 @pytest.mark.integration
-async def test_graph_multiple_categories(integration_state: TripAssistantState):
+async def test_graph_multiple_categories(integration_state: TripAssistantState) -> None:
     """Test graph with questions from different categories."""
     test_questions = [
         ("What time is our flight?", "flight", "flight.txt"),
@@ -104,7 +104,7 @@ async def test_graph_multiple_categories(integration_state: TripAssistantState):
 
 
 @pytest.mark.integration
-async def test_graph_preserves_state(integration_state: TripAssistantState):
+async def test_graph_preserves_state(integration_state: TripAssistantState) -> None:
     """Test that graph preserves and updates state correctly."""
     integration_state["question"] = "What airline is our flight?"
 
@@ -124,7 +124,7 @@ async def test_graph_preserves_state(integration_state: TripAssistantState):
 
 @pytest.mark.integration
 @pytest.mark.slow
-async def test_graph_general_specialist(integration_state: TripAssistantState):
+async def test_graph_general_specialist(integration_state: TripAssistantState) -> None:
     """Test general specialist with unclear question."""
     integration_state["question"] = "What should I bring for the trip?"
 

@@ -67,7 +67,7 @@ async def test_all_nodes_handle_llm_failures_gracefully(
     sample_state: TripAssistantState,
     node_function,
     expected_source: str | None,
-):
+) -> None:
     """Test that all nodes handle LLM failures gracefully with proper error messages.
 
     This comprehensive test verifies that:
@@ -114,8 +114,8 @@ async def test_all_nodes_handle_llm_failures_gracefully(
         assert "current_context" in result
 
         # Verify error was logged
-        mock_logger.error.assert_called_once()
-        error_call = mock_logger.error.call_args[0][0]
+        mock_logger.exception.assert_called_once()
+        error_call = mock_logger.exception.call_args[0][0]
         assert "Classifier failed" in error_call
 
     else:
@@ -137,8 +137,8 @@ async def test_all_nodes_handle_llm_failures_gracefully(
         assert result["source"] == expected_source
 
         # Verify error was logged
-        mock_logger.error.assert_called_once()
-        error_call = mock_logger.error.call_args[0][0]
+        mock_logger.exception.assert_called_once()
+        error_call = mock_logger.exception.call_args[0][0]
         assert "failed" in error_call.lower()
 
 
@@ -205,12 +205,14 @@ def test_error_messages_are_user_friendly():
     assert "couldn't" in general_content or "could not" in general_content
 
     # Should NOT have technical error details
-    assert "Exception" not in classifier_content.split("logger.error")[1]  # After logging
-    assert "Traceback" not in factory_content.split("logger.error")[1]
+    assert "Exception" not in classifier_content.split("logger.exception")[1]  # After logging
+    assert "Traceback" not in factory_content.split("logger.exception")[1]
     assert "API" not in general_content.split("answer =")[1].split("return")[0]
 
 
-async def test_graph_end_to_end_with_classifier_error(mocker, sample_state: TripAssistantState):
+async def test_graph_end_to_end_with_classifier_error(
+    mocker, sample_state: TripAssistantState
+) -> None:
     """Test complete graph execution when classifier fails.
 
     Verifies that:
@@ -249,10 +251,12 @@ async def test_graph_end_to_end_with_classifier_error(mocker, sample_state: Trip
     assert len(result["answer"]) > 0
 
     # Should have logged the classifier error
-    assert mock_logger.error.called
+    assert mock_logger.exception.called
 
 
-async def test_graph_end_to_end_with_specialist_error(mocker, sample_state: TripAssistantState):
+async def test_graph_end_to_end_with_specialist_error(
+    mocker, sample_state: TripAssistantState
+) -> None:
     """Test complete graph execution when specialist fails.
 
     Verifies that:
@@ -294,4 +298,4 @@ async def test_graph_end_to_end_with_specialist_error(mocker, sample_state: Trip
     assert result["source"] == "flight.txt"
 
     # Should have logged the specialist error
-    assert mock_logger.error.called
+    assert mock_logger.exception.called

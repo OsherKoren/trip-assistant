@@ -17,7 +17,7 @@ from src.nodes import (
     handle_general,
     handle_routes,
 )
-from src.schemas import TripAssistantState
+from src.schemas import TopicCategory, TripAssistantState
 
 # Load documents once at module level (cached for process lifetime)
 _documents = load_documents()
@@ -41,7 +41,7 @@ def inject_documents(state: TripAssistantState) -> dict[str, object]:
     return result
 
 
-def route_by_category(state: TripAssistantState) -> str:
+def route_by_category(state: TripAssistantState) -> TopicCategory:
     """Route to specialist node based on classified category.
 
     Args:

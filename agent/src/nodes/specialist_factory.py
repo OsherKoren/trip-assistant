@@ -55,10 +55,11 @@ def create_specialist(
 
         try:
             response = await _llm.ainvoke(prompt)
-            assert isinstance(response.content, str), "Expected string response from LLM"
+            if not isinstance(response.content, str):
+                raise ValueError(f"Unexpected LLM response type: {type(response.content)}")
             answer = response.content
         except Exception as e:
-            logger.error("Specialist failed", category=category, error=str(e))
+            logger.exception("Specialist failed", category=category, error=str(e))
             answer = (
                 f"Sorry, I couldn't retrieve {TOPICS[category]} information right now. "
                 "Please try again."

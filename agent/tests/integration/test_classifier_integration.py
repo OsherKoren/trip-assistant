@@ -46,7 +46,7 @@ async def test_classifier_real_api(
     integration_state: TripAssistantState,
     question: str,
     expected_category: str,
-):
+) -> None:
     """Test classifier with real OpenAI API calls."""
     integration_state["question"] = question
 
@@ -68,7 +68,7 @@ async def test_classifier_real_api(
 
 
 @pytest.mark.integration
-async def test_classifier_general_category(integration_state: TripAssistantState):
+async def test_classifier_general_category(integration_state: TripAssistantState) -> None:
     """Test that unclear questions are classified as general."""
     integration_state["question"] = "What should I pack for the trip?"
 
@@ -87,7 +87,7 @@ async def test_classifier_general_category(integration_state: TripAssistantState
 
 
 @pytest.mark.integration
-async def test_classifier_confidence_scores(integration_state: TripAssistantState):
+async def test_classifier_confidence_scores(integration_state: TripAssistantState) -> None:
     """Test that classifier returns reasonable confidence scores."""
     test_cases = [
         ("What time does our flight depart?", "flight"),

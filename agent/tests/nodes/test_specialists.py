@@ -76,7 +76,7 @@ async def test_specialist_generates_answer(
     question: str,
     context: str,
     expected_answer: str,
-):
+) -> None:
     """Test that each specialist generates answer from context."""
     sample_state["question"] = question
     sample_state["current_context"] = context
@@ -105,7 +105,7 @@ async def test_specialist_returns_correct_source(
     sample_state: TripAssistantState,
     handler,
     expected_source: str | None,
-):
+) -> None:
     """Test that each specialist returns the correct source."""
     mock_specialist_llm("Test answer")
 
@@ -117,7 +117,7 @@ async def test_specialist_returns_correct_source(
 async def test_flight_handles_empty_context(
     mock_specialist_llm,
     sample_state: TripAssistantState,
-):
+) -> None:
     """Test that specialists handle empty context gracefully."""
     sample_state["current_context"] = ""
     mock_specialist_llm("I don't have information about that")
@@ -152,7 +152,7 @@ def test_specialist_prompt_formats_with_timeline() -> None:
 async def test_general_specialist_uses_all_documents(
     mock_specialist_llm,
     sample_state: TripAssistantState,
-):
+) -> None:
     """Test that general specialist can access all documents."""
     sample_state["question"] = "What should I bring?"
     mock_specialist_llm("Bring hiking boots and warm clothes")
