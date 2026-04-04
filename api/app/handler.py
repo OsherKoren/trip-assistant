@@ -19,4 +19,4 @@ from app.main import app
 
 # Lambda handler - wraps FastAPI app for AWS Lambda execution
 # Mangum translates API Gateway events to ASGI requests and ASGI responses back to API Gateway format
-handler = Mangum(app)
+handler = Mangum(app, lifespan="on")

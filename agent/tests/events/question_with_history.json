@@ -1,0 +1,8 @@
+{
+    "question": "What about the return flight?",
+    "history": [
+      {"role": "user", "content": "When is our flight to Geneva?"},
+      {"role": "assistant", "content": "You fly out on July 7th from TLV to GVA."}
+    ]
+  }
+  
