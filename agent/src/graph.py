@@ -1,7 +1,5 @@
 """LangGraph state graph for Trip Assistant agent."""
 
-from typing import cast
-
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -71,7 +69,9 @@ def create_graph() -> CompiledStateGraph[
         Compiled StateGraph ready for execution
     """
     # Create graph with state schema
-    workflow = StateGraph(TripAssistantState)
+    workflow: StateGraph[TripAssistantState, None, TripAssistantState, TripAssistantState] = (
+        StateGraph(TripAssistantState)
+    )
 
     # Add entry node to inject cached documents
     workflow.add_node("inject_documents", inject_documents)
@@ -108,10 +108,7 @@ def create_graph() -> CompiledStateGraph[
     ]:
         workflow.add_edge(node_name, END)
 
-    return cast(
-        CompiledStateGraph[TripAssistantState, None, TripAssistantState, TripAssistantState],
-        workflow.compile(),
-    )
+    return workflow.compile()
 
 
 graph = create_graph()
