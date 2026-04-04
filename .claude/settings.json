@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/pre-push-review.sh",
+            "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && bash \"$ROOT/.claude/hooks/pre-push-review.sh\"'",
             "timeout": 30
           }
         ]
