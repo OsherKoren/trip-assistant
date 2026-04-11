@@ -2,6 +2,7 @@
 
 from src.nodes.classifier import classify_question
 from src.nodes.general import handle_general
+from src.nodes.language_guard import language_guard
 from src.nodes.specialist_factory import create_specialist
 
 # Create all specialist nodes using factory
@@ -14,6 +15,7 @@ handle_chamonix = create_specialist("chamonix", "chamonix.txt")
 handle_annecy_geneva = create_specialist("annecy_geneva", "annecy_geneva.txt")
 
 __all__ = [
+    "language_guard",
     "classify_question",
     "handle_flight",
     "handle_car_rental",
