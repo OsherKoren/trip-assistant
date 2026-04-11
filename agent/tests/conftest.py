@@ -8,7 +8,22 @@ import pytest
 # Unit tests mock the LLM, so this value is never used for actual API calls.
 os.environ.setdefault("OPENAI_API_KEY", "test-dummy-key")
 
+from src.documents import load_documents
 from src.schemas import TripAssistantState
+
+
+@pytest.fixture
+def initial_state() -> TripAssistantState:
+    """Initial state with question and loaded documents (for graph-level tests)."""
+    return {
+        "question": "What time is our flight?",
+        "category": "general",
+        "confidence": 0.0,
+        "documents": load_documents(),
+        "current_context": "",
+        "answer": "",
+        "source": None,
+    }
 
 
 @pytest.fixture

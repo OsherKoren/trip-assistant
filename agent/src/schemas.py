@@ -46,6 +46,18 @@ class HistoryEntry(TypedDict):
     content: str
 
 
+class LanguageGuardOutput(TypedDict, total=False):
+    """Return type for language_guard node (partial state update).
+
+    All fields are optional: blocked requests set answer/category/confidence,
+    pass-through requests return an empty dict.
+    """
+
+    answer: str
+    category: TopicCategory
+    confidence: float
+
+
 class ClassifierOutput(TypedDict):
     """Return type for classifier node (partial state update)."""
 

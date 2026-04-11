@@ -14,6 +14,7 @@ from src.nodes import (
     handle_flight,
     handle_general,
     handle_routes,
+    language_guard,
 )
 from src.schemas import TopicCategory, TripAssistantState
 
@@ -37,6 +38,18 @@ def inject_documents(state: TripAssistantState) -> dict[str, object]:
     if "history" not in state:
         result["history"] = []
     return result
+
+
+def route_after_language_guard(state: TripAssistantState) -> str:
+    """Route to END if language guard blocked the request, else to classifier.
+
+    Args:
+        state: Current agent state (answer is set if language was blocked)
+
+    Returns:
+        "blocked" if answer was set by language guard, "pass" otherwise
+    """
+    return "blocked" if state.get("answer") else "pass"
 
 
 def route_by_category(state: TripAssistantState) -> TopicCategory:
@@ -63,7 +76,8 @@ def create_graph() -> CompiledStateGraph[
     """Create and compile the Trip Assistant graph.
 
     Graph flow:
-        START → inject_documents → classifier → router → [specialist] → END
+        START → language_guard → inject_documents → classifier → router → [specialist] → END
+        language_guard short-circuits to END for non-English (Hebrew) input
 
     Returns:
         Compiled StateGraph ready for execution
@@ -72,6 +86,9 @@ def create_graph() -> CompiledStateGraph[
     workflow: StateGraph[TripAssistantState, None, TripAssistantState, TripAssistantState] = (
         StateGraph(TripAssistantState)
     )
+
+    # Add language guard node (rejects non-English input before any processing)
+    workflow.add_node("language_guard", language_guard)
 
     # Add entry node to inject cached documents
     workflow.add_node("inject_documents", inject_documents)
@@ -90,7 +107,12 @@ def create_graph() -> CompiledStateGraph[
     workflow.add_node("general", handle_general)
 
     # Add edges
-    workflow.add_edge(START, "inject_documents")
+    workflow.add_edge(START, "language_guard")
+    workflow.add_conditional_edges(
+        "language_guard",
+        route_after_language_guard,
+        {"blocked": END, "pass": "inject_documents"},
+    )
     workflow.add_edge("inject_documents", "classifier")
 
     # Conditional routing based on category

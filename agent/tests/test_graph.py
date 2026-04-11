@@ -4,23 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.documents import load_documents
 from src.graph import graph
 from src.nodes.classifier import TopicClassification
-
-
-@pytest.fixture
-def initial_state():
-    """Create initial state with question and loaded documents."""
-    return {
-        "question": "What time is our flight?",
-        "category": "general",
-        "confidence": 0.0,
-        "documents": load_documents(),
-        "current_context": "",
-        "answer": "",
-        "source": None,
-    }
 
 
 @pytest.mark.parametrize(

@@ -13,6 +13,7 @@ agent/
 │   ├── documents.py      # Load data/*.txt files
 │   ├── graph.py          # Main graph definition
 │   └── nodes/
+│       ├── language_guard.py   # Language guardrail node (English-only)
 │       ├── classifier.py       # Topic classification node
 │       ├── general.py          # General specialist node
 │       └── specialist_factory.py  # Factory for specialist nodes
