@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Language guard node (`language_guard.py`) — rejects Hebrew input before classification using Unicode range detection (`\u0590–\u05FF`), zero LLM cost
+- Graph short-circuits to END with a fixed English-only message when Hebrew is detected, skipping document injection and all LLM calls
+- 7 unit tests for language guard covering Hebrew block, English pass-through, mixed input, and graph integration
+
+### Changed
+- Graph flow updated: `START → language_guard → inject_documents → classifier → router → [specialist] → END`
+- Moved `initial_state` fixture from `test_graph.py` to shared `tests/conftest.py`
+
 ### Changed
 - All LLM node functions (`classify_question`, `specialist_node`, `handle_general`) converted to `async def` using `await ainvoke()` for true async execution — eliminates blocking thread overhead (~1-3s saved per request)
 - LLM client instances moved to module level in all node files — created once per Lambda container instead of per request (~100-200ms saved per request)

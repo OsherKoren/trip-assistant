@@ -3,7 +3,7 @@
 import re
 
 from src.logger import logger
-from src.schemas import TripAssistantState
+from src.schemas import LanguageGuardOutput, TripAssistantState
 
 HEBREW_PATTERN = re.compile(r"[\u0590-\u05FF]")
 
@@ -12,7 +12,7 @@ UNSUPPORTED_LANGUAGE_MSG = (
 )
 
 
-async def language_guard(state: TripAssistantState) -> dict[str, object]:
+async def language_guard(state: TripAssistantState) -> LanguageGuardOutput:
     """Detect Hebrew input and block with a fixed response.
 
     If the question contains Hebrew characters, sets `answer` immediately
@@ -27,7 +27,9 @@ async def language_guard(state: TripAssistantState) -> dict[str, object]:
     question = state["question"]
 
     if HEBREW_PATTERN.search(question):
-        logger.info("Language guard: rejected non-English (Hebrew) input")
+        logger.warning(
+            "Language guard: rejected non-English (Hebrew) input", question=question[:50]
+        )
         return {
             "answer": UNSUPPORTED_LANGUAGE_MSG,
             "category": "general",

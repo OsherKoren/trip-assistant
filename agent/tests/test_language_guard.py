@@ -1,60 +1,56 @@
 """Tests for the language_guard node."""
 
-import pytest
+from unittest.mock import AsyncMock, MagicMock
 
+from src.graph import graph
+from src.nodes.classifier import TopicClassification
 from src.nodes.language_guard import UNSUPPORTED_LANGUAGE_MSG, language_guard
 from src.schemas import TripAssistantState
 
 
-@pytest.fixture
-def base_state(sample_state: TripAssistantState) -> TripAssistantState:
-    """State with an empty answer (pre-guard)."""
-    return {**sample_state, "answer": ""}
-
-
-async def test_hebrew_input_is_blocked(base_state: TripAssistantState) -> None:
+async def test_hebrew_input_is_blocked(sample_state: TripAssistantState) -> None:
     """Hebrew question should set answer and category."""
-    base_state["question"] = "מה שעת הטיסה?"
+    sample_state["question"] = "מה שעת הטיסה?"
 
-    result = await language_guard(base_state)
+    result = await language_guard(sample_state)
 
     assert result["answer"] == UNSUPPORTED_LANGUAGE_MSG
     assert result["category"] == "general"
     assert result["confidence"] == 0.0
 
 
-async def test_english_input_passes_through(base_state: TripAssistantState) -> None:
+async def test_english_input_passes_through(sample_state: TripAssistantState) -> None:
     """English question should return empty dict (no state change)."""
-    base_state["question"] = "What time is our flight?"
+    sample_state["question"] = "What time is our flight?"
 
-    result = await language_guard(base_state)
+    result = await language_guard(sample_state)
 
     assert result == {}
 
 
-async def test_mixed_hebrew_english_is_blocked(base_state: TripAssistantState) -> None:
+async def test_mixed_hebrew_english_is_blocked(sample_state: TripAssistantState) -> None:
     """Mixed Hebrew/English input should be blocked."""
-    base_state["question"] = "What is שלום?"
+    sample_state["question"] = "What is שלום?"
 
-    result = await language_guard(base_state)
+    result = await language_guard(sample_state)
 
     assert result["answer"] == UNSUPPORTED_LANGUAGE_MSG
 
 
-async def test_empty_question_passes_through(base_state: TripAssistantState) -> None:
+async def test_empty_question_passes_through(sample_state: TripAssistantState) -> None:
     """Empty string should not be blocked (no Hebrew chars)."""
-    base_state["question"] = ""
+    sample_state["question"] = ""
 
-    result = await language_guard(base_state)
+    result = await language_guard(sample_state)
 
     assert result == {}
 
 
-async def test_other_languages_pass_through(base_state: TripAssistantState) -> None:
+async def test_other_languages_pass_through(sample_state: TripAssistantState) -> None:
     """Non-Hebrew, non-English input (e.g. French) passes through."""
-    base_state["question"] = "Quelle heure est notre vol?"
+    sample_state["question"] = "Quelle heure est notre vol?"
 
-    result = await language_guard(base_state)
+    result = await language_guard(sample_state)
 
     assert result == {}
 
@@ -76,11 +72,6 @@ async def test_graph_short_circuits_on_hebrew(mocker, initial_state) -> None:
 
 async def test_graph_proceeds_normally_for_english(mocker, initial_state) -> None:
     """Graph should proceed to classifier for English input."""
-    from unittest.mock import AsyncMock, MagicMock
-
-    from src.graph import graph
-    from src.nodes.classifier import TopicClassification
-
     initial_state["question"] = "What time is our flight?"
 
     mock_classification = TopicClassification(category="flight", confidence=0.95)

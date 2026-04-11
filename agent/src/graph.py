@@ -49,7 +49,7 @@ def route_after_language_guard(state: TripAssistantState) -> str:
     Returns:
         "blocked" if answer was set by language guard, "pass" otherwise
     """
-    return "blocked" if state["answer"] else "pass"
+    return "blocked" if state.get("answer") else "pass"
 
 
 def route_by_category(state: TripAssistantState) -> TopicCategory:
@@ -76,7 +76,8 @@ def create_graph() -> CompiledStateGraph[
     """Create and compile the Trip Assistant graph.
 
     Graph flow:
-        START → inject_documents → classifier → router → [specialist] → END
+        START → language_guard → inject_documents → classifier → router → [specialist] → END
+        language_guard short-circuits to END for non-English (Hebrew) input
 
     Returns:
         Compiled StateGraph ready for execution

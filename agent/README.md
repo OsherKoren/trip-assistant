@@ -6,6 +6,7 @@ A LangGraph-powered conversational agent for answering questions about a family 
 
 - 🎯 **Topic Classification** - Automatically identifies query topics (flights, car rental, routes, activities)
 - 🧭 **Smart Routing** - Routes questions to specialized nodes based on classified topic
+- 🌐 **Language Guard** - Rejects non-English (Hebrew) input before classification with zero LLM cost
 - 🛡️ **Error Resilience** - Graceful degradation with user-friendly error messages on API failures
 - 🏭 **Factory Pattern** - Consistent specialist node generation reducing code duplication by 57%
 - 🧪 **Comprehensive Testing** - 61 unit tests + 15 integration tests with full error coverage
@@ -54,13 +55,16 @@ print(f"Source: {result['source']}")
 ### Graph Flow
 
 ```
-START → Inject Documents → Classifier → Router → [Specialist] → END
+START → Language Guard → Inject Documents → Classifier → Router → [Specialist] → END
+              ↓ (Hebrew detected)
+             END  (fixed message, no LLM called)
 ```
 
-1. **Inject Documents** - Loads cached trip documents into state (once per process)
-2. **Classifier** - Uses GPT-4o-mini to classify the question into a topic category
-3. **Router** - Routes to the appropriate specialist based on category
-4. **Specialist** - Generates answer using relevant document context
+1. **Language Guard** - Rejects non-English (Hebrew) input instantly using Unicode detection
+2. **Inject Documents** - Loads cached trip documents into state (once per process)
+3. **Classifier** - Uses GPT-4o-mini to classify the question into a topic category
+4. **Router** - Routes to the appropriate specialist based on category
+5. **Specialist** - Generates answer using relevant document context
 
 ### Specialist Topics
 
@@ -109,7 +113,7 @@ pytest tests/ -v
 
 ### Test Coverage
 
-- **61 unit tests** - Mocked LLM responses, no API costs
+- **68 unit tests** - Mocked LLM responses, no API costs
 - **15 integration tests** - Real OpenAI API calls (~$0.01-0.10 per run)
 - **12 error handling tests** - Comprehensive failure scenario coverage
 
@@ -191,6 +195,7 @@ agent/
 │   ├── graph.py              # Main graph definition
 │   ├── logger.py             # Logging configuration
 │   └── nodes/
+│       ├── language_guard.py       # Language guardrail (English-only)
 │       ├── classifier.py           # Topic classification
 │       ├── general.py              # General specialist
 │       └── specialist_factory.py   # Specialist factory
