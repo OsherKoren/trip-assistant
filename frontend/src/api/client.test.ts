@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { sendFeedback, sendMessage, sendMessageStream } from './client';
+import { parseSSEStream, sendFeedback, sendMessage, sendMessageStream } from './client';
 import type { FeedbackResponse, MessageResponse } from '../types';
 
 function makeSSEStream(frames: string[]): ReadableStream<Uint8Array> {
@@ -214,6 +214,38 @@ describe('sendMessageStream', () => {
         body: JSON.stringify({ question: 'question', history: [] }),
       }),
     );
+  });
+});
+
+describe('parseSSEStream', () => {
+  it('calls onChunk for each token in order', async () => {
+    const stream = makeSSEStream(['data: Hello\n\n', 'data:  world\n\n']);
+    const chunks: string[] = [];
+    await parseSSEStream(stream, (t) => chunks.push(t), vi.fn());
+    expect(chunks).toEqual(['Hello', ' world']);
+  });
+
+  it('calls onDone with parsed metadata from [DONE] frame', async () => {
+    const meta = { id: 'srv-1', category: 'flights', confidence: 0.85 };
+    const stream = makeSSEStream([
+      'data: token\n\n',
+      `data: [DONE] ${JSON.stringify(meta)}\n\n`,
+    ]);
+    const onDone = vi.fn();
+    await parseSSEStream(stream, vi.fn(), onDone);
+    expect(onDone).toHaveBeenCalledWith(meta);
+  });
+
+  it('throws on [ERROR] frame', async () => {
+    const stream = makeSSEStream(['data: [ERROR] Something went wrong\n\n']);
+    await expect(parseSSEStream(stream, vi.fn(), vi.fn())).rejects.toThrow('Something went wrong');
+  });
+
+  it('skips non-data lines', async () => {
+    const stream = makeSSEStream([': ping\n\n', 'data: Hi\n\n']);
+    const chunks: string[] = [];
+    await parseSSEStream(stream, (t) => chunks.push(t), vi.fn());
+    expect(chunks).toEqual(['Hi']);
   });
 });
 

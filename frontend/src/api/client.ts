@@ -24,30 +24,12 @@ export async function sendMessage(
   return response.json();
 }
 
-export async function sendMessageStream(
-  question: string,
-  getToken: () => Promise<string>,
-  history: HistoryEntry[] = [],
+export async function parseSSEStream(
+  body: ReadableStream<Uint8Array>,
   onChunk: (token: string) => void,
   onDone: (meta: StreamDoneMeta) => void,
-  signal?: AbortSignal,
 ): Promise<void> {
-  const token = await getToken();
-  const response = await fetch(`${API_URL}/api/messages/stream`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ question, history }),
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to stream message');
-  }
-
-  const reader = response.body!.getReader();
+  const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
 
@@ -73,6 +55,36 @@ export async function sendMessageStream(
       }
     }
   }
+}
+
+export async function sendMessageStream(
+  question: string,
+  getToken: () => Promise<string>,
+  history: HistoryEntry[] = [],
+  onChunk: (token: string) => void,
+  onDone: (meta: StreamDoneMeta) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const token = await getToken();
+  const response = await fetch(`${API_URL}/api/messages/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ question, history }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to stream message');
+  }
+
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+
+  await parseSSEStream(response.body, onChunk, onDone);
 }
 
 export async function sendFeedback(

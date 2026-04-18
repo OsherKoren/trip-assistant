@@ -3,6 +3,16 @@ import type { Feedback, HistoryEntry, Message } from '../types';
 import { sendMessageStream } from '../api/client';
 import { useAuth } from './useAuth';
 
+export interface UseMessagesReturn {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+  sendMessage: (question: string) => Promise<void>;
+  setFeedback: (messageId: string, feedback: Feedback) => void;
+  clearMessages: () => void;
+  loadMessages: (msgs: Message[]) => void;
+}
+
 export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 let nextId = 0;
@@ -10,7 +20,7 @@ function generateId(): string {
   return `msg-${Date.now()}-${nextId++}`;
 }
 
-export function useMessages() {
+export function useMessages(): UseMessagesReturn {
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
