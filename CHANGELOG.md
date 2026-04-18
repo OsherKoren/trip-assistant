@@ -19,8 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pydantic-settings for validated configuration at startup (`api/app/settings.py`)
 - FastAPI lifespan to wire agent graph dependency once at startup
 - Python code review skill with testing and logging checklists (`.claude/skills/review-python/`)
-
-### Added
+- Language guard node rejects non-English (Hebrew) input before classification — zero LLM cost, fixed English-only reply
 - Streaming endpoint `POST /api/messages/stream` — Server-Sent Events (SSE) for token-by-token delivery
 - `[DONE] <json>` SSE event carries message ID, category, and confidence after the last token
 - `[ERROR] <message>` SSE event on agent failure, closes stream cleanly

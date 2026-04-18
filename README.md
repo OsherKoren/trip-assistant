@@ -118,7 +118,7 @@ uv run pre-commit run --all-files
 ## Tech Stack
 
 - **Agent**: LangGraph 1.x, LangChain, OpenAI GPT-4
-- **API**: FastAPI, Python 3.11+
+- **API**: FastAPI, Python 3.12–3.13
 - **Frontend**: React, TypeScript, Tailwind CSS
 - **Infra**: AWS Lambda, Terraform, Docker
 
