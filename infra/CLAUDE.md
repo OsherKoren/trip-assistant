@@ -12,7 +12,7 @@ AWS infrastructure using Terraform. Optimized for FREE tier / minimal cost.
 
 ┌──────────────┐     ┌─────────────┐      ┌──────────────┐
 │  API Gateway │────▶│ API Lambda  │────▶│ Agent Lambda │
-│   (HTTP)     │     │ (container) │      │ (container)  │
+│   (REST)     │     │ (container) │      │ (container)  │
 └──────────────┘     └──────┬──────┘      └──────┬───────┘
                             │                    │
                      ┌──────▼──────┐      ┌──────▼───────┐
@@ -30,7 +30,7 @@ GitHub Actions (OIDC) ──▶ Build ARM64 image ──▶ Push to ECR ──�
 - `deploy.yml` builds ARM64 images, pushes to ECR, updates Lambda, publishes version, updates alias
 - `infra-ci.yml` validates Terraform on PR, applies on merge to main
 - Uses GitHub OIDC for AWS auth (no static keys)
-- Smoke test: health check (`GET /api/health`) + full-chain ping (`POST /api/messages` with `__ping__`)
+- Smoke test: health check (`GET /api/health`) + full-chain ping (`POST /api/messages`) + stream endpoint check (`POST /api/messages/stream`)
 - Automatic rollback on smoke test failure
 
 ## AWS Services (Cheap Stack)
@@ -39,7 +39,7 @@ GitHub Actions (OIDC) ──▶ Build ARM64 image ──▶ Push to ECR ──�
 |---------|---------|-----------|
 | Lambda (x2) | API + Agent (container images) | 1M requests/month |
 | ECR (x2) | Docker image repos | 500MB storage |
-| API Gateway | HTTP API | 1M requests/month |
+| API Gateway | REST API | 1M requests/month |
 | S3 | Frontend hosting | 5GB storage |
 | CloudFront | CDN | 1TB transfer/month |
 | Parameter Store | Secrets | FREE (standard) |
@@ -78,7 +78,11 @@ infra/
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
-    ├── api-gateway/      # HTTP API Gateway
+    ├── api-gateway/      # HTTP API Gateway (superseded by rest-api-gateway)
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    ├── rest-api-gateway/ # REST API Gateway (active — exposes all routes incl. /stream)
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
@@ -121,8 +125,8 @@ infra/
 
 ### api-lambda module
 - Lambda function: `trip-assistant-api` (container image)
-- IAM role with CloudWatch Logs + lambda:InvokeFunction (agent)
-- Package type: Image (from ECR), 512MB, 30s timeout
+- IAM role with CloudWatch Logs + lambda:InvokeFunction (agent) + lambda:InvokeWithResponseStreaming
+- Package type: Image (from ECR), 512MB, 60s timeout
 - Lambda alias `{env}` (CD pipeline manages versions)
 - CloudWatch log group (7-day retention)
 
@@ -131,12 +135,12 @@ infra/
 - IAM role with Lambda deploy + ECR push + API Gateway read permissions
 - Scoped to `main` branch and pull requests
 
-### api-gateway module
-- HTTP API Gateway: `trip-assistant-{env}`
-- Lambda proxy integration (payload v2.0)
-- Catch-all `$default` route (FastAPI handles routing)
-- Auto-deploy stage
-- CORS: allow all origins (dev)
+### rest-api-gateway module
+- REST API Gateway: `trip-assistant-{env}`
+- `GET /api/health` — no auth (smoke tests)
+- `ANY /{proxy+}` — Cognito JWT authorizer (all other routes including `/api/messages/stream`)
+- Stage name: `{env}` (URL includes stage path)
+- CORS handled by FastAPI middleware
 
 ### s3-cloudfront module (planned)
 - S3 bucket: `trip-assistant-frontend-{env}`
@@ -190,7 +194,7 @@ terraform destroy
 
 | Output | Description |
 |--------|-------------|
-| `api_url` | API Gateway endpoint URL |
+| `api_url` | REST API Gateway invoke URL (includes `/{stage}` path) |
 | `agent_lambda_function_name` | Agent Lambda function name |
 | `api_lambda_function_name` | API Lambda function name |
 | `agent_ecr_repository_url` | ECR repository URL for agent images |
@@ -201,7 +205,7 @@ terraform destroy
 
 ## Cost Optimization Tips
 
-1. **HTTP API Gateway** (not REST) — 70% cheaper
+1. **REST API Gateway** — ~$3.50/million requests; chose over HTTP API to expose streaming route
 2. **Lambda ARM64** — 20% cheaper than x86
 3. **us-east-2 region** — Consistent pricing
 4. **Parameter Store Standard** — FREE (vs Secrets Manager $0.40/secret)
