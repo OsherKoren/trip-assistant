@@ -20,6 +20,18 @@ from .schemas import MessageRequest
 router = APIRouter(tags=["messages"])
 
 
+def format_sse_event(data: str) -> str:
+    """Format data as a Server-Sent Event (SSE) message.
+
+    Args:
+        data: The event data to format.
+
+    Returns:
+        Properly formatted SSE message: `data: {data}\n\n`
+    """
+    return f"data: {data}\n\n"
+
+
 @router.post("/messages/stream")
 async def stream_message(
     request_body: MessageRequest,
@@ -75,7 +87,7 @@ async def _sse_generator(
                 final_state = item.state
             else:
                 assembled.append(item)
-                yield f"data: {item}\n\n"
+                yield format_sse_event(item)
 
         message_id = str(uuid.uuid4())
         done_payload = {
@@ -83,7 +95,7 @@ async def _sse_generator(
             "category": final_state.get("category", "general"),
             "confidence": float(final_state.get("confidence", 0.0)),
         }
-        yield f"data: [DONE] {json.dumps(done_payload)}\n\n"
+        yield format_sse_event(f"[DONE] {json.dumps(done_payload)}")
 
         # Store message best-effort (after stream completes)
         assembled_answer = "".join(assembled)
@@ -112,4 +124,4 @@ async def _sse_generator(
             error=str(e),
             question_preview=question[:50],
         )
-        yield "data: [ERROR] Processing failed\n\n"
+        yield format_sse_event("[ERROR] Processing failed")

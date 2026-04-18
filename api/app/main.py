@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         settings.agent_lambda_function_name,
         settings.aws_region,
     )
-    stream_graph = build_stream_graph(settings.agent_mode, graph)
+    stream_graph = build_stream_graph(settings.agent_mode, graph, settings.stream_buffer_size)
     app.dependency_overrides[get_graph] = lambda: graph
     app.dependency_overrides[get_stream_graph] = lambda: stream_graph
     yield

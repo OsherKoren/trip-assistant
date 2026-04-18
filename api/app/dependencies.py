@@ -142,8 +142,8 @@ class LocalStreamGraph:
     LLM token streaming produces tiny chunks (sometimes single characters).
     Without buffering, each token becomes a separate SSE event, causing
     character-by-character delivery to clients (e.g., "D", "a", "y", "4").
-    This class buffers ~100 characters of tokens before yielding to the client,
-    dramatically reducing SSE event overhead and improving perceived latency.
+    This class buffers tokens before yielding to the client, dramatically
+    reducing SSE event overhead and improving perceived latency.
 
     Uses ``astream_events(version="v2")`` and filters to specialist nodes only,
     skipping classifier/language_guard nodes whose LLM calls produce structured
@@ -154,6 +154,10 @@ class LocalStreamGraph:
 
     Reference: LangGraph astream_events v2 format and on_chat_model_stream events
     """
+
+    def __init__(self, buffer_size: int = 100) -> None:
+        """Initialize with configurable buffer size in characters."""
+        self.buffer_size = buffer_size
 
     async def astream(self, state: dict[str, Any]) -> AsyncGenerator[str | StreamDone, None]:
         from src.graph import graph  # deferred to avoid import at startup
@@ -180,8 +184,8 @@ class LocalStreamGraph:
                 chunk = event["data"]["chunk"]
                 if chunk.content:
                     buffer.append(chunk.content)
-                    # Yield when buffer reaches ~100 chars (sensible chunk size)
-                    if len("".join(buffer)) >= 100:
+                    # Yield when buffer reaches configured size
+                    if len("".join(buffer)) >= self.buffer_size:
                         yield "".join(buffer)
                         buffer = []
 
@@ -217,12 +221,14 @@ class LambdaStreamGraph:
 def build_stream_graph(
     agent_mode: str,
     graph: AgentGraphProtocol,
+    buffer_size: int = 100,
 ) -> StreamGraphProtocol:
     """Build the streaming graph wrapper (called once at startup).
 
     Args:
         agent_mode: "local" for astream_events, "lambda" for single-chunk via ainvoke.
         graph: The already-built agent graph or Lambda proxy.
+        buffer_size: Characters to buffer before yielding SSE chunks (default 100).
 
     Returns:
         StreamGraphProtocol implementation appropriate for the mode.
@@ -231,8 +237,8 @@ def build_stream_graph(
         logger.info("Stream graph: Lambda proxy (single-chunk mode)")
         return LambdaStreamGraph(graph)
 
-    logger.info("Stream graph: local astream_events")
-    return LocalStreamGraph()
+    logger.info("Stream graph: local astream_events", buffer_size=buffer_size)
+    return LocalStreamGraph(buffer_size=buffer_size)
 
 
 def get_stream_graph() -> StreamGraphProtocol:

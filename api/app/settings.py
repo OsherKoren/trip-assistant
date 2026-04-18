@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     feedback_email: str = ""
     messages_table_name: str = ""
     cache_table_name: str = ""
+    stream_buffer_size: int = 100  # chars — buffer LLM tokens before sending SSE
 
     @property
     def cors_origins(self) -> list[str]:
