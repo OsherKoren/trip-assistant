@@ -327,6 +327,30 @@ Handler used `graph.invoke()` (sync) after all nodes were converted to `async de
 
 ---
 
+---
+
+## Phase 8: LangGraph Streaming Support
+
+Enable the graph to stream LangGraph token chunks so the API layer can forward them to clients without waiting for the full answer. This reduces time-to-first-byte from ~5-10s to near-instant.
+
+**Approach:** Use `graph.astream_events(state, version="v2")` and filter `on_chat_model_stream` events to yield text deltas.
+
+- [x] Add `stream_agent()` async generator to `src/graph.py`
+  - [x] Signature: `async def stream_agent(state: TripAssistantState) -> AsyncGenerator[str, None]`
+  - [x] Use `graph.astream_events(state, version="v2")`
+  - [x] Filter for event kind `"on_chat_model_stream"` and yield `chunk.content` when non-empty
+  - [x] Export `stream_agent` from the module (add to `__all__` or ensure importable)
+- [x] Write `tests/test_stream_agent.py`
+  - [x] Mock `graph.astream_events` with an `AsyncMock` returning a known sequence of events
+  - [x] Assert `stream_agent()` yields the expected token strings in order
+  - [x] Assert non-stream events (e.g. `on_chain_start`) are filtered out
+  - [x] Assert empty chunk content (`""`) is not yielded
+- [x] Run `pytest tests/ -v -m "not integration"` — all tests pass (92 passed)
+- [x] Run `pre-commit run --all-files` — passes
+- [x] Commit phase 8 changes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)
@@ -340,3 +364,4 @@ Handler used `graph.invoke()` (sync) after all nodes were converted to `async de
 - [ ] Integration tests validated with real API (requires OPENAI_API_KEY)
 - [x] Phase 7 CI/CD workflow validated (agent-ci.yml)
 - [ ] Ready for AWS deployment (Phase 8 in infra/)
+- [x] Phase 8 completed (LangGraph streaming support)
