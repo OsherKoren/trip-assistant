@@ -588,6 +588,48 @@ Add a DynamoDB table for question caching. When a family member asks a question 
 
 ---
 
+---
+
+## Phase 23: REST API Gateway + Lambda Response Streaming
+
+Migrate from HTTP API Gateway to REST API Gateway and enable Lambda response streaming. This allows the API Lambda to push token chunks to the client as the LLM generates them, eliminating the ~5-10s buffering wait and improving perceived responsiveness.
+
+**Why REST API (not HTTP API):** AWS response streaming is only supported on REST API integrations, not HTTP API. REST API costs ~$3.50/million requests vs HTTP API's ~$1/million — still negligible at our traffic volumes. The streaming UX improvement is worth it.
+
+**How it works:**
+1. REST API integration is configured with `response_transfer_mode = "STREAMING"` (instead of default `BUFFERED`)
+2. API Gateway invokes Lambda using the `InvokeWithResponseStream` path (ARN appended with `/response-streaming-invocations`)
+3. Lambda (Mangum) returns chunked HTTP response; API Gateway forwards chunks immediately via chunked transfer encoding
+4. Client sees first token in < 1s
+
+- [ ] Create `infra/modules/rest-api-gateway/` (replaces `api-gateway/`)
+  - [ ] `main.tf`
+    - [ ] `aws_api_gateway_rest_api` — name `${project_name}-${environment}`
+    - [ ] `aws_api_gateway_resource` — proxy `{proxy+}` catch-all
+    - [ ] `aws_api_gateway_method` — `ANY` on proxy resource, authorization `COGNITO_USER_POOLS`, authorizer wired to Cognito user pool
+    - [ ] `aws_api_gateway_integration` — `AWS_PROXY`, HTTP method `POST`, URI using Lambda streaming ARN: `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_arn}/response-streaming-invocations`
+    - [ ] Set integration `content_handling = "CONVERT_TO_BINARY"` (not needed for streaming, omit)
+    - [ ] `aws_api_gateway_deployment` + `aws_api_gateway_stage` — stage name `${environment}`
+    - [ ] `aws_lambda_permission` — allow `apigateway.amazonaws.com` to `lambda:InvokeFunction` on API Lambda
+  - [ ] `variables.tf` — `project_name`, `environment`, `lambda_arn`, `cognito_user_pool_arn`, `cognito_user_pool_id`
+  - [ ] `outputs.tf` — `api_url` (invoke URL), `rest_api_id`, `stage_name`
+- [ ] Update `infra/modules/api-lambda/main.tf`
+  - [ ] Add IAM policy allowing `lambda:InvokeWithResponseStreaming` on the Lambda function itself (self-reference)
+  - [ ] Increase default timeout to 60s (streaming can run longer than 30s for complex questions)
+- [ ] Update `infra/main.tf`
+  - [ ] Replace `module "api_gateway"` (HTTP) with `module "rest_api_gateway"` (REST)
+  - [ ] Pass `lambda_arn = module.api_lambda.function_arn`, `cognito_user_pool_arn`, `cognito_user_pool_id`
+- [ ] Update `infra/outputs.tf` — point `api_url` to `module.rest_api_gateway.api_url`
+- [ ] Update `infra/modules/github-oidc/main.tf` — add `apigateway:*` permission if not already present for CI/CD smoke tests
+- [ ] `terraform fmt -recursive` — clean
+- [ ] `terraform validate` — passes
+- [ ] Update smoke test in `.github/workflows/deploy.yml`
+  - [ ] `GET ${api_url}/api/health` still passes
+  - [ ] `POST ${api_url}/api/messages/stream` with `{"question": "__ping__"}` returns `200` and `text/event-stream` content-type
+- [ ] Commit phase 23 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] DB-backed conversation sessions — store messages with `session_id` PK + `created_at` SK, load history from DynamoDB instead of frontend. Enables conversation replay, analytics, and page-refresh resume.

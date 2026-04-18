@@ -806,3 +806,45 @@ npm run test:integration
 # Build check (TypeScript compilation)
 npm run build
 ```
+
+---
+
+## Phase 19: True HTTP Streaming (replace word-by-word animation)
+
+Replace the Phase 18 simulated word-by-word animation with real token streaming from the API using the `fetch` ReadableStream API and the new `POST /api/messages/stream` SSE endpoint (api Phase 16). The user sees the first word appear in < 1s instead of waiting for the full response.
+
+**Design:**
+- `api/client.ts` gains `sendMessageStream(question, onChunk, signal)` using `fetch` + `response.body.getReader()`
+- Parses SSE frames (`data: ...\n\n`) from the byte stream
+- Calls `onChunk(token)` for each partial token; final `[DONE]` event carries metadata
+- `useMessages.ts` replaces the timeout-based drip with `sendMessageStream`; appends tokens directly to the in-progress assistant message
+- Existing non-streaming path stays as fallback (used when stream endpoint unavailable)
+
+- [ ] Update `src/api/client.ts`
+  - [ ] Add `sendMessageStream(question: string, onChunk: (token: string) => void, onDone: (meta: StreamDoneMeta) => void, signal?: AbortSignal): Promise<void>`
+  - [ ] Use `fetch(url, { method: "POST", ... })` then read `response.body` via `ReadableStream` reader
+  - [ ] Parse SSE lines: split on `\n\n`, extract `data:` payload, skip `: ping` keep-alives
+  - [ ] On `data: [DONE] {...}` parse JSON metadata and call `onDone`
+  - [ ] On `data: [ERROR] ...` throw so the hook can surface an error message
+  - [ ] Export `StreamDoneMeta` type: `{ category: string; confidence: number; id: string }`
+- [ ] Update `src/hooks/useMessages.ts`
+  - [ ] Replace word-by-word drip logic with `sendMessageStream` call
+  - [ ] On each `onChunk`: append token to the last assistant message's `content` using functional `setState`
+  - [ ] On `onDone`: set `category`, `confidence`, `id` on the finalized message
+  - [ ] Set `isLoading = false` after stream closes (success or error)
+  - [ ] Attach `AbortController` to the stream; cancel on component unmount or new message sent while one is in flight
+- [ ] Update `src/components/MessageBubble.tsx` (if needed)
+  - [ ] Streaming indicator (blinking cursor or spinner) shown when message is `isStreaming` flag
+  - [ ] Remove any `setTimeout`-based reveal logic from Phase 18
+- [ ] Update `src/api/client.ts` tests (`client.test.ts`)
+  - [ ] Mock `fetch` returning a `ReadableStream` with pre-encoded SSE frames
+  - [ ] Assert `onChunk` called for each token in order
+  - [ ] Assert `onDone` called with parsed metadata from `[DONE]` frame
+  - [ ] Assert `AbortSignal` cancellation stops reading and rejects promise
+- [ ] Update `src/hooks/useMessages.test.ts`
+  - [ ] Mock `sendMessageStream` to call `onChunk` synchronously with test tokens
+  - [ ] Assert final message content equals concatenated tokens
+  - [ ] Assert `isLoading` is `false` after stream ends
+- [ ] Run `npm test` — all tests pass
+- [ ] Run `npm run build` — TypeScript compiles without errors
+- [ ] Commit phase 19 changes

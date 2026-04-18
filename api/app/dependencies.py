@@ -2,9 +2,12 @@
 
 Provides a build_graph() factory called once at startup and a get_graph()
 stub that lifespan overrides via app.dependency_overrides.
+Also provides streaming equivalents: build_stream_graph() and get_stream_graph().
 """
 
 import json
+from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 from typing import Any, Protocol, cast
 
 import aioboto3
@@ -108,3 +111,130 @@ def build_graph(
 def get_graph() -> AgentGraphProtocol:
     """Dependency stub — overridden by lifespan at startup."""
     raise RuntimeError("get_graph() called before lifespan wired the dependency")
+
+
+# ---------------------------------------------------------------------------
+# Streaming graph
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class StreamDone:
+    """Sentinel yielded as the last item from a stream graph, carrying the final agent state."""
+
+    state: dict[str, Any]
+
+
+class StreamGraphProtocol(Protocol):
+    """Protocol for a streaming agent: yields text chunks then a StreamDone sentinel."""
+
+    def astream(self, state: dict[str, Any]) -> AsyncGenerator[str | StreamDone, None]: ...
+
+
+_NON_STREAMING_NODES: frozenset[str] = frozenset(
+    {"classifier", "language_guard", "inject_documents"}
+)
+
+
+class LocalStreamGraph:
+    """Streams tokens from the local LangGraph agent via astream_events.
+
+    LLM token streaming produces tiny chunks (sometimes single characters).
+    Without buffering, each token becomes a separate SSE event, causing
+    character-by-character delivery to clients (e.g., "D", "a", "y", "4").
+    This class buffers ~100 characters of tokens before yielding to the client,
+    dramatically reducing SSE event overhead and improving perceived latency.
+
+    Uses ``astream_events(version="v2")`` and filters to specialist nodes only,
+    skipping classifier/language_guard nodes whose LLM calls produce structured
+    JSON tokens (not user-facing text).
+
+    Yields text chunks then a StreamDone sentinel with the accumulated final
+    state (category, confidence, answer, source).
+
+    Reference: LangGraph astream_events v2 format and on_chat_model_stream events
+    """
+
+    async def astream(self, state: dict[str, Any]) -> AsyncGenerator[str | StreamDone, None]:
+        from src.graph import graph  # deferred to avoid import at startup
+
+        captured: dict[str, Any] = {}
+        # astream_events fires on_chat_model_stream at multiple chain levels for the
+        # same LLM call, producing two separate run_ids with identical content.
+        # Lock onto the first specialist run_id and skip all others.
+        specialist_run_id: str | None = None
+        buffer: list[str] = []
+
+        async for event in graph.astream_events(state, version="v2"):
+            kind = event.get("event", "")
+
+            if kind == "on_chat_model_stream":
+                node = event.get("metadata", {}).get("langgraph_node", "")
+                if node in _NON_STREAMING_NODES:
+                    continue
+                run_id = event.get("run_id", "")
+                if specialist_run_id is None:
+                    specialist_run_id = run_id
+                elif run_id != specialist_run_id:
+                    continue  # skip duplicate stream from another chain level
+                chunk = event["data"]["chunk"]
+                if chunk.content:
+                    buffer.append(chunk.content)
+                    # Yield when buffer reaches ~100 chars (sensible chunk size)
+                    if len("".join(buffer)) >= 100:
+                        yield "".join(buffer)
+                        buffer = []
+
+            elif kind == "on_chain_end":
+                output = event["data"].get("output", {})
+                if isinstance(output, dict):
+                    captured.update(output)
+
+        # Flush remaining buffer
+        if buffer:
+            yield "".join(buffer)
+
+        yield StreamDone(captured)
+
+
+class LambdaStreamGraph:
+    """Lambda 'streaming': calls ainvoke normally and yields the full answer as a single chunk.
+
+    Real token-by-token streaming across Lambda boundaries requires
+    InvokeWithResponseStream (infra Phase 23). Until then, this collects
+    the complete response first and emits it as one SSE event.
+    """
+
+    def __init__(self, proxy: AgentGraphProtocol) -> None:
+        self._proxy = proxy
+
+    async def astream(self, state: dict[str, Any]) -> AsyncGenerator[str | StreamDone, None]:
+        result = await self._proxy.ainvoke(state)
+        yield result.get("answer", "")
+        yield StreamDone(result)
+
+
+def build_stream_graph(
+    agent_mode: str,
+    graph: AgentGraphProtocol,
+) -> StreamGraphProtocol:
+    """Build the streaming graph wrapper (called once at startup).
+
+    Args:
+        agent_mode: "local" for astream_events, "lambda" for single-chunk via ainvoke.
+        graph: The already-built agent graph or Lambda proxy.
+
+    Returns:
+        StreamGraphProtocol implementation appropriate for the mode.
+    """
+    if agent_mode == "lambda":
+        logger.info("Stream graph: Lambda proxy (single-chunk mode)")
+        return LambdaStreamGraph(graph)
+
+    logger.info("Stream graph: local astream_events")
+    return LocalStreamGraph()
+
+
+def get_stream_graph() -> StreamGraphProtocol:
+    """Dependency stub — overridden by lifespan at startup."""
+    raise RuntimeError("get_stream_graph() called before lifespan wired the dependency")

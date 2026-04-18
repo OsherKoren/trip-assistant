@@ -9,10 +9,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.dependencies import build_graph, get_graph
+from app.dependencies import build_graph, build_stream_graph, get_graph, get_stream_graph
 from app.logger import logger
 from app.middleware import add_request_id_header
-from app.routers import feedback, health, messages
+from app.routers import feedback, health, messages, stream
 from app.settings import get_settings
 
 
@@ -30,7 +30,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         settings.agent_lambda_function_name,
         settings.aws_region,
     )
+    stream_graph = build_stream_graph(settings.agent_mode, graph)
     app.dependency_overrides[get_graph] = lambda: graph
+    app.dependency_overrides[get_stream_graph] = lambda: stream_graph
     yield
     app.dependency_overrides.clear()
 
@@ -56,5 +58,6 @@ app.middleware("http")(add_request_id_header)
 
 # Include routers with /api prefix
 app.include_router(messages.router, prefix="/api")
+app.include_router(stream.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
 app.include_router(feedback.router, prefix="/api")

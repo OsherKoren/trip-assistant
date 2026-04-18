@@ -27,7 +27,7 @@ logger.add(
         "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
         "<level>{message}</level>"
     ),
-    level="INFO",
+    level="DEBUG",
     colorize=True,
 )
 
