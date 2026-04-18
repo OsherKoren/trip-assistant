@@ -67,18 +67,15 @@ module "api_lambda" {
   cache_table_arn            = module.cache_dynamodb.table_arn
 }
 
-module "api_gateway" {
-  source = "./modules/api-gateway"
+module "rest_api_gateway" {
+  source = "./modules/rest-api-gateway"
 
-  project_name                 = var.project_name
-  environment                  = var.environment
-  api_lambda_invoke_arn        = module.api_lambda.alias_invoke_arn
-  api_lambda_function_name     = module.api_lambda.function_name
-  api_lambda_alias_name        = module.api_lambda.alias_name
-  cognito_user_pool_endpoint   = module.cognito.user_pool_endpoint
-  cognito_user_pool_client_id  = module.cognito.user_pool_client_id
-  cognito_smoke_test_client_id = module.cognito.smoke_test_client_id
-  frontend_url                 = module.s3_cloudfront.cloudfront_url
+  project_name          = var.project_name
+  environment           = var.environment
+  lambda_invoke_arn     = module.api_lambda.alias_invoke_arn
+  lambda_function_name  = module.api_lambda.function_name
+  lambda_alias_name     = module.api_lambda.alias_name
+  cognito_user_pool_arn = module.cognito.user_pool_arn
 }
 
 module "s3_cloudfront" {

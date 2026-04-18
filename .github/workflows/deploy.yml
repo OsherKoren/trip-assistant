@@ -241,9 +241,10 @@ jobs:
       - name: Get API URL
         id: api-url
         run: |
-          URL=$(aws apigatewayv2 get-apis \
-            --query "Items[?Name=='trip-assistant-${{ env.ENVIRONMENT }}'].ApiEndpoint" \
+          API_ID=$(aws apigateway get-rest-apis \
+            --query "items[?name=='trip-assistant-${{ env.ENVIRONMENT }}'].id" \
             --output text)
+          URL="https://${API_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ENVIRONMENT }}"
           echo "url=$URL" >> $GITHUB_OUTPUT
 
       - name: Health check (retry 3x for cold start)
@@ -297,6 +298,25 @@ jobs:
             sleep 15
           done
           echo "Full chain ping failed after 5 attempts"
+          exit 1
+
+      - name: Stream endpoint check (SSE route accessible)
+        run: |
+          for i in 1 2 3; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 30 \
+              -X POST -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+              -d '{"question": "__ping__", "history": []}' \
+              "${{ steps.api-url.outputs.url }}/api/messages/stream" || true)
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Stream endpoint check passed on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $HTTP_CODE, retrying in 15s..."
+            sleep 15
+          done
+          echo "Stream endpoint check failed after 3 attempts"
           exit 1
 
   # ========================================
