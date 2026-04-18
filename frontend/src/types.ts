@@ -47,3 +47,9 @@ export interface FeedbackResponse {
   status: string;
   message_id: string;
 }
+
+export interface StreamDoneMeta {
+  id: string;
+  category: string;
+  confidence: number;
+}
