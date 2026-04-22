@@ -2,7 +2,7 @@
 # AWS Lambda Web Adapter replaces Mangum — proxies HTTP to Lambda, enabling true SSE streaming
 
 # --- LWA Stage ---
-FROM public.ecr.aws/awsguru/aws-lambda-web-adapter:0.8.4 AS lwa
+FROM public.ecr.aws/awsguru/aws-lambda-web-adapter:latest AS lwa
 
 # --- Builder Stage ---
 FROM python:3.12-slim AS builder
