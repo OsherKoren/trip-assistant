@@ -1,29 +1,35 @@
-# Multi-stage build for Trip Assistant API (Lambda container image)
-# Production image contains only API code - agent is invoked via Lambda proxy
+# Multi-stage build for Trip Assistant API (Lambda container image with LWA)
+# AWS Lambda Web Adapter replaces Mangum — proxies HTTP to Lambda, enabling true SSE streaming
 
-# --- Builder Stage (same base as runtime to match glibc for native extensions) ---
-FROM public.ecr.aws/lambda/python:3.12 AS builder
+# --- LWA Stage ---
+FROM public.ecr.aws/awsguru/aws-lambda-web-adapter:0.8.4 AS lwa
+
+# --- Builder Stage ---
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
-# Install uv package manager
 RUN pip install --no-cache-dir uv
 
-# Copy only API package files (no agent code)
 COPY pyproject.toml uv.lock* ./
 COPY app/ ./app/
 
-# Install API dependencies using uv into a virtual environment
 RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
     uv pip install --no-cache .
 
-# --- Runtime Stage (AWS Lambda base image includes RIC/RIE) ---
-FROM public.ecr.aws/lambda/python:3.12
+# --- Runtime Stage ---
+FROM python:3.12-slim
 
-COPY --from=builder /opt/venv/lib/python3.12/site-packages ${LAMBDA_TASK_ROOT}/
-COPY app/ ${LAMBDA_TASK_ROOT}/app/
+COPY --from=lwa /lambda-adapter /opt/extensions/lambda-adapter
+COPY --from=builder /opt/venv /opt/venv
+COPY app/ /var/task/app/
 
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+WORKDIR /var/task
 
-CMD ["app.handler.handler"]
+ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV AWS_LWA_PORT=8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
