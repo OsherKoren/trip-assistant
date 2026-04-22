@@ -256,8 +256,8 @@ jobs:
               echo "Health check passed on attempt $i"
               exit 0
             fi
-            echo "Attempt $i: got status $STATUS, retrying in 10s..."
-            sleep 10
+            echo "Attempt $i: got status $STATUS, retrying in 20s..."
+            sleep 20
           done
           echo "Health check failed after 3 attempts"
           exit 1
