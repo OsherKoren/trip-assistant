@@ -76,6 +76,7 @@ module "rest_api_gateway" {
   lambda_function_name  = module.api_lambda.function_name
   lambda_alias_name     = module.api_lambda.alias_name
   cognito_user_pool_arn = module.cognito.user_pool_arn
+  frontend_url          = module.s3_cloudfront.cloudfront_url
 }
 
 module "s3_cloudfront" {
