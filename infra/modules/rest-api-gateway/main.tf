@@ -163,6 +163,8 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_any.id,
       aws_api_gateway_integration.proxy_any.id,
+      aws_api_gateway_integration.proxy_any.uri,
+      aws_api_gateway_integration.proxy_any.response_transfer_mode,
       aws_api_gateway_method.proxy_options.id,
       aws_api_gateway_integration.proxy_options.id,
       aws_api_gateway_integration_response.proxy_options.id,
