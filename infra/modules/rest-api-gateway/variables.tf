@@ -27,3 +27,8 @@ variable "cognito_user_pool_arn" {
   description = "Cognito User Pool ARN (for COGNITO_USER_POOLS authorizer)"
   type        = string
 }
+
+variable "frontend_url" {
+  description = "CloudFront URL of the frontend (used as CORS allowed origin)"
+  type        = string
+}
