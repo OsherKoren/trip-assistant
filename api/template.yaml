@@ -18,7 +18,7 @@ Resources:
       Description: FastAPI backend exposing LangGraph agent via HTTP
       Environment:
         Variables:
-          ENVIRONMENT: prod
+          ENVIRONMENT: dev
           AGENT_LAMBDA_FUNCTION_NAME: trip-assistant-agent
       Events:
         HealthCheck:
@@ -31,6 +31,11 @@ Resources:
           Properties:
             Path: /api/messages
             Method: POST
+        MessagesStream:
+          Type: HttpApi
+          Properties:
+            Path: /api/messages/stream
+            Method: POST
       Tags:
         Service: trip-assistant
         Component: api
@@ -38,7 +43,7 @@ Resources:
   TripAssistantHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: prod
+      StageName: dev
       CorsConfiguration:
         AllowOrigins:
           - http://localhost:3000
@@ -55,7 +60,7 @@ Resources:
 Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
-    Value: !Sub "https://${TripAssistantHttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+    Value: !Sub "https://${TripAssistantHttpApi}.execute-api.${AWS::Region}.amazonaws.com/dev/"
 
   FunctionArn:
     Description: Lambda function ARN

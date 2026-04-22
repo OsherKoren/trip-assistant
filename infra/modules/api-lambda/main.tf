@@ -105,6 +105,23 @@ resource "aws_iam_role_policy" "cache_dynamodb" {
   })
 }
 
+# Allow API Gateway to invoke this Lambda with response streaming (forward prep for true SSE streaming)
+resource "aws_iam_role_policy" "streaming_invoke" {
+  name = "${var.project_name}-api-${var.environment}-streaming-invoke"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "lambda:InvokeWithResponseStreaming"
+        Resource = "arn:aws:lambda:*:*:function:${var.project_name}-api"
+      }
+    ]
+  })
+}
+
 # SES SendEmail permission for feedback notifications
 resource "aws_iam_role_policy" "feedback_ses" {
   name = "${var.project_name}-api-${var.environment}-feedback-ses"
@@ -131,7 +148,7 @@ resource "aws_lambda_function" "api" {
   image_uri     = var.ecr_image_uri
   architectures = ["arm64"]
   memory_size   = 512
-  timeout       = 30
+  timeout       = 60
   publish       = true
 
   environment {

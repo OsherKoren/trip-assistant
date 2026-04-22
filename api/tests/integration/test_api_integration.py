@@ -6,6 +6,8 @@ They require:
 - Agent package installed: uv pip install -e ../agent
 """
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -109,6 +111,31 @@ def test_general_question_handling(integration_client: TestClient) -> None:
 
     # Confidence should be present
     assert 0.0 <= data["confidence"] <= 1.0
+
+
+@pytest.mark.integration
+def test_stream_messages_flight_question(integration_client: TestClient) -> None:
+    """Test POST /api/messages/stream with a real flight question."""
+    response = integration_client.post(
+        "/api/messages/stream",
+        json={"question": "What time is our flight from Paris to Nice?"},
+    )
+
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+
+    # At least one data chunk should have been streamed
+    data_lines = [line for line in response.text.splitlines() if line.startswith("data: ")]
+    assert len(data_lines) >= 2, "Expected at least one chunk and a [DONE] event"
+
+    # Find and parse the [DONE] event
+    done_line = next((line for line in data_lines if line.startswith("data: [DONE] ")), None)
+    assert done_line is not None, "Expected data: [DONE] event in stream"
+
+    payload = json.loads(done_line[len("data: [DONE] ") :])
+    assert "id" in payload
+    assert payload["category"] == "flight"
+    assert 0.0 <= payload["confidence"] <= 1.0
 
 
 @pytest.mark.integration

@@ -1,5 +1,7 @@
 """LangGraph state graph for Trip Assistant agent."""
 
+from collections.abc import AsyncGenerator
+
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -134,3 +136,19 @@ def create_graph() -> CompiledStateGraph[
 
 
 graph = create_graph()
+
+
+async def stream_agent(state: TripAssistantState) -> AsyncGenerator[str, None]:
+    """Stream token chunks from the agent as they are generated.
+
+    Args:
+        state: Initial agent state (requires at minimum {"question": "..."})
+
+    Yields:
+        Text deltas from the LLM as they are produced
+    """
+    async for event in graph.astream_events(state, version="v2"):
+        if event["event"] == "on_chat_model_stream":
+            chunk = event["data"]["chunk"]
+            if chunk.content:
+                yield chunk.content

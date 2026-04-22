@@ -1,6 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { sendFeedback, sendMessage } from './client';
+import { parseSSEStream, sendFeedback, sendMessage, sendMessageStream } from './client';
 import type { FeedbackResponse, MessageResponse } from '../types';
+
+function makeSSEStream(frames: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      for (const frame of frames) {
+        controller.enqueue(encoder.encode(frame));
+      }
+      controller.close();
+    },
+  });
+}
 
 const mockResponse: MessageResponse = {
   id: 'msg-server-123',
@@ -114,6 +126,126 @@ describe('sendMessage', () => {
     await sendMessage('hello', mockGetToken);
 
     expect(mockGetToken).toHaveBeenCalled();
+  });
+});
+
+describe('sendMessageStream', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockGetToken.mockResolvedValue('test-token');
+  });
+
+  it('calls onChunk for each token in order', async () => {
+    const frames = [
+      'data: Hello\n\n',
+      'data:  world\n\n',
+      'data: [DONE] {"id":"srv-1","category":"general","confidence":0.9}\n\n',
+    ];
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(frames),
+    });
+
+    const chunks: string[] = [];
+    await sendMessageStream('hi', mockGetToken, [], (t) => chunks.push(t), vi.fn());
+
+    expect(chunks).toEqual(['Hello', ' world']);
+  });
+
+  it('calls onDone with parsed metadata from [DONE] frame', async () => {
+    const meta = { id: 'srv-42', category: 'flights', confidence: 0.85 };
+    const frames = [
+      'data: token\n\n',
+      `data: [DONE] ${JSON.stringify(meta)}\n\n`,
+    ];
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(frames),
+    });
+
+    const onDone = vi.fn();
+    await sendMessageStream('hi', mockGetToken, [], vi.fn(), onDone);
+
+    expect(onDone).toHaveBeenCalledWith(meta);
+  });
+
+  it('throws on non-OK response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, body: null });
+
+    await expect(
+      sendMessageStream('hi', mockGetToken, [], vi.fn(), vi.fn()),
+    ).rejects.toThrow('Failed to stream message');
+  });
+
+  it('throws on [ERROR] frame', async () => {
+    const frames = ['data: [ERROR] Something went wrong\n\n'];
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(frames),
+    });
+
+    await expect(
+      sendMessageStream('hi', mockGetToken, [], vi.fn(), vi.fn()),
+    ).rejects.toThrow('Something went wrong');
+  });
+
+  it('stops reading when AbortSignal is aborted', async () => {
+    const controller = new AbortController();
+    globalThis.fetch = vi.fn().mockRejectedValue(
+      Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }),
+    );
+
+    await expect(
+      sendMessageStream('hi', mockGetToken, [], vi.fn(), vi.fn(), controller.signal),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('sends correct POST request to /api/messages/stream', async () => {
+    const frames = ['data: [DONE] {"id":"x","category":"c","confidence":1}\n\n'];
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, body: makeSSEStream(frames) });
+
+    await sendMessageStream('question', mockGetToken, [], vi.fn(), vi.fn());
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/messages/stream'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+        body: JSON.stringify({ question: 'question', history: [] }),
+      }),
+    );
+  });
+});
+
+describe('parseSSEStream', () => {
+  it('calls onChunk for each token in order', async () => {
+    const stream = makeSSEStream(['data: Hello\n\n', 'data:  world\n\n']);
+    const chunks: string[] = [];
+    await parseSSEStream(stream, (t) => chunks.push(t), vi.fn());
+    expect(chunks).toEqual(['Hello', ' world']);
+  });
+
+  it('calls onDone with parsed metadata from [DONE] frame', async () => {
+    const meta = { id: 'srv-1', category: 'flights', confidence: 0.85 };
+    const stream = makeSSEStream([
+      'data: token\n\n',
+      `data: [DONE] ${JSON.stringify(meta)}\n\n`,
+    ]);
+    const onDone = vi.fn();
+    await parseSSEStream(stream, vi.fn(), onDone);
+    expect(onDone).toHaveBeenCalledWith(meta);
+  });
+
+  it('throws on [ERROR] frame', async () => {
+    const stream = makeSSEStream(['data: [ERROR] Something went wrong\n\n']);
+    await expect(parseSSEStream(stream, vi.fn(), vi.fn())).rejects.toThrow('Something went wrong');
+  });
+
+  it('skips non-data lines', async () => {
+    const stream = makeSSEStream([': ping\n\n', 'data: Hi\n\n']);
+    const chunks: string[] = [];
+    await parseSSEStream(stream, (t) => chunks.push(t), vi.fn());
+    expect(chunks).toEqual(['Hi']);
   });
 });
 

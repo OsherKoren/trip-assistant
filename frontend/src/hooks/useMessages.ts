@@ -1,7 +1,17 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Feedback, HistoryEntry, Message } from '../types';
-import { sendMessage as callSendMessage } from '../api/client';
+import { sendMessageStream } from '../api/client';
 import { useAuth } from './useAuth';
+
+export interface UseMessagesReturn {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+  sendMessage: (question: string) => Promise<void>;
+  setFeedback: (messageId: string, feedback: Feedback) => void;
+  clearMessages: () => void;
+  loadMessages: (msgs: Message[]) => void;
+}
 
 export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
@@ -10,12 +20,19 @@ function generateId(): string {
   return `msg-${Date.now()}-${nextId++}`;
 }
 
-export function useMessages() {
+export function useMessages(): UseMessagesReturn {
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -29,6 +46,10 @@ export function useMessages() {
   }, []);
 
   const sendMessage = useCallback(async (question: string) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     const now = Date.now();
     let currentMessages: Message[] = [];
 
@@ -57,22 +78,53 @@ export function useMessages() {
     setIsLoading(true);
     setError(null);
 
+    const placeholderId = generateId();
+    let placeholderAdded = false;
+
     try {
-      const result = await callSendMessage(question, getToken, history);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: result.id,
-          role: 'assistant',
-          content: result.answer,
-          category: result.category,
-          confidence: result.confidence,
-          isStreaming: false,
-          timestamp: new Date(),
+      await sendMessageStream(
+        question,
+        getToken,
+        history,
+        (token) => {
+          if (!placeholderAdded) {
+            placeholderAdded = true;
+            setIsLoading(false);
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: placeholderId,
+                role: 'assistant',
+                content: token,
+                isStreaming: true,
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === placeholderId ? { ...m, content: m.content + token } : m,
+              ),
+            );
+          }
         },
-      ]);
+        (meta) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === placeholderId
+                ? { ...m, id: meta.id, category: meta.category, confidence: meta.confidence, isStreaming: false }
+                : m,
+            ),
+          );
+        },
+        controller.signal,
+      );
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Something went wrong');
+      if (placeholderAdded) {
+        setMessages((prev) => prev.filter((m) => m.id !== placeholderId));
+      }
     } finally {
       setIsLoading(false);
     }

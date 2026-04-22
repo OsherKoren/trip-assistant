@@ -1,6 +1,6 @@
 output "api_url" {
-  description = "API Gateway endpoint URL"
-  value       = module.api_gateway.api_url
+  description = "REST API Gateway endpoint URL (includes stage)"
+  value       = module.rest_api_gateway.api_url
 }
 
 output "agent_lambda_function_name" {

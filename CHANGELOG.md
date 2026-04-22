@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pydantic-settings for validated configuration at startup (`api/app/settings.py`)
 - FastAPI lifespan to wire agent graph dependency once at startup
 - Python code review skill with testing and logging checklists (`.claude/skills/review-python/`)
+- Language guard node rejects non-English (Hebrew) input before classification — zero LLM cost, fixed English-only reply
+- Streaming endpoint `POST /api/messages/stream` — Server-Sent Events (SSE) for token-by-token delivery
+- `[DONE] <json>` SSE event carries message ID, category, and confidence after the last token
+- `[ERROR] <message>` SSE event on agent failure, closes stream cleanly
+- Frontend SSE client parses streaming responses and assembles full message progressively
+- REST API Gateway (replaces HTTP API) with Cognito JWT authorizer and catch-all `{proxy+}` proxy
 
 ### Changed
 - Move storage functions to `api/app/db/` package (feedback.py + messages.py)
@@ -27,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Assistant messages use server-generated UUID instead of client-generated IDs
 - Separate execution mode (`AGENT_MODE`) from environment name (`ENVIRONMENT`)
 - Agent graph dependency wired once at startup via lifespan instead of per-request
+- API Lambda timeout increased from 30s to 60s to accommodate streaming responses
+- Smoke test uses REST API URL and adds `POST /api/messages/stream` stream endpoint check
 
 ### Fixed
 - Google sign-in race condition on mobile OAuth redirect (wait for Hub event before clearing loading state)
@@ -34,3 +42,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message bubbles too narrow on mobile (use 85vw instead of fixed max-width)
 - API Lambda using dev mode instead of Lambda proxy when `ENVIRONMENT=dev` was set by Terraform
 - CORS preflight for JWT-protected API Gateway (explicit POST route instead of $default catch-all)
+- `POST /api/messages/stream` was unreachable in HTTP API (no explicit route) — fixed by REST API catch-all proxy
