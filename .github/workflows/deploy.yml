@@ -1,6 +1,7 @@
 name: Deploy to AWS Lambda
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -57,7 +58,7 @@ jobs:
     name: Deploy Agent
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.agent == 'true'
+    if: needs.changes.outputs.agent == 'true' || github.event_name == 'workflow_dispatch'
     outputs:
       previous_version: ${{ steps.get-previous.outputs.version }}
 
@@ -143,7 +144,7 @@ jobs:
     name: Deploy API
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
     outputs:
       previous_version: ${{ steps.get-previous.outputs.version }}
 
