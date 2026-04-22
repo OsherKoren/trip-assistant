@@ -740,3 +740,33 @@ Add `POST /api/messages/stream` that pushes Server-Sent Events (SSE) to the clie
 **Actual**: All 106 unit tests pass, 12 integration tests ready
 
 **Key Fix**: Token buffering (~100 char chunks) eliminates character-by-character SSE spam. LLM streams produce tiny chunks; without buffering, each becomes a separate event. Module docstring documents the pattern for future developers and AI agents reading the code.
+
+---
+
+## Phase 24: AWS Lambda Web Adapter (LWA) — True Streaming
+
+Replace Mangum with AWS Lambda Web Adapter. Mangum buffers the entire `StreamingResponse` before returning — even with `lifespan="off"`. LWA runs uvicorn inside Lambda and proxies chunks directly via `InvokeWithResponseStreaming`, enabling real SSE delivery to the client.
+
+**How it works**: LWA binary is embedded in the Docker image. It starts uvicorn on port 8080 (or `AWS_LWA_PORT`), intercepts Lambda invocations, and forwards them as HTTP. With `AWS_LWA_INVOKE_MODE=RESPONSE_STREAM`, it streams response chunks back to API Gateway instead of buffering.
+
+### Task 24.1: Update Dockerfile
+- [x] Remove Mangum-based entrypoint (`app.handler.handler`)
+- [x] Add LWA binary via multi-stage: `COPY --from=public.ecr.aws/awsguru/aws-lambda-web-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter`
+- [x] Change `CMD` to run uvicorn directly: `CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]`
+- [x] Switch base image from Lambda base to `python:3.12-slim` (LWA handles Lambda protocol)
+
+### Task 24.2: Remove Mangum
+- [x] Remove `mangum>=0.18` from `pyproject.toml`, add `uvicorn[standard]>=0.32`
+- [x] Delete `app/handler.py` (Mangum wrapper — no longer used)
+- [x] Delete `tests/test_handler.py` (tested Mangum Lambda events — now LWA's responsibility)
+
+### Task 24.3: Update settings (if needed)
+- [x] Verified `app/settings.py` — no handler-specific settings to remove
+- [x] CORS middleware stays in FastAPI (OPTIONS preflight is intercepted by API Gateway MOCK integration before reaching LWA)
+
+### Task 24.4: Verify unit tests
+- [x] `uv run pytest tests/ -v -m "not integration"` — 100 tests pass (6 handler tests removed, none broken)
+- [x] `uv run pre-commit run --all-files` — passes
+
+### Task 24.5: Commit
+- [ ] Commit phase 24 changes

@@ -4,17 +4,16 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.25"
     }
   }
 
   backend "s3" {
-    bucket         = "trip-assistant-terraform-state"
-    key            = "dev/terraform.tfstate"
-    region         = "us-east-2"
-    dynamodb_table = "trip-assistant-terraform-locks"
-    encrypt        = true
-    use_lockfile   = true
+    bucket       = "trip-assistant-terraform-state"
+    key          = "dev/terraform.tfstate"
+    region       = "us-east-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 

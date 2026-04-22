@@ -629,6 +629,35 @@ Migrate from HTTP API Gateway to REST API Gateway and enable Lambda response str
 
 ---
 
+## Phase 24: LWA + REST API Response Streaming
+
+Enable true SSE streaming by upgrading the Terraform AWS provider and switching the REST API integration to `InvokeWithResponseStreaming`. Paired with api Phase 24 (LWA replaces Mangum).
+
+**Why**: Mangum buffers the entire `StreamingResponse`. LWA streams chunks as Lambda produces them. API Gateway must be told to use the streaming invocation path via `response_transfer_mode = "STREAM"` (added to REST API in Nov 2025, requires provider v6.25+).
+
+### Task 24.1: Upgrade Terraform AWS provider
+- [x] Update `infra/main.tf` — changed `version = "~> 5.0"` to `version = "~> 6.25"`
+- [ ] Run `terraform init -upgrade` to pull new provider
+
+### Task 24.2: Update REST API integration for streaming
+- [x] `aws_api_gateway_integration.proxy_any` — added `response_transfer_mode = "STREAMING"`
+- [x] Changed `uri` using `replace(var.lambda_invoke_arn, "/invocations", "/response-streaming-invocations")` — no new variable needed
+
+### Task 24.3: Update API Lambda
+- [x] Verified `lambda:InvokeWithResponseStreaming` already in IAM policy (Phase 23)
+- [x] Added `AWS_LWA_INVOKE_MODE = "RESPONSE_STREAM"` to Lambda environment variables
+
+### Task 24.4: Validate
+- [ ] `terraform init -upgrade`
+- [ ] `terraform fmt -recursive && terraform validate`
+
+### Task 24.5: Apply and verify
+- [ ] `terraform apply`
+- [ ] Smoke test: send question via frontend, verify streaming response arrives token by token (not all at once after delay)
+- [ ] Commit phase 24 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] DB-backed conversation sessions — store messages with `session_id` PK + `created_at` SK, load history from DynamoDB instead of frontend. Enables conversation replay, analytics, and page-refresh resume.

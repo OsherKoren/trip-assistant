@@ -162,6 +162,7 @@ resource "aws_lambda_function" "api" {
       FEEDBACK_EMAIL                 = var.feedback_email
       MESSAGES_TABLE_NAME            = var.messages_table_name
       CACHE_TABLE_NAME               = var.cache_table_name
+      AWS_LWA_INVOKE_MODE            = "RESPONSE_STREAM"
     }
   }
 
