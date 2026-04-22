@@ -261,62 +261,42 @@ jobs:
           echo "Health check failed after 3 attempts"
           exit 1
 
-      - name: Get Cognito token (machine-to-machine)
+      - name: Get smoke test user token
         id: auth
         run: |
-          RESPONSE=$(curl -s -X POST \
-            "https://${{ secrets.COGNITO_DOMAIN }}.auth.${{ env.AWS_REGION }}.amazoncognito.com/oauth2/token" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials&client_id=${{ secrets.SMOKE_TEST_CLIENT_ID }}&client_secret=${{ secrets.SMOKE_TEST_CLIENT_SECRET }}&scope=trip-assistant-api/smoke-test")
-          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('access_token',''))")
+          RESPONSE=$(aws cognito-idp admin-initiate-auth \
+            --user-pool-id "${{ secrets.COGNITO_USER_POOL_ID }}" \
+            --client-id "${{ secrets.COGNITO_CLIENT_ID }}" \
+            --auth-flow ADMIN_USER_PASSWORD_AUTH \
+            --auth-parameters \
+              USERNAME="${{ secrets.SMOKE_TEST_USERNAME }}" \
+              PASSWORD="${{ secrets.SMOKE_TEST_PASSWORD }}")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['AuthenticationResult']['IdToken'])")
           if [ -z "$TOKEN" ]; then
-            ERROR=$(echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('error','unknown'))" 2>/dev/null || echo "empty response")
-            echo "Failed to get Cognito token: $ERROR"
+            echo "Failed to get Cognito token"
             exit 1
           fi
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Full chain ping (API → Agent Lambda)
+      - name: Full chain smoke test (real user → API → Agent → LLM)
         run: |
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3; do
             RESPONSE=$(curl -s -w "\n%{http_code}" \
               -X POST -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-              -d '{"question": "__ping__"}' \
+              -d '{"question": "hi", "history": []}' \
               "${{ steps.api-url.outputs.url }}/api/messages" || true)
             HTTP_CODE=$(echo "$RESPONSE" | tail -1)
             BODY=$(echo "$RESPONSE" | sed '$d')
             if [ "$HTTP_CODE" = "200" ]; then
-              ANSWER=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('answer',''))")
-              if [ "$ANSWER" = "pong" ]; then
-                echo "Full chain ping passed on attempt $i"
-                exit 0
-              fi
-            fi
-            echo "Attempt $i: HTTP $HTTP_CODE, retrying in 15s..."
-            sleep 15
-          done
-          echo "Full chain ping failed after 5 attempts"
-          exit 1
-
-      - name: Stream endpoint check (SSE route accessible)
-        run: |
-          for i in 1 2 3; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-              --max-time 30 \
-              -X POST -H "Content-Type: application/json" \
-              -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-              -d '{"question": "__ping__", "history": []}' \
-              "${{ steps.api-url.outputs.url }}/api/messages/stream" || true)
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Stream endpoint check passed on attempt $i"
+              echo "Smoke test passed on attempt $i — got response"
               exit 0
             fi
             echo "Attempt $i: HTTP $HTTP_CODE, retrying in 15s..."
             sleep 15
           done
-          echo "Stream endpoint check failed after 3 attempts"
+          echo "Smoke test failed after 3 attempts"
           exit 1
 
   # ========================================

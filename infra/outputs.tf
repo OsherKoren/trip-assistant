@@ -58,18 +58,3 @@ output "cognito_user_pool_domain" {
   value       = module.cognito.user_pool_domain
 }
 
-output "cognito_smoke_test_client_id" {
-  description = "Client ID for CI/CD smoke test"
-  value       = module.cognito.smoke_test_client_id
-}
-
-output "cognito_smoke_test_client_secret" {
-  description = "Client secret for CI/CD smoke test (store in GitHub Secrets)"
-  value       = module.cognito.smoke_test_client_secret
-  sensitive   = true
-}
-
-output "cognito_token_endpoint" {
-  description = "Cognito OAuth2 token endpoint"
-  value       = module.cognito.token_endpoint
-}
