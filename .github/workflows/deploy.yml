@@ -269,9 +269,7 @@ jobs:
             --user-pool-id "${{ secrets.COGNITO_USER_POOL_ID }}" \
             --client-id "${{ secrets.COGNITO_CLIENT_ID }}" \
             --auth-flow ADMIN_USER_PASSWORD_AUTH \
-            --auth-parameters \
-              USERNAME="${{ secrets.SMOKE_TEST_USERNAME }}" \
-              PASSWORD="${{ secrets.SMOKE_TEST_PASSWORD }}")
+            --auth-parameters "USERNAME=${{ secrets.SMOKE_TEST_USERNAME }},PASSWORD=${{ secrets.SMOKE_TEST_PASSWORD }}")
           TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['AuthenticationResult']['IdToken'])")
           if [ -z "$TOKEN" ]; then
             echo "Failed to get Cognito token"
