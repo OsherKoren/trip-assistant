@@ -4,6 +4,7 @@
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+*.auto.tfvars
 tfplan
 *.tfplan
 
