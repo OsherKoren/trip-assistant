@@ -3,9 +3,11 @@
 Initializes the FastAPI app with CORS, request tracing, and routers.
 """
 
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import boto3
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,6 +16,15 @@ from app.logger import logger
 from app.middleware import add_request_id_header
 from app.routers import feedback, health, messages, stream
 from app.settings import get_settings
+
+
+def _fetch_openai_key(ssm_parameter_name: str) -> None:
+    """Load OpenAI key from SSM if not already in environment (cold start only)."""
+    if ssm_parameter_name and "OPENAI_API_KEY" not in os.environ:
+        ssm = boto3.client("ssm")
+        response = ssm.get_parameter(Name=ssm_parameter_name, WithDecryption=True)
+        os.environ["OPENAI_API_KEY"] = response["Parameter"]["Value"]
+        logger.info("OpenAI API key loaded from SSM")
 
 
 @asynccontextmanager
@@ -25,12 +36,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         environment=settings.environment,
         agent_mode=settings.agent_mode,
     )
+    if settings.agent_mode == "local":
+        _fetch_openai_key(settings.ssm_parameter_name)
     graph = build_graph(
         settings.agent_mode,
         settings.agent_lambda_function_name,
         settings.aws_region,
     )
-    stream_graph = build_stream_graph(settings.agent_mode, graph, settings.stream_buffer_size)
+    stream_graph = build_stream_graph(
+        settings.agent_mode,
+        settings.stream_buffer_size,
+        settings.agent_lambda_function_name,
+        settings.aws_region,
+    )
     app.dependency_overrides[get_graph] = lambda: graph
     app.dependency_overrides[get_stream_graph] = lambda: stream_graph
     yield

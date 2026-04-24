@@ -202,40 +202,83 @@ class LocalStreamGraph:
 
 
 class LambdaStreamGraph:
-    """Lambda 'streaming': calls ainvoke normally and yields the full answer as a single chunk.
+    """Streams tokens from the agent Lambda via InvokeWithResponseStream.
 
-    Real token-by-token streaming across Lambda boundaries requires
-    InvokeWithResponseStream (infra Phase 23). Until then, this collects
-    the complete response first and emits it as one SSE event.
+    The agent Lambda exposes a streaming endpoint (POST / with ``__stream=True``).
+    Tokens arrive as NDJSON lines:
+      {"type": "token",  "content": "..."}    — incremental LLM token
+      {"type": "done",   "category": "...", "confidence": 0.0}  — stream complete
     """
 
-    def __init__(self, proxy: AgentGraphProtocol) -> None:
-        self._proxy = proxy
+    def __init__(self, function_name: str, region: str = "us-east-2") -> None:
+        self.function_name = function_name
+        self.region = region
 
     async def astream(self, state: dict[str, Any]) -> AsyncGenerator[str | StreamDone, None]:
-        result = await self._proxy.ainvoke(state)
-        yield result.get("answer", "")
-        yield StreamDone(result)
+        payload = {**state, "__stream": True}
+        try:
+            session = aioboto3.Session()
+            async with session.client("lambda", region_name=self.region) as lambda_client:
+                response = await lambda_client.invoke_with_response_stream(
+                    FunctionName=self.function_name,
+                    Payload=json.dumps(payload).encode("utf-8"),
+                )
+                buffer = b""
+                async for event in response["EventStream"]:
+                    if "PayloadChunk" not in event:
+                        continue
+                    buffer += event["PayloadChunk"]["Payload"]
+                    while b"\n" in buffer:
+                        line, buffer = buffer.split(b"\n", 1)
+                        if not line.strip():
+                            continue
+                        item: dict[str, Any] = json.loads(line)
+                        if item["type"] == "token":
+                            yield item["content"]
+                        elif item["type"] == "done":
+                            yield StreamDone(
+                                {
+                                    "category": item.get("category", "general"),
+                                    "confidence": item.get("confidence", 0.0),
+                                }
+                            )
+        except Exception as e:
+            logger.error(
+                "Agent Lambda streaming failed",
+                function_name=self.function_name,
+                error=str(e),
+            )
+            raise HTTPException(
+                status_code=500,
+                detail="Agent processing failed. Please try again later.",
+            ) from e
 
 
 def build_stream_graph(
     agent_mode: str,
-    graph: AgentGraphProtocol,
     buffer_size: int = 100,
+    function_name: str = "",
+    region: str = "us-east-2",
 ) -> StreamGraphProtocol:
     """Build the streaming graph wrapper (called once at startup).
 
     Args:
-        agent_mode: "local" for astream_events, "lambda" for single-chunk via ainvoke.
-        graph: The already-built agent graph or Lambda proxy.
-        buffer_size: Characters to buffer before yielding SSE chunks (default 100).
+        agent_mode: "local" for astream_events, "lambda" for InvokeWithResponseStream.
+        buffer_size: Characters to buffer before yielding SSE chunks (local mode only).
+        function_name: Agent Lambda function name (required when agent_mode="lambda").
+        region: AWS region for Lambda invocation.
 
     Returns:
         StreamGraphProtocol implementation appropriate for the mode.
     """
     if agent_mode == "lambda":
-        logger.info("Stream graph: Lambda proxy (single-chunk mode)")
-        return LambdaStreamGraph(graph)
+        if not function_name:
+            raise RuntimeError("AGENT_LAMBDA_FUNCTION_NAME must be set when AGENT_MODE=lambda")
+        logger.info(
+            "Stream graph: Lambda InvokeWithResponseStream",
+            function_name=function_name,
+        )
+        return LambdaStreamGraph(function_name=function_name, region=region)
 
     logger.info("Stream graph: local astream_events", buffer_size=buffer_size)
     return LocalStreamGraph(buffer_size=buffer_size)

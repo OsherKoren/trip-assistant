@@ -64,6 +64,8 @@ module "api_lambda" {
   messages_table_arn         = module.messages_dynamodb.table_arn
   cache_table_name           = module.cache_dynamodb.table_name
   cache_table_arn            = module.cache_dynamodb.table_arn
+  ssm_parameter_arn          = module.ssm.parameter_arn
+  ssm_parameter_name         = module.ssm.parameter_name
 }
 
 module "rest_api_gateway" {

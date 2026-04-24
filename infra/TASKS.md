@@ -658,6 +658,38 @@ Enable true SSE streaming by upgrading the Terraform AWS provider and switching 
 
 ---
 
+## Phase 25: Pattern B — API Lambda Bundles Agent (Single Lambda)
+
+**Architecture decision**: The API Lambda is the only Lambda in the hot path. It bundles `agent/src/` and `agent/data/` in its container image (`AGENT_MODE=local`) and streams tokens in-process. The agent Lambda stays deployed but is no longer called at runtime.
+
+**Changes needed**:
+1. Revert agent Lambda LWA env vars added in error (not used in Pattern B)
+2. API Lambda gets SSM read permission and `SSM_PARAMETER_NAME` env var (so it can fetch the OpenAI key on cold start)
+3. API Lambda gets `AGENT_MODE=local` env var (already the default, but explicit)
+
+### Task 25.1: Revert agent Lambda env vars (added by mistake for two-Lambda approach)
+- [ ] Remove `AWS_LWA_INVOKE_MODE = "RESPONSE_STREAM"` from `infra/modules/agent-lambda/main.tf`
+- [ ] Remove `PORT = "8000"` from env block
+- [ ] Revert `timeout` from 60 back to 30
+
+### Task 25.2: Add SSM permission to API Lambda
+- [ ] Edit `infra/modules/api-lambda/variables.tf`
+  - [ ] Add `ssm_parameter_arn` (string) variable
+  - [ ] Add `ssm_parameter_name` (string) variable
+- [ ] Edit `infra/modules/api-lambda/main.tf`
+  - [ ] Add IAM inline policy: `ssm:GetParameter` on `var.ssm_parameter_arn`
+  - [ ] Add `SSM_PARAMETER_NAME = var.ssm_parameter_name` to Lambda environment variables
+  - [ ] Add `AGENT_MODE = "local"` to Lambda environment variables
+
+### Task 25.3: Wire SSM outputs to API Lambda in root main.tf
+- [ ] Edit `infra/main.tf` — pass `module.ssm.parameter_arn` and `module.ssm.parameter_name` to `module "api_lambda"`
+
+### Task 25.4: Validate
+- [ ] `terraform fmt -recursive && terraform validate`
+- [ ] Commit phase 25 changes
+
+---
+
 ## Future Tasks (Not in Scope)
 
 - [ ] DB-backed conversation sessions — store messages with `session_id` PK + `created_at` SK, load history from DynamoDB instead of frontend. Enables conversation replay, analytics, and page-refresh resume.

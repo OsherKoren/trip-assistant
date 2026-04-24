@@ -105,6 +105,23 @@ resource "aws_iam_role_policy" "cache_dynamodb" {
   })
 }
 
+# SSM GetParameter permission to read the OpenAI API key at cold start (AGENT_MODE=local)
+resource "aws_iam_role_policy" "ssm_read" {
+  name = "${var.project_name}-api-${var.environment}-ssm"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ssm:GetParameter"
+        Resource = var.ssm_parameter_arn
+      }
+    ]
+  })
+}
+
 # Allow API Gateway to invoke this Lambda with response streaming (forward prep for true SSE streaming)
 resource "aws_iam_role_policy" "streaming_invoke" {
   name = "${var.project_name}-api-${var.environment}-streaming-invoke"
@@ -153,16 +170,15 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      ENVIRONMENT                    = var.environment
-      AGENT_MODE                     = "lambda"
-      AGENT_LAMBDA_FUNCTION_NAME     = var.agent_lambda_function_name
-      AWS_LAMBDA_EXEC_WRAPPER_REGION = var.aws_region
-      ALLOWED_ORIGINS                = var.frontend_url
-      FEEDBACK_TABLE_NAME            = var.feedback_table_name
-      FEEDBACK_EMAIL                 = var.feedback_email
-      MESSAGES_TABLE_NAME            = var.messages_table_name
-      CACHE_TABLE_NAME               = var.cache_table_name
-      AWS_LWA_INVOKE_MODE            = "RESPONSE_STREAM"
+      ENVIRONMENT         = var.environment
+      AGENT_MODE          = "local"
+      SSM_PARAMETER_NAME  = var.ssm_parameter_name
+      ALLOWED_ORIGINS     = var.frontend_url
+      FEEDBACK_TABLE_NAME = var.feedback_table_name
+      FEEDBACK_EMAIL      = var.feedback_email
+      MESSAGES_TABLE_NAME = var.messages_table_name
+      CACHE_TABLE_NAME    = var.cache_table_name
+      AWS_LWA_INVOKE_MODE = "RESPONSE_STREAM"
     }
   }
 

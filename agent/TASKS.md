@@ -351,6 +351,35 @@ Enable the graph to stream LangGraph token chunks so the API layer can forward t
 
 ---
 
+## Phase 25: Pattern B — Revert LWA, Agent Bundled into API Lambda
+
+**Architecture decision**: The agent is NOT deployed as a separate LWA FastAPI server. Instead, the API Lambda bundles `agent/src/` and `agent/data/` directly and runs `AGENT_MODE=local` — true in-process streaming with zero Lambda-to-Lambda overhead. This is the pattern AWS itself recommends for serverless LLM streaming (single Lambda + LWA).
+
+**What this means for the agent service**: The agent remains a pure LangGraph package (`src/`). No FastAPI server, no LWA, no uvicorn. The agent Lambda stays deployed as-is for backwards compatibility but is no longer in the hot path.
+
+### Task 25.1: Revert agent/app/ (LWA FastAPI server — not used in Pattern B)
+- [x] Delete `agent/app/__init__.py`
+- [x] Delete `agent/app/main.py`
+- [x] Delete `agent/tests/test_app.py`
+
+### Task 25.2: Revert pyproject.toml
+- [x] Remove `fastapi>=0.115`, `uvicorn[standard]>=0.32` from runtime dependencies
+- [x] Remove `httpx>=0.27` from dev dependencies
+- [x] Remove `"app"` from `packages` list
+
+### Task 25.3: Revert Dockerfile (back to Lambda RIC base image)
+- [x] Restore `FROM public.ecr.aws/lambda/python:3.12` base image
+- [x] Remove LWA binary COPY instruction
+- [x] Restore Lambda RIC entrypoint (`CMD ["handler.handler"]`)
+
+### Task 25.4: Verify agent is unchanged
+- [ ] `cd agent && uv pip install -e ".[dev]"`
+- [ ] `uv run pytest tests/ -v -m "not integration"` — all tests pass (no app tests)
+- [ ] `uv run pre-commit run --all-files` — passes
+- [ ] Commit phase 25 changes
+
+---
+
 ## Completion Criteria
 
 - [x] Phase 1-5 completed (Core agent functionality)
