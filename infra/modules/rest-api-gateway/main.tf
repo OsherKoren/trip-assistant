@@ -47,7 +47,8 @@ resource "aws_api_gateway_integration" "health_get" {
   http_method             = aws_api_gateway_method.health_get.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = var.lambda_invoke_arn
+  uri                     = replace(replace(var.lambda_invoke_arn, "2015-03-31", "2021-11-15"), "/invocations", "/response-streaming-invocations")
+  response_transfer_mode  = "STREAM"
 }
 
 # --- Catch-all proxy: ANY /{proxy+} (Cognito auth) ---
@@ -160,6 +161,8 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_resource.health.id,
       aws_api_gateway_method.health_get.id,
       aws_api_gateway_integration.health_get.id,
+      aws_api_gateway_integration.health_get.uri,
+      aws_api_gateway_integration.health_get.response_transfer_mode,
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_any.id,
       aws_api_gateway_integration.proxy_any.id,
