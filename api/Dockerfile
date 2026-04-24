@@ -18,18 +18,11 @@ RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
     uv pip install --no-cache .
 
-# Install agent runtime dependencies (langgraph, langchain-openai, etc.)
-COPY agent/pyproject.toml /build/agent-pyproject.toml
-COPY agent/src/ /build/agent-src/
-COPY agent/data/ /build/agent-data/
+# Install agent runtime dependencies from its pyproject.toml
+COPY agent/ /build/agent/
 
 RUN . /opt/venv/bin/activate && \
-    uv pip install --no-cache \
-        "langgraph>=1.0" \
-        "langchain-openai>=0.3" \
-        "pydantic>=2.0" \
-        "loguru>=0.7" \
-        "boto3>=1.34"
+    uv pip install --no-cache /build/agent
 
 # --- Runtime Stage ---
 FROM public.ecr.aws/docker/library/python:3.12-slim
