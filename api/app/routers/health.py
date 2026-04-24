@@ -14,8 +14,8 @@ router = APIRouter(tags=["health"])
 async def health_check() -> StreamingResponse:
     """Health check endpoint for Lambda warm-up and monitoring.
 
-    Returns a StreamingResponse so LWA 1.0.0 uses its streaming code path,
-    which produces a valid Lambda proxy response. Plain JSON responses cause
+    Uses text/event-stream so LWA 1.0.0 uses its binary streaming code path,
+    which produces a valid Lambda proxy response. Non-SSE content types cause
     LWA to emit two concatenated JSON objects, resulting in a 502 from API GW.
     """
     body = HealthResponse(
@@ -27,4 +27,4 @@ async def health_check() -> StreamingResponse:
     async def generate() -> AsyncGenerator[str, None]:
         yield body
 
-    return StreamingResponse(generate(), media_type="application/json")
+    return StreamingResponse(generate(), media_type="text/event-stream")
