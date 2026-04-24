@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Use correct Lambda context attribute `aws_request_id` (was `request_id`)
+- Health endpoint returning 502 from API Gateway: LWA 1.0.0 in RESPONSE_STREAM mode only uses its valid binary streaming format for `text/event-stream` responses; switching the health `StreamingResponse` to `media_type="text/event-stream"` restores the correct code path
 
 ## [0.1.0] - 2026-02-12
 
