@@ -10,6 +10,8 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
+from app.cache import hash_question, normalize_question
+from app.db.cache import store_cached_response
 from app.db.messages import store_message
 from app.dependencies import StreamDone, StreamGraphProtocol, get_stream_graph
 from app.logger import logger
@@ -101,24 +103,51 @@ async def _sse_generator(
         }
         yield format_sse_event(f"[DONE] {json.dumps(done_payload)}")
 
-        # Store message best-effort (after stream completes)
+        # Store message and cache best-effort (after stream completes)
         assembled_answer = "".join(assembled)
         if assembled_answer:
+            created_at = datetime.now(UTC).isoformat()
+            category = final_state.get("category", "general")
+            confidence = Decimal(str(final_state.get("confidence", 0.0)))
+            source = final_state.get("source") or ""
+
             try:
                 message_item: dict[str, Any] = {
                     "id": message_id,
-                    "created_at": datetime.now(UTC).isoformat(),
+                    "created_at": created_at,
                     "question": question,
                     "answer": assembled_answer,
-                    "category": final_state.get("category", "general"),
-                    "confidence": Decimal(str(final_state.get("confidence", 0.0))),
-                    "source": final_state.get("source") or "",
+                    "category": category,
+                    "confidence": confidence,
+                    "source": source,
                 }
                 await store_message(settings.messages_table_name, settings.aws_region, message_item)
             except Exception as e:
                 logger.exception(
                     "Failed to store streamed message",
                     message_id=message_id,
+                    error_type=type(e).__name__,
+                )
+
+            try:
+                normalized = normalize_question(question)
+                question_hash = hash_question(normalized)
+                cache_item: dict[str, Any] = {
+                    "question_hash": question_hash,
+                    "question": question,
+                    "answer": assembled_answer,
+                    "category": category,
+                    "confidence": confidence,
+                    "source": source,
+                    "created_at": created_at,
+                }
+                await store_cached_response(
+                    settings.cache_table_name, settings.aws_region, cache_item
+                )
+            except Exception as e:
+                logger.exception(
+                    "Failed to store streamed cache entry",
+                    question_hash=question_hash[:12],
                     error_type=type(e).__name__,
                 )
 
