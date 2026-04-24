@@ -42,10 +42,13 @@ export async function parseSSEStream(
     buffer = parts.pop() ?? '';
 
     for (const part of parts) {
-      const line = part.trim();
-      if (!line.startsWith('data:')) continue;
-      const raw = line.slice(5);
-      const data = raw.startsWith(' ') ? raw.slice(1) : raw;
+      // Collect all data: lines in the event (SSE spec allows multi-line data)
+      const dataLines = part.split('\n').filter(l => l.startsWith('data:'));
+      if (dataLines.length === 0) continue;
+      const data = dataLines
+        .map(l => l.slice(5))
+        .map(s => (s.startsWith(' ') ? s.slice(1) : s))
+        .join('\n');
       if (data.startsWith('[DONE]')) {
         onDone(JSON.parse(data.slice(6).trim()));
       } else if (data.startsWith('[ERROR]')) {
