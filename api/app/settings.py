@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     agent_mode: Literal["local", "lambda"] = "local"
     agent_lambda_function_name: str = ""
     aws_region: str = "us-east-2"
+    ssm_parameter_name: str = ""
     allowed_origins: str = "http://localhost:3000,http://localhost:5173"
     feedback_table_name: str = ""
     feedback_email: str = ""

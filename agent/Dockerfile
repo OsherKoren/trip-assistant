@@ -1,30 +1,17 @@
-# Multi-stage build for Trip Assistant Agent (Lambda container image)
-# Uses AWS Lambda base image which includes the Runtime Interface Client
+# Lambda container image for Trip Assistant Agent
+# Uses the AWS Lambda Python runtime (RIC) — standard pattern for Python Lambda containers
 
-# --- Builder Stage (same base as runtime to match glibc for native extensions) ---
-FROM public.ecr.aws/lambda/python:3.12 AS builder
-
-WORKDIR /build
-
-# Install uv for fast dependency management
-RUN pip install --no-cache-dir uv
-
-# Copy dependency files
-COPY pyproject.toml uv.lock* ./
-
-# Install dependencies to a virtual environment
-RUN uv venv /opt/venv && \
-    . /opt/venv/bin/activate && \
-    uv pip install --no-cache .
-
-# --- Runtime Stage (AWS Lambda base image includes RIC/RIE) ---
 FROM public.ecr.aws/lambda/python:3.12
 
-COPY --from=builder /opt/venv/lib/python3.12/site-packages ${LAMBDA_TASK_ROOT}/
-COPY src/ ${LAMBDA_TASK_ROOT}/src/
-COPY data/ ${LAMBDA_TASK_ROOT}/data/
-COPY handler.py ${LAMBDA_TASK_ROOT}/
+WORKDIR ${LAMBDA_TASK_ROOT}
 
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+RUN pip install --no-cache-dir uv
+
+COPY pyproject.toml uv.lock* ./
+COPY src/ ./src/
+COPY data/ ./data/
+COPY handler.py ./
+
+RUN uv pip install --system --no-cache .
 
 CMD ["handler.handler"]

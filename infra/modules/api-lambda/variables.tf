@@ -74,3 +74,13 @@ variable "cache_table_arn" {
   type        = string
   default     = ""
 }
+
+variable "ssm_parameter_arn" {
+  description = "ARN of the SSM parameter holding the OpenAI API key"
+  type        = string
+}
+
+variable "ssm_parameter_name" {
+  description = "Name of the SSM parameter holding the OpenAI API key"
+  type        = string
+}
