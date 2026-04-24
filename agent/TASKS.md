@@ -373,10 +373,9 @@ Enable the graph to stream LangGraph token chunks so the API layer can forward t
 - [x] Restore Lambda RIC entrypoint (`CMD ["handler.handler"]`)
 
 ### Task 25.4: Verify agent is unchanged
-- [ ] `cd agent && uv pip install -e ".[dev]"`
-- [ ] `uv run pytest tests/ -v -m "not integration"` — all tests pass (no app tests)
-- [ ] `uv run pre-commit run --all-files` — passes
-- [ ] Commit phase 25 changes
+- [x] `uv run pytest tests/ -v -m "not integration"` — 92 tests pass (no app tests)
+- [x] `uv run pre-commit run --all-files` — passes
+- [x] Commit phase 25 changes
 
 ---
 

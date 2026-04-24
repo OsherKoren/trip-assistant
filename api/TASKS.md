@@ -785,27 +785,27 @@ Browser ← SSE ← API Lambda (LWA, AGENT_MODE=local) ← LLM tokens
 **Why Pattern B**: Single Lambda removes one network hop, eliminates InvokeWithResponseStream complexity, and is AWS's own recommended pattern for serverless LLM streaming. The `LambdaStreamGraph` code stays (unused in local mode) for future use.
 
 ### Task 25.1: Add ssm_parameter_name to settings
-- [ ] Edit `api/app/settings.py` — add `ssm_parameter_name: str = ""`
+- [x] Edit `api/app/settings.py` — add `ssm_parameter_name: str = ""`
 
 ### Task 25.2: Fetch OpenAI key from SSM at API Lambda startup
-- [ ] Edit `api/app/main.py`
-  - [ ] Add `_fetch_openai_key(ssm_parameter_name)` helper — same SSM lazy-load pattern as agent handler.py; sets `OPENAI_API_KEY` env var
-  - [ ] Call it in `lifespan` before `build_graph()` when `settings.agent_mode == "local"` and `settings.ssm_parameter_name` is set
+- [x] Edit `api/app/main.py`
+  - [x] Add `_fetch_openai_key(ssm_parameter_name)` helper — same SSM lazy-load pattern as agent handler.py; sets `OPENAI_API_KEY` env var
+  - [x] Call it in `lifespan` before `build_graph()` when `settings.agent_mode == "local"` and `settings.ssm_parameter_name` is set
 
 ### Task 25.3: Update Dockerfile (build context = repo root)
-- [ ] Change `COPY . .` to also include `agent/src/` and `agent/data/`
-  - [ ] `COPY agent/src/ /var/task/src/`
-  - [ ] `COPY agent/data/ /var/task/data/`
-  - [ ] Install agent runtime deps (langgraph, langchain-openai, etc.) from `agent/pyproject.toml`
-  - [ ] Set `ENV PYTHONPATH=/var/task` so `from src.graph import graph` finds `/var/task/src/`
-  - [ ] Set `ENV AGENT_MODE=local`
-- [ ] **Note**: Dockerfile build context must be repo root (`docker build -f api/Dockerfile .`)
+- [x] Change `COPY . .` to also include `agent/src/` and `agent/data/`
+  - [x] `COPY agent/src/ /var/task/src/`
+  - [x] `COPY agent/data/ /var/task/data/`
+  - [x] Install agent runtime deps (langgraph, langchain-openai, etc.) from `agent/pyproject.toml`
+  - [x] Set `ENV PYTHONPATH=/var/task` so `from src.graph import graph` finds `/var/task/src/`
+  - [x] Set `ENV AGENT_MODE=local`
+- [x] **Note**: Dockerfile build context must be repo root (`docker build -f api/Dockerfile .`)
 
 ### Task 25.4: Update deploy workflow
-- [ ] Edit `.github/workflows/deploy.yml`
-  - [ ] Change API image build step: `docker build api/` → `docker build -f api/Dockerfile .` (repo root context)
+- [x] Edit `.github/workflows/deploy.yml`
+  - [x] Change API image build step: `docker build api/` → `docker build -f api/Dockerfile .` (repo root context)
 
 ### Task 25.5: Verify tests still pass
-- [ ] `cd api && uv run pytest tests/ -v -m "not integration"` — all tests pass
-- [ ] `uv run pre-commit run --all-files` — passes
-- [ ] Commit phase 25 changes
+- [x] `uv run pytest tests/ -v -m "not integration"` — 100 tests pass
+- [x] `uv run pre-commit run --all-files` — passes
+- [x] Commit phase 25 changes

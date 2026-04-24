@@ -668,25 +668,25 @@ Enable true SSE streaming by upgrading the Terraform AWS provider and switching 
 3. API Lambda gets `AGENT_MODE=local` env var (already the default, but explicit)
 
 ### Task 25.1: Revert agent Lambda env vars (added by mistake for two-Lambda approach)
-- [ ] Remove `AWS_LWA_INVOKE_MODE = "RESPONSE_STREAM"` from `infra/modules/agent-lambda/main.tf`
-- [ ] Remove `PORT = "8000"` from env block
-- [ ] Revert `timeout` from 60 back to 30
+- [x] Remove `AWS_LWA_INVOKE_MODE = "RESPONSE_STREAM"` from `infra/modules/agent-lambda/main.tf`
+- [x] Remove `PORT = "8000"` from env block
+- [x] Revert `timeout` from 60 back to 30
 
 ### Task 25.2: Add SSM permission to API Lambda
-- [ ] Edit `infra/modules/api-lambda/variables.tf`
-  - [ ] Add `ssm_parameter_arn` (string) variable
-  - [ ] Add `ssm_parameter_name` (string) variable
-- [ ] Edit `infra/modules/api-lambda/main.tf`
-  - [ ] Add IAM inline policy: `ssm:GetParameter` on `var.ssm_parameter_arn`
-  - [ ] Add `SSM_PARAMETER_NAME = var.ssm_parameter_name` to Lambda environment variables
-  - [ ] Add `AGENT_MODE = "local"` to Lambda environment variables
+- [x] Edit `infra/modules/api-lambda/variables.tf`
+  - [x] Add `ssm_parameter_arn` (string) variable
+  - [x] Add `ssm_parameter_name` (string) variable
+- [x] Edit `infra/modules/api-lambda/main.tf`
+  - [x] Add IAM inline policy: `ssm:GetParameter` on `var.ssm_parameter_arn`
+  - [x] Add `SSM_PARAMETER_NAME = var.ssm_parameter_name` to Lambda environment variables
+  - [x] Add `AGENT_MODE = "local"` to Lambda environment variables
 
 ### Task 25.3: Wire SSM outputs to API Lambda in root main.tf
-- [ ] Edit `infra/main.tf` — pass `module.ssm.parameter_arn` and `module.ssm.parameter_name` to `module "api_lambda"`
+- [x] Edit `infra/main.tf` — pass `module.ssm.parameter_arn` and `module.ssm.parameter_name` to `module "api_lambda"`
 
 ### Task 25.4: Validate
-- [ ] `terraform fmt -recursive && terraform validate`
-- [ ] Commit phase 25 changes
+- [x] `terraform fmt -recursive && terraform validate`
+- [x] Commit phase 25 changes
 
 ---
 
