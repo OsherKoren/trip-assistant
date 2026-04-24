@@ -23,13 +23,17 @@ router = APIRouter(tags=["messages"])
 def format_sse_event(data: str) -> str:
     """Format data as a Server-Sent Event (SSE) message.
 
+    Multi-line data uses repeated ``data:`` fields per the SSE spec so that
+    embedded newlines never collide with the ``\\n\\n`` event terminator.
+
     Args:
         data: The event data to format.
 
     Returns:
-        Properly formatted SSE message: `data: {data}\n\n`
+        Properly formatted SSE message with a trailing blank line.
     """
-    return f"data: {data}\n\n"
+    lines = data.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    return "".join(f"data: {line}\n" for line in lines) + "\n"
 
 
 @router.post("/messages/stream")
