@@ -35,12 +35,11 @@ def format_history(history: list[HistoryEntry], max_turns: int = 10) -> str:
 SPECIALIST_PROMPT_TEMPLATE = """Answer the following question about {topic} using only the provided context.
 
 Trip timeline reference:
-- Day 1: July 7 (arrival/car rental)
-- Days 2-4: July 8-10 (Aosta Valley)
-- Day 5: July 11 (travel day)
-- Days 6-10: July 12-16 (Chamonix)
-- Days 10-12: July 16-18 (Annecy)
-- Day 13: July 19 (Annecy → Geneva)
+- Day 1: July 7 (arrival/car rental in Geneva)
+- Days 2-4: July 8-10 (Aosta Valley — Aosta Days 1-3)
+- Days 5-9: July 11-15 (Chamonix — Chamonix Days 1-5)
+- Days 10-12: July 16-18 (Annecy — Annecy Days 1-3)
+- Day 13: July 19 (Annecy → Geneva — Geneva Day 1)
 - Day 14: July 20 (departure)
 
 Use this mapping when the user asks about a specific day number or date.
