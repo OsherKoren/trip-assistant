@@ -1,4 +1,4 @@
-Chamonix Area: 12.07 - 16.07 (4 nights)
+Chamonix Area: 11.07 - 16.07 (5 nights)
 
 Accommodation:
 L'alpette
@@ -7,7 +7,7 @@ Address: 920 Rte de la Mollaz, 74170 Saint-Gervais-les-Bains, France
 Complete 5-Day Chamonix Itinerary from Saint-Gervais-les-Bains
 Perfect family plan (2 adults + teens 13/16/17) based in Saint-Gervais (20-min drive to Chamonix). All trails 6-9 km medium difficulty, nature-focused. Drive Aosta -> Saint-Gervais: 95 km via Mont Blanc Tunnel (55 EUR roundtrip).
 
-Day 6 (July 12): Arrival Day - Lake Passy + Gorges du Diosaz (Relaxed Teen Day)
+Day 5 (July 11): Arrival Day - Lake Passy + Gorges du Diosaz (Relaxed Teen Day)
 9:00 AM - 11:00 AM: Drive Aosta -> Chamonix area (95 km, 1.5 hrs).
 11:00 AM - 14:00 PM: Lac de Passy (15-min drive):
 Beach volleyball, paddleboard rental (15 EUR/hr), 4 km lakeside loop
@@ -18,7 +18,7 @@ Suspended metal walkways over 50m gorge + waterfalls
 Vertigo bridges, via ferrata intro (teens love thrill)
 2 km loop (8 EUR/adult, 5 EUR/teens = 26 EUR total)
 
-Day 7 (July 13): Lac Blanc Loop via L'Index -> Cheserys Lakes (7.5 km)
+Day 6 (July 12): Lac Blanc Loop via L'Index -> Cheserys Lakes (7.5 km)
 Drive: Saint-Gervais -> Flegere/INDEX base Les Praz (25 min, P+R 10 EUR)
 08:30 AM: Flegere gondola -> L'Index chairlift (35 EUR/adult RT, 18 EUR/teens = 129 EUR total)
 UP (2.5 km, 1 hr): L'Index (2,590m) -> gravel path -> Combe des Crochues -> Lac Blanc (2,352m)
@@ -31,7 +31,9 @@ RIGHT "Flegere 1h30" -> Tete aux Vents meadows -> Flegere station
 3:30 PM: Gondola down -> Saint-Gervais
 Gear: Hiking boots, poles, 2L water/person.
 
-Day 8 (July 14): Grand Balcon Sud - Flegere -> Brevent Summit (8.5 km)
+Day 7 (July 13): Grand Balcon - Options A or B
+
+Option A: Grand Balcon Sud - Flegere -> Brevent Summit (8.5 km)
 Drive: Saint-Gervais -> Flegere gondola base (25 min)
 9:00 AM: Flegere gondola up (30 EUR/adult RT)
 9:45 AM - 2:00 PM: Grand Balcon Sud south-facing balcony:
@@ -42,7 +44,20 @@ Lunch: Brevent summit panoramic terrace (25 EUR/person)
 3:00 - 5:00 PM: Chamonix village (free bus from valley)
 Evening: Bus Saint-Gervais (30 min total)
 
-Day 9 (July 15): Emosson Dam + Zipline + Vieux-Emosson Hike (Switzerland Full Day)
+Option B: Grand Balcon Nord (7.5 km)
+9:00 AM: Arrive at Chamonix base station (Telepherique Aiguille du Midi)
+9:20 AM: Board cable car -> Plan de l'Aiguille mid-station (2,317m)
+9:30 AM: Side trip to Lac Bleu (15-min easy walk from station)
+10:00 AM: Begin main hike toward Montenvers Mer de Glace
+11:30 AM: Picnic lunch on trail (packed)
+12:15 PM: Climb to Signal Forbes (2,198m): steep 30-min zig-zag stone steps
+12:45 PM: Glacier views at Signal Forbes (Mer de Glace directly below)
+1:15 PM: Descend toward Montenvers train station
+2:00 PM: Montenvers Station (1,913m): gondola + stairs into ice caves (glacier)
+3:30 PM: Montenvers cogwheel train back to Chamonix
+4:00 PM: Back in Chamonix (full evening free)
+
+Day 8 (July 14): Emosson Dam + Zipline + Vieux-Emosson Hike (Switzerland Full Day)
 7:30 AM - Drive Saint-Gervais -> Le Chatelard-Frontiere parking (45 min, free parking available)
 8:15 AM - Arrive ticket office, buy 3-stage VerticAlp return tickets (CHF 161 total family: 2 adults CHF 46 each, 3 teens CHF 23 each)
 8:30-10:00 AM - 3-STAGE TRANSPORT UP:
@@ -68,7 +83,7 @@ Total cost: CHF 161 (trains) + CHF 92 (zipline optional) = CHF 253 (~260 EUR)
 Gear: Hiking boots, poles, swim towels (lake dip possible), 2L water/person, rain jackets, Swiss francs cash
 Perfect teen day: Epic trains + adrenaline zip + alpine hike + Chamonix nightlife. Weatherproof engineering marvel!
 
-Day 10 (July 16): Cirque du Fer-a-Cheval (Epic Finale)
+Day 9 (July 15): Cirque du Fer-a-Cheval (Epic Finale)
 8:00 AM - 5:00 PM: Drive Saint-Gervais -> Sixt-Fer-a-Cheval (45 min)
 Cirque du Fer-a-Cheval trail (8 km loop, 400m up, 3-4 hrs):
 Europe's largest glacial cirque, 500m waterfalls cascade from cliffs
@@ -79,6 +94,7 @@ Evening: Return Saint-Gervais (sleep)
 Family Logistics
 Total hiking: 35 km (7 km avg), all <=9 km, 300-600m elevation
 Tickets: 500 EUR total (gondolas/chairlifts; teens 50% off)
+Cable car multipasses: 2 consecutive days 503 EUR | 3 consecutive days 574 EUR
 Parking: Saint-Gervais hotels include; Chamonix P+R 10 EUR/day
 Gear: Hiking boots, poles, swimwear (Passy), 2L water/day
 Weather: July ideal; check mountain-forecast.com
