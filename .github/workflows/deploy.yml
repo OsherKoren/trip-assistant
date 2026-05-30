@@ -50,6 +50,8 @@ jobs:
               - 'api/Dockerfile'
               - 'api/pyproject.toml'
               - 'api/app/**'
+              - 'agent/src/**'
+              - 'agent/data/**'
 
   # ========================================
   # JOB 1: Deploy Agent Lambda
