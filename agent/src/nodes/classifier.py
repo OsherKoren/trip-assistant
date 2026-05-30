@@ -56,7 +56,7 @@ Available categories:
 - car_rental: Questions about car rental pickup, location, details
 - routes: Questions about driving routes to destinations
 - aosta: Questions about Aosta Valley itinerary (July 8-11)
-- chamonix: Questions about Chamonix itinerary (July 12-16)
+- chamonix: Questions about Chamonix itinerary (July 11-16)
 - annecy_geneva: Questions about Annecy/Geneva itinerary (July 16-20)
 - general: Unclear questions or general trip questions
 
