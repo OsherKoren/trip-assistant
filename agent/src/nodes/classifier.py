@@ -60,6 +60,10 @@ Available categories:
 - annecy_geneva: Questions about Annecy/Geneva itinerary (July 16-20)
 - general: Unclear questions or general trip questions
 
+The trip runs July 7-20, 2026. If the question mentions a specific date or day of the trip,
+classify it by the itinerary segment covering that date (July 8-11 -> aosta,
+July 11-16 -> chamonix, July 16-20 -> annecy_geneva), not as general.
+
 {history_text}Question: {question}
 
 Classify this question and provide a confidence score (0.0-1.0)."""
